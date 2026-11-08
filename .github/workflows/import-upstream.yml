@@ -17,13 +17,14 @@ jobs:
       - name: Verify clean target
         run: |
           test ! -e app || { echo "Source already exists; refusing to overwrite"; exit 1; }
-      - name: Check out NuvioTV source
-        uses: actions/checkout@v4
-        with:
-          repository: NuvioMedia/NuvioTV
-          path: upstream-source
-          persist-credentials: false
-          submodules: false
+      - name: Download NuvioTV source archive
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p upstream-source
+          curl --fail --location --retry 3 --output /tmp/nuvio-source.tar.gz \
+            https://api.github.com/repos/NuvioMedia/NuvioTV/tarball/HEAD
+          tar -xzf /tmp/nuvio-source.tar.gz --strip-components=1 -C upstream-source
       - name: Import source without overwriting project README
         shell: bash
         run: |
