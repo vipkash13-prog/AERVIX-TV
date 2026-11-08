@@ -1,0 +1,34 @@
+name: Import NuvioTV upstream source
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  import:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out AERVIX TV
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: true
+      - name: Verify clean target
+        run: |
+          test ! -e app || { echo "Source already exists; refusing to overwrite"; exit 1; }
+      - name: Check out NuvioTV source
+        uses: actions/checkout@v4
+        with:
+          repository: NuvioMedia/NuvioTV
+          path: upstream-source
+          persist-credentials: false
+      - name: Import source without overwriting project README
+        shell: bash
+        run: |
+          set -euo pipefail
+          rsync -a --exclude='.git' --exclude='.github' --exclude='README.md' upstream-source/ ./
+          rm -rf upstream-source
+          git add -A
+          git -c user.name='github-actions[bot]' -c user.email='41898282+github-actions[bot]@users.noreply.github.com' commit -m 'Import upstream NuvioTV source for AERVIX TV' || exit 0
+          git push
