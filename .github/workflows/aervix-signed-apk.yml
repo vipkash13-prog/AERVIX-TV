@@ -34,10 +34,10 @@ jobs:
           AERVIX_RELEASE_STORE_PASSWORD: ${{ secrets.AERVIX_RELEASE_STORE_PASSWORD }}
         run: |
           chmod +x ./gradlew
-          ./gradlew :app:assembleRelease --stacktrace
+          ./gradlew :app:assembleFullRelease --stacktrace
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
           name: AERVIX-TV-signed-APK
-          path: app/build/outputs/apk/release/*.apk
+          path: app/build/outputs/apk/full/release/*.apk
           if-no-files-found: error
