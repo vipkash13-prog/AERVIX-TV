@@ -18,11 +18,13 @@ jobs:
     env:
       GH_TOKEN: ${{ github.token }}
       GH_REPO: ${{ github.repository }}
-      SOURCE_RUN_ID: '42492025516'
-      RELEASE_TAG: 'aervix-tv-v1.1.0-beta.13-build-42492025516'
+      SOURCE_COMMIT: '5b4e3e15b05dec4baefbcfbd5aea39e0073a1b88'
+      RELEASE_TAG: 'aervix-tv-standalone-20261108'
     steps:
       - name: Download verified successful APK artifact
         run: |
+          SOURCE_RUN_ID="$(gh run list --repo "$GH_REPO" --workflow aervix-signed-apk.yml --status success --limit 30 --json databaseId,headSha --jq '.[] | select(.headSha == env.SOURCE_COMMIT) | .databaseId' | head -n 1)"
+          test -n "$SOURCE_RUN_ID" || { echo "No successful signed APK build found for $SOURCE_COMMIT"; exit 1; }
           mkdir -p downloaded
           gh run download "$SOURCE_RUN_ID" --repo "$GH_REPO" --name AERVIX-TV-signed-APK --dir downloaded
           find downloaded -type f -maxdepth 3 -name '*.apk' -print
@@ -38,7 +40,7 @@ jobs:
           else
             gh release create "$RELEASE_TAG" AERVIX-TV.apk --repo "$GH_REPO" \
               --target "$GITHUB_SHA" \
-              --title "AERVIX TV - First signed APK" \
+              --title "AERVIX TV - Standalone APK" \
               --notes "Signed AERVIX TV fullRelease APK from successful Actions run #$SOURCE_RUN_ID. Direct APK download, no ZIP." \
               --prerelease
           fi
