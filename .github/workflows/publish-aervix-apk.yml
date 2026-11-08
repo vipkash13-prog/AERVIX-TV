@@ -1,0 +1,45 @@
+name: Publish AERVIX TV direct APK
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/publish-aervix-apk.yml'
+
+permissions:
+  actions: read
+  contents: write
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      GH_TOKEN: ${{ github.token }}
+      GH_REPO: ${{ github.repository }}
+      SOURCE_RUN_ID: '42492025516'
+      RELEASE_TAG: 'aervix-tv-v1.1.0-beta.13-build-42492025516'
+    steps:
+      - name: Download verified successful APK artifact
+        run: |
+          mkdir -p downloaded
+          gh run download "$SOURCE_RUN_ID" --repo "$GH_REPO" --name AERVIX-TV-signed-APK --dir downloaded
+          find downloaded -type f -maxdepth 3 -name '*.apk' -print
+          APK_PATH="$(find downloaded -type f -name '*.apk' -print -quit)"
+          test -n "$APK_PATH" || { echo 'No APK in downloaded artifact'; exit 1; }
+          cp "$APK_PATH" AERVIX-TV.apk
+          test -s AERVIX-TV.apk
+          sha256sum AERVIX-TV.apk
+      - name: Publish direct APK in GitHub Release
+        run: |
+          if gh release view "$RELEASE_TAG" --repo "$GH_REPO" >/dev/null 2>&1; then
+            gh release upload "$RELEASE_TAG" AERVIX-TV.apk --clobber --repo "$GH_REPO"
+          else
+            gh release create "$RELEASE_TAG" AERVIX-TV.apk --repo "$GH_REPO" \
+              --target "$GITHUB_SHA" \
+              --title "AERVIX TV - First signed APK" \
+              --notes "Signed AERVIX TV fullRelease APK from successful Actions run #$SOURCE_RUN_ID. Direct APK download, no ZIP." \
+              --prerelease
+          fi
+          echo "Direct download: https://github.com/$GH_REPO/releases/download/$RELEASE_TAG/AERVIX-TV.apk" >> "$GITHUB_STEP_SUMMARY"
