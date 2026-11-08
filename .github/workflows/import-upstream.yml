@@ -23,6 +23,7 @@ jobs:
           repository: NuvioMedia/NuvioTV
           path: upstream-source
           persist-credentials: false
+          submodules: false
       - name: Import source without overwriting project README
         shell: bash
         run: |
