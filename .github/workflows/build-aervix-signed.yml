@@ -2,7 +2,7 @@ name: Build signed AERVIX TV APK
 on:
   workflow_dispatch:
 permissions:
-  contents: read
+  contents: write
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -35,3 +35,13 @@ jobs:
           name: AERVIX-TV-signed-APK
           path: build/app/outputs/flutter-apk/*.apk
           if-no-files-found: error
+      - name: Publish direct APK in GitHub Releases
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          APK=$(find build/app/outputs/flutter-apk -name '*armeabi-v7a*release.apk' -print -quit)
+          test -n "$APK" || { echo "Missing armeabi-v7a APK"; exit 1; }
+          cp "$APK" AERVIX-TV.apk
+          TAG="aervix-build-${GITHUB_RUN_NUMBER}"
+          gh release create "$TAG" AERVIX-TV.apk --title "AERVIX TV build ${GITHUB_RUN_NUMBER}" --notes "Signed Android TV APK (armeabi-v7a). Install/update compatibility requires matching application ID and signing certificate." --latest
