@@ -25,3 +25,6 @@ The active Android activity checks the APK's package, versionCode and signing ce
 Final local validation after adding the updater: 192 tests passed, 4 existing skips; scoped Flutter analysis reported no issues. Update tests verify background checks never download/install without consent, explicit download/install approval, permission retry without re-downloading, exact repository selection, ignoring prerelease/ZIP assets, staged downloads and rejection of unsafe asset paths.
 
 An additional RTL stress test traversed 18 installed-app fixtures left to the final offscreen app and right back to the first, then activated both via Enter/Select; it passed without exceptions. This covers automatic scrolling across a long row on a 1280×720 viewport.
+
+
+Version 1.2.4+4131 corrects the approved image usage: it is the Android app icon, not a home-screen element. Legacy mipmap sizes remain 48/72/96/144/192px. The adaptive foreground has a 24% inset for mask-safe display without stretching. The Android TV banner uses 160x90dp (320x180px at xhdpi), with a centered 80x80dp image. Package, signing secrets and application settings are unchanged.

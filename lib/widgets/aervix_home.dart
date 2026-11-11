@@ -246,15 +246,8 @@ class _AervixHomeState extends State<AervixHome> with WidgetsBindingObserver {
                       left: 35,
                       child: Row(
                         textDirection: TextDirection.ltr,
-                        children: [
-                          Image.asset(
-                            'assets/aervix-icon.jpg',
-                            width: 84,
-                            height: 84,
-                            fit: BoxFit.contain,
-                          ),
-                          const SizedBox(width: 20),
-                          const Text(
+                        children: const [
+                          Text(
                             'AERVIX TV',
                             style: TextStyle(
                               fontSize: 37,
