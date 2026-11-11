@@ -6,6 +6,7 @@ import 'package:http/http.dart' as http;
 import 'package:intl/intl.dart' show DateFormat;
 import 'settings/settings_panel.dart';
 import 'gold_focus_tile.dart';
+import 'design_asset_icon.dart';
 import 'aervix_update_button.dart';
 import '../build_flags.dart';
 import 'package:provider/provider.dart';
@@ -219,9 +220,30 @@ class _AervixHomeState extends State<AervixHome> with WidgetsBindingObserver {
                     Positioned.fill(
                       child: RepaintBoundary(
                         child: Image.asset(
-                          'assets/jeddah-night.png',
+                          'assets/backgrounds/jeddah_background_fhd.png',
                           fit: BoxFit.cover,
                           filterQuality: FilterQuality.medium,
+                        ),
+                      ),
+                    ),
+                    Positioned.fill(
+                      child: IgnorePointer(
+                        child: Image.asset(
+                          'assets/backgrounds/background_overlay.png',
+                          fit: BoxFit.fill,
+                          filterQuality: FilterQuality.low,
+                        ),
+                      ),
+                    ),
+                    Positioned(
+                      left: 0,
+                      right: 0,
+                      bottom: 0,
+                      height: 165,
+                      child: IgnorePointer(
+                        child: Image.asset(
+                          'assets/backgrounds/gold_waves_bottom.png',
+                          fit: BoxFit.fitWidth,
                         ),
                       ),
                     ),
@@ -282,7 +304,10 @@ class _AervixHomeState extends State<AervixHome> with WidgetsBindingObserver {
                                       'android.settings.BLUETOOTH_SETTINGS',
                                     ),
                               ),
-                              child: const Icon(Icons.bluetooth, size: 30),
+                              child: const DesignAssetIcon(
+                                'assets/topbar/icon_bluetooth.png',
+                                size: 36,
+                              ),
                             ),
                           ),
                           const SizedBox(width: 18),
@@ -298,9 +323,9 @@ class _AervixHomeState extends State<AervixHome> with WidgetsBindingObserver {
                                       'android.settings.NOTIFICATION_SETTINGS',
                                     ),
                               ),
-                              child: const Icon(
-                                Icons.notifications_outlined,
-                                size: 30,
+                              child: const DesignAssetIcon(
+                                'assets/topbar/icon_notifications.png',
+                                size: 36,
                               ),
                             ),
                           ),
@@ -312,7 +337,10 @@ class _AervixHomeState extends State<AervixHome> with WidgetsBindingObserver {
                               showLabel: false,
                               label: 'تحديث',
                               onPressed: _refresh,
-                              child: const Icon(Icons.refresh, size: 30),
+                              child: const DesignAssetIcon(
+                                'assets/topbar/icon_refresh.png',
+                                size: 36,
+                              ),
                             ),
                           ),
                           const SizedBox(width: 18),
@@ -324,7 +352,10 @@ class _AervixHomeState extends State<AervixHome> with WidgetsBindingObserver {
                               label: 'الجهاز',
                               onPressed: () =>
                                   _run(FLauncherChannel().openSettings),
-                              child: const Icon(Icons.tune, size: 30),
+                              child: const DesignAssetIcon(
+                                'assets/topbar/icon_display.png',
+                                size: 36,
+                              ),
                             ),
                           ),
                           const SizedBox(width: 18),
@@ -338,7 +369,10 @@ class _AervixHomeState extends State<AervixHome> with WidgetsBindingObserver {
                                 context: context,
                                 builder: (_) => const SettingsPanel(),
                               ),
-                              child: const Icon(Icons.settings, size: 30),
+                              child: const DesignAssetIcon(
+                                'assets/topbar/icon_settings_top.png',
+                                size: 36,
+                              ),
                             ),
                           ),
                           const SizedBox(width: 18),
@@ -350,7 +384,10 @@ class _AervixHomeState extends State<AervixHome> with WidgetsBindingObserver {
                               label: 'Wi-Fi',
                               onPressed: () =>
                                   _run(FLauncherChannel().openWifiSettings),
-                              child: const Icon(Icons.wifi, size: 30),
+                              child: const DesignAssetIcon(
+                                'assets/topbar/icon_wifi.png',
+                                size: 36,
+                              ),
                             ),
                           ),
                         ],
@@ -360,172 +397,224 @@ class _AervixHomeState extends State<AervixHome> with WidgetsBindingObserver {
                       left: 30,
                       top: 116,
                       width: 350,
-                      child: Column(
-                        children: [
-                          _panel(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                FittedBox(
-                                  fit: BoxFit.scaleDown,
-                                  child: Text(
-                                    DateFormat('hh:mm a', 'ar').format(_now),
-                                    textDirection: TextDirection.ltr,
-                                    style: const TextStyle(
-                                      fontSize: 53,
-                                      height: 1.1,
-                                      fontWeight: FontWeight.w600,
-                                    ),
-                                  ),
-                                ),
-                                const SizedBox(height: 12),
-                                Text(
-                                  DateFormat(
-                                    'EEE d MMMM yyyy',
-                                    'ar',
-                                  ).format(_now),
-                                  maxLines: 1,
-                                  overflow: TextOverflow.ellipsis,
-                                  style: const TextStyle(fontSize: 22),
-                                ),
-                              ],
-                            ),
-                          ),
-                          const SizedBox(height: 18),
-                          _panel(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                const Text(
-                                  'جدة  •  الطقس',
-                                  style: TextStyle(
-                                    fontSize: 25,
-                                    fontWeight: FontWeight.bold,
-                                  ),
-                                ),
-                                const SizedBox(height: 8),
-                                Row(
-                                  children: [
-                                    const Icon(
-                                      Icons.cloud_outlined,
-                                      color: aervixGold,
-                                      size: 67,
-                                    ),
-                                    const Spacer(),
-                                    Text(
-                                      _weather == null
-                                          ? '— °C'
-                                          : '${_weather!['temperature_2m']}°C',
+                      child: _fitInformation(
+                        width: 350,
+                        key: const ValueKey('left-information'),
+                        child: Column(
+                          children: [
+                            _panel(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  FittedBox(
+                                    fit: BoxFit.scaleDown,
+                                    child: Text(
+                                      DateFormat('hh:mm a', 'ar').format(_now),
                                       textDirection: TextDirection.ltr,
-                                      style: const TextStyle(fontSize: 45),
+                                      style: const TextStyle(
+                                        fontSize: 53,
+                                        height: 1.1,
+                                        fontWeight: FontWeight.w600,
+                                      ),
                                     ),
-                                  ],
-                                ),
-                                const SizedBox(height: 8),
-                                Text(
-                                  _weatherFailed
-                                      ? 'تعذر تحديث الطقس'
-                                      : _weather == null
-                                      ? 'جارٍ تحديث الطقس…'
-                                      : weatherDescription(
-                                          (_weather!['weather_code'] as num)
-                                              .toInt(),
-                                        ),
-                                  style: const TextStyle(fontSize: 23),
-                                ),
-                                const Divider(color: Colors.white24),
-                                Text(
-                                  _weather == null
-                                      ? 'Open-Meteo'
-                                      : 'رطوبة ${_weather!['relative_humidity_2m']}%   •   رياح ${_weather!['wind_speed_10m']} كم/س',
-                                  style: const TextStyle(fontSize: 17),
-                                ),
-                              ],
+                                  ),
+                                  const SizedBox(height: 12),
+                                  Text(
+                                    DateFormat(
+                                      'EEE d MMMM yyyy',
+                                      'ar',
+                                    ).format(_now),
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                    style: const TextStyle(fontSize: 22),
+                                  ),
+                                ],
+                              ),
                             ),
-                          ),
-                        ],
+                            const SizedBox(height: 18),
+                            _panel(
+                              frame: 'assets/cards/card_weather.png',
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  const Text(
+                                    'جدة  •  الطقس',
+                                    style: TextStyle(
+                                      fontSize: 25,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 8),
+                                  Row(
+                                    children: [
+                                      DesignAssetIcon(
+                                        weatherAssetPath(
+                                          (_weather?['weather_code'] as num?)
+                                              ?.toInt(),
+                                          night:
+                                              _now
+                                                      .toUtc()
+                                                      .add(
+                                                        const Duration(
+                                                          hours: 3,
+                                                        ),
+                                                      )
+                                                      .hour <
+                                                  6 ||
+                                              _now
+                                                      .toUtc()
+                                                      .add(
+                                                        const Duration(
+                                                          hours: 3,
+                                                        ),
+                                                      )
+                                                      .hour >=
+                                                  18,
+                                        ),
+                                        size: 78,
+                                      ),
+                                      const SizedBox(width: 12),
+                                      Expanded(
+                                        child: FittedBox(
+                                          fit: BoxFit.scaleDown,
+                                          alignment: Alignment.centerLeft,
+                                          child: Text(
+                                            _weather == null
+                                                ? '— °C'
+                                                : '${_weather!['temperature_2m']}°C',
+                                            textDirection: TextDirection.ltr,
+                                            style: const TextStyle(
+                                              fontSize: 45,
+                                            ),
+                                          ),
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                  const SizedBox(height: 8),
+                                  Text(
+                                    _weatherFailed
+                                        ? 'تعذر تحديث الطقس'
+                                        : _weather == null
+                                        ? 'جارٍ تحديث الطقس…'
+                                        : weatherDescription(
+                                            (_weather!['weather_code'] as num)
+                                                .toInt(),
+                                          ),
+                                    style: const TextStyle(fontSize: 23),
+                                  ),
+                                  const Divider(color: Colors.white24),
+                                  Text(
+                                    _weather == null
+                                        ? 'Open-Meteo'
+                                        : 'رطوبة ${_weather!['relative_humidity_2m']}%   •   رياح ${_weather!['wind_speed_10m']} كم/س',
+                                    style: const TextStyle(fontSize: 17),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ],
+                        ),
                       ),
                     ),
                     Positioned(
                       right: 30,
                       top: 116,
                       width: 320,
-                      child: _panel(
-                        child: Column(
-                          children: [
-                            const Text(
-                              'مواقيت الصلاة  ♧',
-                              style: TextStyle(
-                                fontSize: 27,
-                                fontWeight: FontWeight.bold,
+                      child: _fitInformation(
+                        width: 320,
+                        key: const ValueKey('prayer-information'),
+                        child: _panel(
+                          frame: 'assets/cards/card_prayer.png',
+                          child: Column(
+                            children: [
+                              const Row(
+                                children: [
+                                  DesignAssetIcon(
+                                    'assets/prayer/icon_mosque.png',
+                                    size: 34,
+                                  ),
+                                  SizedBox(width: 8),
+                                  Expanded(
+                                    child: Text(
+                                      'مواقيت الصلاة',
+                                      maxLines: 1,
+                                      overflow: TextOverflow.ellipsis,
+                                      style: TextStyle(
+                                        fontSize: 25,
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                    ),
+                                  ),
+                                ],
                               ),
-                            ),
-                            const SizedBox(height: 14),
-                            for (final entry in const {
-                              'Fajr': 'الفجر',
-                              'Sunrise': 'الشروق',
-                              'Dhuhr': 'الظهر',
-                              'Asr': 'العصر',
-                              'Maghrib': 'المغرب',
-                              'Isha': 'العشاء',
-                            }.entries)
-                              Container(
-                                padding: const EdgeInsets.symmetric(
-                                  vertical: 7,
-                                  horizontal: 10,
-                                ),
-                                decoration: BoxDecoration(
-                                  color:
-                                      _prayerDate == _date &&
-                                          entry.key == nextPrayer
-                                      ? const Color(0x443C2B10)
-                                      : Colors.transparent,
-                                  borderRadius: BorderRadius.circular(10),
-                                  border: Border.all(
+                              const SizedBox(height: 14),
+                              for (final entry in const {
+                                'Fajr': 'الفجر',
+                                'Sunrise': 'الشروق',
+                                'Dhuhr': 'الظهر',
+                                'Asr': 'العصر',
+                                'Maghrib': 'المغرب',
+                                'Isha': 'العشاء',
+                              }.entries)
+                                Container(
+                                  padding: const EdgeInsets.symmetric(
+                                    vertical: 7,
+                                    horizontal: 10,
+                                  ),
+                                  decoration: BoxDecoration(
                                     color:
                                         _prayerDate == _date &&
                                             entry.key == nextPrayer
-                                        ? aervixGold
+                                        ? const Color(0x443C2B10)
                                         : Colors.transparent,
+                                    borderRadius: BorderRadius.circular(10),
+                                    border: Border.all(
+                                      color:
+                                          _prayerDate == _date &&
+                                              entry.key == nextPrayer
+                                          ? aervixGold
+                                          : Colors.transparent,
+                                    ),
+                                  ),
+                                  child: Row(
+                                    mainAxisAlignment:
+                                        MainAxisAlignment.spaceBetween,
+                                    children: [
+                                      Expanded(
+                                        child: Text(
+                                          entry.value,
+                                          maxLines: 1,
+                                          overflow: TextOverflow.ellipsis,
+                                          style: const TextStyle(fontSize: 23),
+                                        ),
+                                      ),
+                                      Text(
+                                        _prayerDate == _date
+                                            ? '${_prayers?[entry.key] ?? '—'}'
+                                                  .split(' ')
+                                                  .first
+                                            : '—',
+                                        textDirection: TextDirection.ltr,
+                                        style: const TextStyle(
+                                          fontSize: 23,
+                                          color: aervixGold,
+                                        ),
+                                      ),
+                                    ],
                                   ),
                                 ),
-                                child: Row(
-                                  mainAxisAlignment:
-                                      MainAxisAlignment.spaceBetween,
-                                  children: [
-                                    Expanded(
-                                      child: Text(
-                                        entry.value,
-                                        maxLines: 1,
-                                        overflow: TextOverflow.ellipsis,
-                                        style: const TextStyle(fontSize: 23),
-                                      ),
-                                    ),
-                                    Text(
-                                      _prayerDate == _date
-                                          ? '${_prayers?[entry.key] ?? '—'}'
-                                                .split(' ')
-                                                .first
-                                          : '—',
-                                      textDirection: TextDirection.ltr,
-                                      style: const TextStyle(
-                                        fontSize: 23,
-                                        color: aervixGold,
-                                      ),
-                                    ),
-                                  ],
+                              Text(
+                                _prayersFailed
+                                    ? 'تعذر تحديث المواقيت'
+                                    : 'جدة • أم القرى • توقيت الرياض',
+                                style: const TextStyle(
+                                  fontSize: 14,
+                                  color: Colors.white70,
                                 ),
                               ),
-                            Text(
-                              _prayersFailed
-                                  ? 'تعذر تحديث المواقيت'
-                                  : 'جدة • أم القرى • توقيت الرياض',
-                              style: const TextStyle(
-                                fontSize: 14,
-                                color: Colors.white70,
-                              ),
-                            ),
-                          ],
+                            ],
+                          ),
                         ),
                       ),
                     ),
@@ -534,6 +623,7 @@ class _AervixHomeState extends State<AervixHome> with WidgetsBindingObserver {
                       right: 30,
                       top: 525,
                       height: 172,
+                      key: const ValueKey('applications-band'),
                       child: !service.initialized
                           ? const Center(
                               child: CircularProgressIndicator(
@@ -634,16 +724,53 @@ class _AervixHomeState extends State<AervixHome> with WidgetsBindingObserver {
     child: GoldFocusTile(
       label: label,
       onPressed: () => _showApps(label, apps),
-      child: Icon(icon, size: 47),
+      wide: true,
+      child: DesignAssetIcon(_categoryAsset(icon), size: 64),
     ),
   );
 
-  Widget _panel({required Widget child}) => Container(
-    padding: const EdgeInsets.all(23),
+  static final Map<IconData, String> _categoryArtwork = {
+    Icons.apps: 'assets/categories/icon_apps.png',
+    Icons.star_border: 'assets/categories/icon_favorites.png',
+    Icons.sports_soccer: 'assets/categories/icon_sports.png',
+    Icons.live_tv: 'assets/categories/icon_live_tv.png',
+    Icons.tv: 'assets/categories/icon_series.png',
+    Icons.movie_outlined: 'assets/categories/icon_movies.png',
+  };
+  String _categoryAsset(IconData icon) =>
+      _categoryArtwork[icon] ?? 'assets/categories/icon_apps.png';
+
+  Widget _fitInformation({
+    required double width,
+    required Widget child,
+    Key? key,
+  }) => SizedBox(
+    key: key,
+    width: width,
+    height: 400,
+    child: FittedBox(
+      fit: BoxFit.scaleDown,
+      alignment: Alignment.topCenter,
+      child: SizedBox(width: width, child: child),
+    ),
+  );
+
+  Widget _panel({
+    required Widget child,
+    String frame = 'assets/cards/card_glass_dark.png',
+  }) => Container(
+    padding: const EdgeInsets.all(26),
     decoration: BoxDecoration(
-      color: const Color(0xC8101318),
+      color: const Color(0xED0C121C),
       borderRadius: BorderRadius.circular(28),
-      border: Border.all(color: const Color(0x667C7462), width: 2),
+      image: DecorationImage(
+        image: ExactAssetImage(frame, scale: 4),
+        fit: BoxFit.fill,
+        centerSlice: frame.endsWith('card_prayer.png')
+            ? const Rect.fromLTRB(22.5, 25, 77.5, 115)
+            : const Rect.fromLTRB(30, 25, 170, 85),
+        filterQuality: FilterQuality.low,
+      ),
     ),
     child: child,
   );

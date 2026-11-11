@@ -1,0 +1,54 @@
+[
+  {
+    "name": "stremio",
+    "package_id": "com.stremio.one",
+    "source_url": "https://play.google.com/store/apps/details?id=com.stremio.one&hl=en",
+    "download_url": "https://play-lh.googleusercontent.com/OvTwEXzvUbeyfqdXd1vZiTfbBOTdMAA6EWw5TV00PiSirn7C1iz__HVD6PfXCHkN9quH_XdoPwCIT3GhB1Ukmw=s0-br30",
+    "status": "downloaded_official"
+  },
+  {
+    "name": "shahid",
+    "package_id": "net.mbc.shahid",
+    "source_url": "https://play.google.com/store/apps/details?id=net.mbc.shahid&hl=en",
+    "download_url": "https://play-lh.googleusercontent.com/OX_8Lxi6zQdeob7G9t45jHK889TOrfULfn4vf6MP6a3lx4U26naAbim14BIIKOmt1_5AbUpqgCFqldWzpp-LMro=s0-br30",
+    "status": "downloaded_official"
+  },
+  {
+    "name": "vlc",
+    "package_id": "org.videolan.vlc",
+    "source_url": "https://play.google.com/store/apps/details?id=org.videolan.vlc&hl=en",
+    "download_url": "https://play-lh.googleusercontent.com/BG5YwziGHjh0wvWg6VO9c3iprYa3vFww1CnNqPvFszUVxcY4yB29dy7t2jsLwwI4jAqX08_--12FmMxgNG1JFg=s0-br30",
+    "status": "downloaded_official"
+  },
+  {
+    "name": "mx_player",
+    "package_id": "com.mxtech.videoplayer.ad",
+    "source_url": "https://play.google.com/store/apps/details?id=com.mxtech.videoplayer.ad&hl=en",
+    "download_url": "https://play-lh.googleusercontent.com/kuU8L2zHfkE8rDQ8iUwMpYcV8TzUDBz7n_KYaEV4R5M7W5qHiZGqxWk9f1ysP2Lk72GmRTps3iaXUXfH-18pWw=s0-br30",
+    "status": "downloaded_official"
+  },
+  {
+    "name": "apple_tv",
+    "source_url": "https://tv.apple.com/",
+    "download_url": "https://tv.apple.com/assets/favicon/favicon-180.png",
+    "status": "downloaded_official"
+  },
+  {
+    "name": "nuvio_tv",
+    "source_url": "https://github.com/NuvioMedia/NuvioTV/blob/dev/assets/brand/app_logo_mark.png",
+    "download_url": "https://raw.githubusercontent.com/NuvioMedia/NuvioTV/dev/assets/brand/app_logo_mark.png",
+    "status": "downloaded_official"
+  },
+  {
+    "name": "aiostreams",
+    "source_url": "https://github.com/Viren070/AIOStreams/blob/main/packages/desktop/app/icons/aiostreams.png",
+    "download_url": "https://raw.githubusercontent.com/Viren070/AIOStreams/main/packages/desktop/app/icons/aiostreams.png",
+    "status": "downloaded_official"
+  },
+  {
+    "name": "movieboxpro",
+    "source_url": "https://www.movieboxpro.app/",
+    "download_url": "https://www.movieboxpro.app/static/img/apple-touch-icon.png",
+    "status": "downloaded_official"
+  }
+]

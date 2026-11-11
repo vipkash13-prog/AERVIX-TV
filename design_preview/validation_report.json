@@ -1,0 +1,15 @@
+{
+  "checked_files": 90,
+  "errors": [],
+  "unavailable_logos": [
+    {
+      "name": "Yacine TV",
+      "file": null,
+      "status": "requires_verified_source_or_installed_package",
+      "reason": "No verified official artwork available. A mock logo is not exported. Runtime must use PackageManager icons."
+    }
+  ],
+  "native_4k": false,
+  "technical_validation_passed": true,
+  "complete_static_logo_set": false
+}

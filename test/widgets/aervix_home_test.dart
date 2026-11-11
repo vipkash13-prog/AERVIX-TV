@@ -193,4 +193,54 @@ void main() {
     expect(tester.takeException(), isNull);
     await tester.pumpWidget(const SizedBox());
   });
+
+  testWidgets(
+    'large TV text keeps weather and prayers above the application row',
+    (tester) async {
+      tester.view.physicalSize = const Size(1920, 1080);
+      tester.view.devicePixelRatio = 1;
+      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.resetDevicePixelRatio);
+      final service = MockAppsService();
+      when(service.initialized).thenReturn(true);
+      when(service.applications).thenReturn([]);
+      when(service.categories).thenReturn([]);
+      final client = MockClient((_) async => http.Response('unavailable', 503));
+      await tester.pumpWidget(
+        ChangeNotifierProvider<AppsService>.value(
+          value: service,
+          child: MaterialApp(
+            builder: (context, child) => MediaQuery(
+              data: MediaQuery.of(
+                context,
+              ).copyWith(textScaler: const TextScaler.linear(2)),
+              child: child!,
+            ),
+            home: AervixHome(client: client),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+      final rowTop = tester
+          .getTopLeft(find.byKey(const ValueKey('applications-band')))
+          .dy;
+      expect(
+        tester.getBottomLeft(find.text('تعذر تحديث الطقس')).dy,
+        lessThan(rowTop),
+      );
+      expect(tester.getBottomLeft(find.text('العشاء')).dy, lessThan(rowTop));
+      expect(
+        tester.getBottomLeft(find.byKey(const ValueKey('left-information'))).dy,
+        lessThan(rowTop),
+      );
+      expect(
+        tester
+            .getBottomLeft(find.byKey(const ValueKey('prayer-information')))
+            .dy,
+        lessThan(rowTop),
+      );
+      expect(tester.takeException(), isNull);
+      await tester.pumpWidget(const SizedBox());
+    },
+  );
 }

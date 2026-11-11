@@ -1,7 +1,7 @@
 name: flauncher
 description: Flutter-based Android TV launcher.
 
-version: 1.2.4+4131
+version: 1.2.5+4132
 
 environment:
   sdk: ">=3.11.0"
@@ -56,4 +56,16 @@ flutter:
   uses-material-design: true
   assets:
     - assets/
+    - assets/backgrounds/jeddah_background_fhd.png
+    - assets/backgrounds/background_overlay.png
+    - assets/backgrounds/gold_waves_bottom.png
+    - assets/branding/
+    - assets/topbar/
+    - assets/weather/
+    - assets/prayer/
+    - assets/categories/
+    - assets/cards/
+    - assets/entertainment/
+    - assets/app_logos/
+    - assets/effects/
     - lib/l10n/
