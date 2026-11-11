@@ -1,11 +1,18 @@
 name: Build signed AERVIX TV APK
 on:
   workflow_dispatch:
+  push:
+    tags: ['v*']
 permissions:
   contents: write
+concurrency:
+  group: aervix-release
+  cancel-in-progress: false
 jobs:
   build:
     runs-on: ubuntu-latest
+    env:
+      GH_TOKEN: ${{ github.token }}
     steps:
       - uses: actions/checkout@v4
       - uses: subosito/flutter-action@v2
@@ -13,35 +20,66 @@ jobs:
           flutter-version: '3.41.9'
           channel: stable
           cache: true
-      - name: Prepare signing keystore
+      - name: Check release version and previous update identity
+        id: version
+        shell: bash
+        run: |
+          set -euo pipefail
+          version=$(sed -n 's/^version: \([0-9.]*\)+.*/\1/p' pubspec.yaml)
+          tag="v$version"
+          test -n "$version"
+          if [ "$GITHUB_REF_TYPE" = tag ]; then test "$GITHUB_REF_NAME" = "$tag"; fi
+          if gh release view "$tag" --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
+            echo 'This version already exists. Increase versionName and versionCode.'
+            exit 1
+          fi
+          gh api "repos/$GITHUB_REPOSITORY/releases?per_page=100" > /tmp/releases.json
+          previous=$(python3 -c 'import json; r=json.load(open("/tmp/releases.json")); print(next((x["tag_name"] for x in r if not x["draft"] and not x["prerelease"]), ""))')
+          if [ -n "$previous" ]; then
+            mkdir -p previous-release
+            gh release download "$previous" --repo "$GITHUB_REPOSITORY" --pattern release-manifest.json --dir previous-release
+          fi
+          echo "tag=$tag" >> "$GITHUB_OUTPUT"
+      - name: Install dependencies
+        run: flutter pub get
+      - name: Analyze AERVIX interface and updater
+        run: flutter analyze --no-pub lib/widgets/aervix_home.dart lib/widgets/gold_focus_tile.dart lib/widgets/aervix_update_button.dart lib/providers/update_service.dart test/widgets/aervix_home_test.dart test/widgets/aervix_update_button_test.dart test/providers/aervix_update_service_test.dart
+      - name: Test remote navigation, application integration and update consent
+        run: flutter test --no-pub test/widgets/aervix_home_test.dart test/widgets/aervix_update_button_test.dart test/providers/aervix_update_service_test.dart test/providers/update_service_test.dart test/flauncher_channel_test.dart test/providers/apps_service_test.dart
+      - name: Prepare existing signing keystore
         env:
           KEYSTORE_B64: ${{ secrets.AERVIX_RELEASE_KEYSTORE_B64 }}
         run: |
-          test -n "$KEYSTORE_B64" || { echo "Missing AERVIX_RELEASE_KEYSTORE_B64"; exit 1; }
+          test -n "$KEYSTORE_B64" || { echo "Missing existing AERVIX_RELEASE_KEYSTORE_B64"; exit 1; }
           printf '%s' "$KEYSTORE_B64" | base64 --decode > android/app/upload-keystore.jks
-      - name: Install dependencies
-        run: flutter pub get
       - name: Build signed APK for Android TV
         env:
           AERVIX_RELEASE_STORE_PASSWORD: ${{ secrets.AERVIX_RELEASE_STORE_PASSWORD }}
           AERVIX_RELEASE_KEY_ALIAS: ${{ secrets.AERVIX_RELEASE_KEY_ALIAS }}
           AERVIX_RELEASE_KEY_PASSWORD: ${{ secrets.AERVIX_RELEASE_KEY_PASSWORD }}
-        run: flutter build apk --release --flavor github --target-platform android-arm --split-per-abi
-      - name: Verify signing certificate
+        run: flutter build apk --release --flavor github --target-platform android-arm --split-per-abi --dart-define=ENABLE_SELF_UPDATER=true
+      - name: Verify existing certificate, package, increasing version and ARMv7
+        shell: bash
         run: |
-          find build/app/outputs/flutter-apk -name '*.apk' -print -exec keytool -printcert -jarfile {} \;
+          set -euo pipefail
+          apk=build/app/outputs/flutter-apk/app-armeabi-v7a-github-release.apk
+          tools=$(find "$ANDROID_HOME/build-tools" -mindepth 1 -maxdepth 1 -type d | sort -V | tail -1)
+          "$tools/apksigner" verify --verbose --print-certs "$apk" | tee certificate.txt
+          "$tools/aapt" dump badging "$apk" > package.txt
+          python3 tool/verify_release.py
+      - name: Remove temporary keystore
+        if: always()
+        run: rm -f android/app/upload-keystore.jks
       - uses: actions/upload-artifact@v4
         with:
           name: AERVIX-TV-signed-APK
-          path: build/app/outputs/flutter-apk/*.apk
+          path: dist/*
           if-no-files-found: error
       - name: Publish direct APK in GitHub Releases
         env:
-          GH_TOKEN: ${{ github.token }}
+          RELEASE_TAG: ${{ steps.version.outputs.tag }}
+        shell: bash
         run: |
           set -euo pipefail
-          APK=$(find build/app/outputs/flutter-apk -name '*armeabi-v7a*release.apk' -print -quit)
-          test -n "$APK" || { echo "Missing armeabi-v7a APK"; exit 1; }
-          cp "$APK" AERVIX-TV.apk
-          TAG="aervix-build-${GITHUB_RUN_NUMBER}"
-          gh release create "$TAG" AERVIX-TV.apk --title "AERVIX TV build ${GITHUB_RUN_NUMBER}" --notes "Signed Android TV APK (armeabi-v7a). Install/update compatibility requires matching application ID and signing certificate." --latest
+          gh release create "$RELEASE_TAG" dist/*.apk dist/release-manifest.json dist/SHA256SUMS.txt --repo "$GITHUB_REPOSITORY" --target "$GITHUB_SHA" --title "AERVIX TV $RELEASE_TAG" --notes-file docs/AERVIX-RELEASE-NOTES.md --draft
+          gh release edit "$RELEASE_TAG" --repo "$GITHUB_REPOSITORY" --draft=false --latest
