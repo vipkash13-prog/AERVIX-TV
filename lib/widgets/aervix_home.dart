@@ -230,6 +230,7 @@ class _AervixHomeState extends State<AervixHome> with WidgetsBindingObserver {
                       child: IgnorePointer(
                         child: Image.asset(
                           'assets/backgrounds/background_overlay.png',
+                          cacheWidth: 32,
                           fit: BoxFit.fill,
                           filterQuality: FilterQuality.low,
                         ),
