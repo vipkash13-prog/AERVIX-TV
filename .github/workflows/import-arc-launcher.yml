@@ -17,9 +17,9 @@ jobs:
         run: git clone --depth 1 https://github.com/meddouribadis/arclauncher.git /tmp/arc-launcher
       - name: Replace old files and commit source
         run: |
-          rsync -a --delete --exclude='.git/' /tmp/arc-launcher/ ./
+          rsync -a --delete --exclude='.git/' --exclude='.github/workflows/' /tmp/arc-launcher/ ./
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add -A
-          git commit -m "Import Arc Launcher upstream source" || exit 0
+          git commit -m "Import Arc Launcher source without restricted workflows" || exit 0
           git push origin HEAD:main
