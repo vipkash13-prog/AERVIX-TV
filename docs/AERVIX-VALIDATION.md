@@ -23,3 +23,5 @@ The updater automatically checks only vipkash13-prog/AERVIX-TV at launch and eve
 The active Android activity checks the APK's package, versionCode and signing certificates against the installed application before invoking the installer. It never uninstalls or clears application data. Native installation and MECOOL performance still require hardware validation.
 
 Final local validation after adding the updater: 192 tests passed, 4 existing skips; scoped Flutter analysis reported no issues. Update tests verify background checks never download/install without consent, explicit download/install approval, permission retry without re-downloading, exact repository selection, ignoring prerelease/ZIP assets, staged downloads and rejection of unsafe asset paths.
+
+An additional RTL stress test traversed 18 installed-app fixtures left to the final offscreen app and right back to the first, then activated both via Enter/Select; it passed without exceptions. This covers automatic scrolling across a long row on a 1280×720 viewport.
