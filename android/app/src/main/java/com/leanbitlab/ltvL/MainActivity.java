@@ -430,6 +430,10 @@ public class MainActivity extends FlutterActivity {
             return false;
         }
 
+        if (!isMatchingNewerUpdate(apkPath)) {
+            throw new IllegalArgumentException("Update package, signing certificate or version does not match");
+        }
+
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O &&
                 !getPackageManager().canRequestPackageInstalls()) {
             return false;
@@ -447,6 +451,30 @@ public class MainActivity extends FlutterActivity {
                 .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
 
         return tryStartActivity(installIntent);
+    }
+
+    @SuppressWarnings("deprecation")
+    private boolean isMatchingNewerUpdate(String path) {
+        try {
+            PackageManager pm = getPackageManager();
+            int flags = Build.VERSION.SDK_INT >= Build.VERSION_CODES.P
+                    ? PackageManager.GET_SIGNING_CERTIFICATES : PackageManager.GET_SIGNATURES;
+            PackageInfo candidate = pm.getPackageArchiveInfo(path, flags);
+            PackageInfo installed = pm.getPackageInfo(getPackageName(), flags);
+            if (candidate == null || !getPackageName().equals(candidate.packageName)) return false;
+            long nextCode = Build.VERSION.SDK_INT >= Build.VERSION_CODES.P ? candidate.getLongVersionCode() : candidate.versionCode;
+            long currentCode = Build.VERSION.SDK_INT >= Build.VERSION_CODES.P ? installed.getLongVersionCode() : installed.versionCode;
+            if (nextCode <= currentCode) return false;
+            Signature[] nextSigners = Build.VERSION.SDK_INT >= Build.VERSION_CODES.P
+                    ? candidate.signingInfo == null ? null : candidate.signingInfo.getApkContentsSigners() : candidate.signatures;
+            Signature[] currentSigners = Build.VERSION.SDK_INT >= Build.VERSION_CODES.P
+                    ? installed.signingInfo == null ? null : installed.signingInfo.getApkContentsSigners() : installed.signatures;
+            if (nextSigners == null || currentSigners == null || nextSigners.length == 0 || nextSigners.length != currentSigners.length) return false;
+            java.util.HashSet<Signature> nextSet = new java.util.HashSet<>(java.util.Arrays.asList(nextSigners));
+            return nextSet.equals(new java.util.HashSet<>(java.util.Arrays.asList(currentSigners)));
+        } catch (PackageManager.NameNotFoundException | SecurityException exception) {
+            return false;
+        }
     }
 
     private void requestInstallUnknownAppsPermission() {

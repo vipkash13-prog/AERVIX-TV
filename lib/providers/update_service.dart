@@ -4,6 +4,7 @@ import 'dart:io';
 import 'package:flauncher/flauncher_channel.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:path_provider/path_provider.dart';
+import 'package:http/http.dart' as http;
 
 class UpdateResult {
   final bool updateAvailable;
@@ -89,8 +90,9 @@ String? cleanReleaseNotes(String? notes) {
     text = text.substring(0, vtIndex);
   }
 
-  final vtHeaderIndex =
-      text.indexOf(RegExp(r"^##\s*VirusTotal", multiLine: true));
+  final vtHeaderIndex = text.indexOf(
+    RegExp(r"^##\s*VirusTotal", multiLine: true),
+  );
   if (vtHeaderIndex != -1) {
     text = text.substring(0, vtHeaderIndex);
   }
@@ -120,12 +122,14 @@ String? cleanReleaseNotes(String? notes) {
 }
 
 class UpdateService {
-  static const String _owner = "meddouribadis";
-  static const String _repo = "arclauncher";
+  static const String _owner = "vipkash13-prog";
+  static const String _repo = "AERVIX-TV";
   final FLauncherChannel _fLauncherChannel;
+  final http.Client? _client;
 
-  UpdateService({FLauncherChannel? fLauncherChannel})
-      : _fLauncherChannel = fLauncherChannel ?? FLauncherChannel();
+  UpdateService({FLauncherChannel? fLauncherChannel, http.Client? client})
+    : _client = client,
+      _fLauncherChannel = fLauncherChannel ?? FLauncherChannel();
 
   Future<UpdateResult> checkForUpdate() async {
     final packageInfo = await PackageInfo.fromPlatform();
@@ -151,33 +155,41 @@ class UpdateService {
     }
 
     final uri = Uri.parse(update.apkUrl!);
-    final httpClient = HttpClient();
+    if (uri.scheme != 'https' ||
+        uri.host != 'github.com' ||
+        !uri.path.startsWith('/$_owner/$_repo/releases/download/') ||
+        !uri.path.toLowerCase().endsWith('.apk')) {
+      throw StateError('The APK must be a direct AERVIX-TV release asset.');
+    }
+    final client = _client ?? http.Client();
+    File? partial;
     try {
-      final request = await httpClient.getUrl(uri);
-      request.headers.set(HttpHeaders.acceptHeader, "application/octet-stream");
-      request.headers.set(HttpHeaders.userAgentHeader, "ArcLauncher-Updater");
-      final response = await request.close();
-
-      if (response.statusCode != HttpStatus.ok) {
-        throw HttpException(
-          "APK download failed with status ${response.statusCode}",
-          uri: uri,
-        );
-      }
-
+      final response = await client
+          .send(
+            http.Request('GET', uri)
+              ..headers['User-Agent'] = 'AERVIX-TV-Updater',
+          )
+          .timeout(const Duration(seconds: 30));
+      if (response.statusCode != 200)
+        throw HttpException('APK download failed: ${response.statusCode}');
       final directory = await getApplicationSupportDirectory();
-      final updatesDirectory = Directory("${directory.path}/updates");
-      if (!await updatesDirectory.exists()) {
-        await updatesDirectory.create(recursive: true);
-      }
-
+      final updatesDirectory = Directory('${directory.path}/updates');
+      await updatesDirectory.create(recursive: true);
       final fileName =
-          update.apkName ?? "arclauncher-${update.latestVersion}.apk";
-      final file = File("${updatesDirectory.path}/$fileName");
-      await response.pipe(file.openWrite());
+          update.apkName ?? 'AERVIX-TV-${update.latestVersion}.apk';
+      if (!RegExp(r'^[a-zA-Z0-9._-]+\.apk$').hasMatch(fileName))
+        throw const FormatException('Invalid APK name');
+      partial = File('${updatesDirectory.path}/$fileName.part');
+      await response.stream
+          .timeout(const Duration(seconds: 30))
+          .pipe(partial.openWrite());
+      final file = await partial.rename('${updatesDirectory.path}/$fileName');
       return DownloadedApk(path: file.path, version: update.latestVersion);
+    } catch (_) {
+      if (partial != null && await partial.exists()) await partial.delete();
+      rethrow;
     } finally {
-      httpClient.close();
+      if (_client == null) client.close();
     }
   }
 
@@ -190,25 +202,26 @@ class UpdateService {
   }
 
   Future<_GitHubRelease> _fetchLatestStableRelease() async {
-    final uri =
-        Uri.parse("https://api.github.com/repos/$_owner/$_repo/releases");
-    final httpClient = HttpClient();
-
+    final uri = Uri.parse(
+      "https://api.github.com/repos/$_owner/$_repo/releases",
+    );
+    final client = _client ?? http.Client();
     try {
-      final request = await httpClient.getUrl(uri);
-      request.headers
-          .set(HttpHeaders.acceptHeader, "application/vnd.github+json");
-      request.headers.set(HttpHeaders.userAgentHeader, "ArcLauncher-Updater");
-
-      final response = await request.close();
-      if (response.statusCode != HttpStatus.ok) {
+      final response = await client
+          .get(
+            uri,
+            headers: {
+              'Accept': 'application/vnd.github+json',
+              'User-Agent': 'AERVIX-TV-Updater',
+            },
+          )
+          .timeout(const Duration(seconds: 20));
+      if (response.statusCode != 200)
         throw HttpException(
-          "GitHub release check failed with status ${response.statusCode}",
+          'Release check failed: ${response.statusCode}',
           uri: uri,
         );
-      }
-
-      final body = await utf8.decodeStream(response);
+      final body = response.body;
       final parsed = jsonDecode(body);
       if (parsed is! List) {
         throw const FormatException("Unexpected releases response format.");
@@ -247,7 +260,7 @@ class UpdateService {
 
       throw StateError("No stable release with an APK asset was found.");
     } finally {
-      httpClient.close();
+      if (_client == null) client.close();
     }
   }
 
@@ -256,7 +269,7 @@ class UpdateService {
     if (normalized.startsWith("v") || normalized.startsWith("V")) {
       normalized = normalized.substring(1);
     }
-    return normalized;
+    return normalized.split('+').first;
   }
 
   int _compareVersions(String left, String right) {
@@ -279,7 +292,8 @@ class UpdateService {
     return _normalizeVersion(version)
         .split(".")
         .map(
-            (part) => int.tryParse(part.replaceAll(RegExp(r"[^0-9]"), "")) ?? 0)
+          (part) => int.tryParse(part.replaceAll(RegExp(r"[^0-9]"), "")) ?? 0,
+        )
         .toList();
   }
 }
