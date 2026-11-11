@@ -13,25 +13,47 @@ jobs:
           flutter-version: '3.41.9'
           channel: stable
           cache: true
-      - name: Prepare signing keystore
+      - name: Install dependencies
+        run: flutter pub get
+      - name: Analyze AERVIX interface
+        run: flutter analyze --no-pub lib/widgets/aervix_home.dart test/widgets/aervix_home_test.dart
+      - name: Test remote navigation and application integration
+        run: flutter test --no-pub test/widgets/aervix_home_test.dart test/flauncher_channel_test.dart test/providers/apps_service_test.dart
+      - name: Prepare existing signing keystore
         env:
           KEYSTORE_B64: ${{ secrets.AERVIX_RELEASE_KEYSTORE_B64 }}
         run: |
-          test -n "$KEYSTORE_B64" || { echo "Missing AERVIX_RELEASE_KEYSTORE_B64"; exit 1; }
+          test -n "$KEYSTORE_B64" || { echo "Missing existing AERVIX_RELEASE_KEYSTORE_B64"; exit 1; }
           printf '%s' "$KEYSTORE_B64" | base64 --decode > android/app/upload-keystore.jks
-      - name: Install dependencies
-        run: flutter pub get
       - name: Build signed APK for Android TV
         env:
           AERVIX_RELEASE_STORE_PASSWORD: ${{ secrets.AERVIX_RELEASE_STORE_PASSWORD }}
           AERVIX_RELEASE_KEY_ALIAS: ${{ secrets.AERVIX_RELEASE_KEY_ALIAS }}
           AERVIX_RELEASE_KEY_PASSWORD: ${{ secrets.AERVIX_RELEASE_KEY_PASSWORD }}
         run: flutter build apk --release --flavor github --target-platform android-arm --split-per-abi
-      - name: Verify signing certificate
+      - name: Verify existing certificate, package, version and ARMv7
+        shell: bash
         run: |
-          find build/app/outputs/flutter-apk -name '*.apk' -print -exec keytool -printcert -jarfile {} \;
+          set -euo pipefail
+          apk=build/app/outputs/flutter-apk/app-armeabi-v7a-github-release.apk
+          tools=$(find "$ANDROID_HOME/build-tools" -mindepth 1 -maxdepth 1 -type d | sort -V | tail -1)
+          "$tools/apksigner" verify --verbose --print-certs "$apk" | tee certificate.txt
+          grep -Fq 'Signer #1 certificate SHA-256 digest: 3e01112a28d8c117d9042d7e9e17552ef7663eddf0d3cb0fd548221d03e0058e' certificate.txt
+          "$tools/aapt" dump badging "$apk" > package.txt
+          grep -Fq "package: name='com.omeda.arc'" package.txt
+          grep -Fq "native-code: 'armeabi-v7a'" package.txt
+          code=$(sed -n "s/.*versionCode='\([0-9]*\)'.*/\1/p" package.txt | head -1)
+          test "$code" -gt 5128
+          sha256sum "$apk" > apk-sha256.txt
+      - name: Remove temporary keystore
+        if: always()
+        run: rm -f android/app/upload-keystore.jks
       - uses: actions/upload-artifact@v4
         with:
           name: AERVIX-TV-signed-APK
-          path: build/app/outputs/flutter-apk/*.apk
+          path: |
+            build/app/outputs/flutter-apk/app-armeabi-v7a-github-release.apk
+            certificate.txt
+            package.txt
+            apk-sha256.txt
           if-no-files-found: error

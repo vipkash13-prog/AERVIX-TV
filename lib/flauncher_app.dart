@@ -26,7 +26,7 @@ import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flauncher/l10n/app_localizations.dart';
 import 'package:provider/provider.dart';
 
-import 'flauncher.dart';
+import 'widgets/aervix_home.dart';
 
 class FLauncherApp extends StatelessWidget
 {
@@ -82,7 +82,7 @@ class FLauncherApp extends StatelessWidget
         GlobalWidgetsLocalizations.delegate
       ],
       supportedLocales: AppLocalizations.supportedLocales,
-      title: 'FLauncher',
+      title: 'AERVIX TV',
         theme: ThemeData(
           useMaterial3: true,
           brightness: Brightness.dark,
@@ -146,7 +146,7 @@ class FLauncherApp extends StatelessWidget
         builder: (context) => PopScope(
           canPop: false,
           child: ExcludeSemantics(
-            child: FLauncher(),
+            child: const AervixHome(),
           ),
           onPopInvoked: (didPop) {
             LauncherState launcherState = context.read<LauncherState>();

@@ -1,7 +1,7 @@
 name: flauncher
 description: Flutter-based Android TV launcher.
 
-version: 1.2.1+4128
+version: 1.2.2+4129
 
 environment:
   sdk: ">=3.11.0"
@@ -48,9 +48,9 @@ flutter_icons:
   android: "ic_launcher"
   ios: false
   min_sdk_android: 21
-  image_path: "assets/icon.png"
+  image_path: "assets/aervix-icon.jpg"
   adaptive_icon_background: "#000000"
-  adaptive_icon_foreground: "assets/icon.png"
+  adaptive_icon_foreground: "assets/aervix-icon.jpg"
 flutter:
   generate: true
   uses-material-design: true
