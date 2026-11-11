@@ -14,3 +14,5 @@
 
 - The approved AERVIX image is the Android launcher/TV app icon only. Do not display that square icon inside the home interface; keep the home brand as text.
 - Preserve standard Android launcher icon densities (48/72/96/144/192px), the adaptive foreground 24% inset in mipmap-anydpi-v26/ic_launcher.xml, and TV banner 160x90dp (320x180px at xhdpi). Regenerating launcher resources must retain the adaptive inset.
+- Design library provenance and exact native source sizes are in assets/assets_manifest.json. Validate with tool/validate_design_assets.py before UI changes. Never claim resampled 3840x2160 files are native 4K; don't invent missing official logos (Yacine TV uses its installed-package icon).
+- Keep FHD as the runtime wallpaper. Source atlases, design previews and the reconstructed 4K export belong to the design library, not the default APK asset bundle. Keep information panels above the application band even at 200% TV text scaling.

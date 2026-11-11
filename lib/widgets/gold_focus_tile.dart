@@ -9,6 +9,7 @@ class GoldFocusTile extends StatefulWidget {
   final VoidCallback onPressed;
   final bool autofocus;
   final bool showLabel;
+  final bool wide;
   const GoldFocusTile({
     super.key,
     required this.child,
@@ -16,6 +17,7 @@ class GoldFocusTile extends StatefulWidget {
     required this.onPressed,
     this.autofocus = false,
     this.showLabel = true,
+    this.wide = false,
   });
   @override
   State<GoldFocusTile> createState() => _GoldFocusTileState();
@@ -61,10 +63,6 @@ class _GoldFocusTileState extends State<GoldFocusTile> {
           decoration: BoxDecoration(
             color: _focused ? const Color(0xD33C2B10) : const Color(0xBE0B0D10),
             borderRadius: BorderRadius.circular(24),
-            border: Border.all(
-              color: _focused ? aervixGold : const Color(0x887B6B48),
-              width: _focused ? 3 : 1.5,
-            ),
             boxShadow: _focused
                 ? const [
                     BoxShadow(
@@ -74,10 +72,21 @@ class _GoldFocusTileState extends State<GoldFocusTile> {
                     ),
                   ]
                 : const [],
-            image: const DecorationImage(
-              image: AssetImage('assets/gold-tile-01.png'),
+            image: DecorationImage(
+              image: ExactAssetImage(
+                widget.showLabel
+                    ? 'assets/cards/card_${widget.wide ? 'category' : 'app'}_${_focused ? 'focused' : 'normal'}.png'
+                    : 'assets/topbar/top_button_frame${_focused ? '_focused' : ''}.png',
+                scale: 4,
+              ),
               fit: BoxFit.fill,
-              opacity: .28,
+              centerSlice: widget.showLabel
+                  ? widget.wide
+                        ? const Rect.fromLTRB(27.5, 21.25, 92.5, 53.75)
+                        : const Rect.fromLTRB(22.5, 22.5, 57.5, 57.5)
+                  : const Rect.fromLTRB(22.5, 22.5, 41.5, 41.5),
+              opacity: .65,
+              filterQuality: FilterQuality.low,
             ),
           ),
           child: Column(

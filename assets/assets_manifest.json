@@ -1,0 +1,2265 @@
+{
+  "schema_version": 1,
+  "original_source": {
+    "file": "design_sources/raw_assets_sheet.png",
+    "width": 1672,
+    "height": 941,
+    "mode": "RGB",
+    "original_alpha": false
+  },
+  "native_4k": false,
+  "files": [
+    {
+      "file": "assets/branding/logo_aervix.png",
+      "width": 256,
+      "height": 256,
+      "format": "PNG",
+      "alpha_range": [
+        0,
+        255
+      ],
+      "source": "design_sources/raw_assets_sheet.png",
+      "source_native_size": [
+        1672,
+        941
+      ],
+      "source_bounds": [
+        30,
+        8,
+        231,
+        168
+      ],
+      "provenance": "extracted",
+      "notes": " Original is RGB on black; alpha is a reconstructed soft black matte, not recovered original alpha.",
+      "sha256": "e550aa78cebc26762e715c1e9fd564be86c10d13f6962eca803d20bdeb221856",
+      "aspect_policy": "contain_with_transparent_padding",
+      "transparency_reconstructed": true
+    },
+    {
+      "file": "assets/branding/logo_aervix_small.png",
+      "width": 128,
+      "height": 128,
+      "format": "PNG",
+      "alpha_range": [
+        0,
+        255
+      ],
+      "source": "assets/branding/logo_aervix.png",
+      "source_native_size": [
+        256,
+        256
+      ],
+      "source_bounds": null,
+      "provenance": "derived_from_exported_asset",
+      "notes": "",
+      "sha256": "c2bce76abb88127e480d813faa3252f635a6cd9e0a8dc8cd4a4881dc14c86b01",
+      "aspect_policy": "contain_with_transparent_padding",
+      "transparency_reconstructed": false
+    },
+    {
+      "file": "assets/branding/logo_aervix_full.png",
+      "width": 1024,
+      "height": 256,
+      "format": "PNG",
+      "alpha_range": [
+        0,
+        255
+      ],
+      "source": "design_sources/reference_contact_sheet.jpg",
+      "source_native_size": [
+        1280,
+        853
+      ],
+      "source_bounds": [
+        16,
+        3,
+        325,
+        91
+      ],
+      "provenance": "extracted",
+      "notes": "Original user-provided complete wordmark, enlarged for consistent export canvas; not vector artwork. Original is RGB on black; alpha is a reconstructed soft black matte, not recovered original alpha.",
+      "sha256": "a86ce6db66f8533bd5992d77c342fb18ec8cf6f0de40ecb345680ddefee301e4",
+      "aspect_policy": "contain_with_transparent_padding",
+      "transparency_reconstructed": true
+    },
+    {
+      "file": "assets/topbar/icon_wifi.png",
+      "width": 256,
+      "height": 256,
+      "format": "PNG",
+      "alpha_range": [
+        0,
+        255
+      ],
+      "source": "design_sources/raw_assets_sheet.png",
+      "source_native_size": [
+        1672,
+        941
+      ],
+      "source_bounds": [
+        324,
+        54,
+        398,
+        117
+      ],
+      "provenance": "extracted",
+      "notes": " Original is RGB on black; alpha is a reconstructed soft black matte, not recovered original alpha.",
+      "sha256": "51f81f0ef555eb595f1a541c5b0517db936ac5120a9407e232e06dd3d004d124",
+      "aspect_policy": "contain_with_transparent_padding",
+      "transparency_reconstructed": true
+    },
+    {
+      "file": "assets/topbar/icon_bluetooth.png",
+      "width": 256,
+      "height": 256,
+      "format": "PNG",
+      "alpha_range": [
+        0,
+        255
+      ],
+      "source": "design_sources/raw_assets_sheet.png",
+      "source_native_size": [
+        1672,
+        941
+      ],
+      "source_bounds": [
+        484,
+        49,
+        542,
+        119
+      ],
+      "provenance": "extracted",
+      "notes": " Original is RGB on black; alpha is a reconstructed soft black matte, not recovered original alpha.",
+      "sha256": "2c20b0f122c11bd4d257ac7248d3445ba7853aaa78bbc38081a80ec6ae078edc",
+      "aspect_policy": "contain_with_transparent_padding",
+      "transparency_reconstructed": true
+    },
+    {
+      "file": "assets/topbar/icon_settings_top.png",
+      "width": 256,
+      "height": 256,
+      "format": "PNG",
+      "alpha_range": [
+        0,
+        255
+      ],
+      "source": "design_sources/raw_assets_sheet.png",
+      "source_native_size": [
+        1672,
+        941
+      ],
+      "source_bounds": [
+        631,
+        52,
+        700,
+        118
+      ],
+      "provenance": "extracted",
+      "notes": " Original is RGB on black; alpha is a reconstructed soft black matte, not recovered original alpha.",
+      "sha256": "09cb70d922234a29833285ee1d5af164915010f2c9be154a32e38da2982636e1",
+      "aspect_policy": "contain_with_transparent_padding",
+      "transparency_reconstructed": true
+    },
+    {
+      "file": "assets/topbar/icon_refresh.png",
+      "width": 256,
+      "height": 256,
+      "format": "PNG",
+      "alpha_range": [
+        0,
+        255
+      ],
+      "source": "design_sources/raw_assets_sheet.png",
+      "source_native_size": [
+        1672,
+        941
+      ],
+      "source_bounds": [
+        783,
+        50,
+        855,
+        121
+      ],
+      "provenance": "extracted",
+      "notes": " Original is RGB on black; alpha is a reconstructed soft black matte, not recovered original alpha.",
+      "sha256": "8bc32c651ce1df44d603ccb833808a6d6750ef9f39ca5f1f9c25622e1785dcb5",
+      "aspect_policy": "contain_with_transparent_padding",
+      "transparency_reconstructed": true
+    },
+    {
+      "file": "assets/topbar/icon_notifications.png",
+      "width": 256,
+      "height": 256,
+      "format": "PNG",
+      "alpha_range": [
+        0,
+        255
+      ],
+      "source": "design_sources/raw_assets_sheet.png",
+      "source_native_size": [
+        1672,
+        941
+      ],
+      "source_bounds": [
+        941,
+        51,
+        1004,
+        122
+      ],
+      "provenance": "extracted",
+      "notes": " Original is RGB on black; alpha is a reconstructed soft black matte, not recovered original alpha.",
+      "sha256": "e612db69a12e1c7fdd13c18a870a8cb641088596deb81890bbbdf78ad735b71e",
+      "aspect_policy": "contain_with_transparent_padding",
+      "transparency_reconstructed": true
+    },
+    {
+      "file": "assets/topbar/icon_display.png",
+      "width": 256,
+      "height": 256,
+      "format": "PNG",
+      "alpha_range": [
+        0,
+        255
+      ],
+      "source": "design_sources/raw_assets_sheet.png",
+      "source_native_size": [
+        1672,
+        941
+      ],
+      "source_bounds": [
+        1085,
+        53,
+        1167,
+        119
+      ],
+      "provenance": "extracted",
+      "notes": " Original is RGB on black; alpha is a reconstructed soft black matte, not recovered original alpha.",
+      "sha256": "384f0a381482724b6e6ca93be1cb8ad1feed74da249d71ca155ff19a8464194e",
+      "aspect_policy": "contain_with_transparent_padding",
+      "transparency_reconstructed": true
+    },
+    {
+      "file": "assets/topbar/icon_power.png",
+      "width": 256,
+      "height": 256,
+      "format": "PNG",
+      "alpha_range": [
+        0,
+        255
+      ],
+      "source": "design_sources/raw_assets_sheet.png",
+      "source_native_size": [
+        1672,
+        941
+      ],
+      "source_bounds": [
+        1245,
+        48,
+        1317,
+        122
+      ],
+      "provenance": "extracted",
+      "notes": " Original is RGB on black; alpha is a reconstructed soft black matte, not recovered original alpha.",
+      "sha256": "0c7db3005dbf9a37e4fde89c10c06794581a7bb91921d4a73b3639f88fce7177",
+      "aspect_policy": "contain_with_transparent_padding",
+      "transparency_reconstructed": true
+    },
+    {
+      "file": "assets/weather/weather_sunny.png",
+      "width": 256,
+      "height": 256,
+      "format": "PNG",
+      "alpha_range": [
+        0,
+        255
+      ],
+      "source": "design_sources/raw_assets_sheet.png",
+      "source_native_size": [
+        1672,
+        941
+      ],
+      "source_bounds": [
+        227,
+        165,
+        333,
+        265
+      ],
+      "provenance": "extracted",
+      "notes": " Original is RGB on black; alpha is a reconstructed soft black matte, not recovered original alpha.",
+      "sha256": "597a1edd9b2dad8cd6b02704d550e71909b85ffb3d0d2297bc9af53caa6164f8",
+      "aspect_policy": "contain_with_transparent_padding",
+      "transparency_reconstructed": true
+    },
+    {
+      "file": "assets/weather/weather_partly_cloudy.png",
+      "width": 256,
+      "height": 256,
+      "format": "PNG",
+      "alpha_range": [
+        0,
+        255
+      ],
+      "source": "design_sources/raw_assets_sheet.png",
+      "source_native_size": [
+        1672,
+        941
+      ],
+      "source_bounds": [
+        385,
+        165,
+        510,
+        260
+      ],
+      "provenance": "extracted",
+      "notes": " Original is RGB on black; alpha is a reconstructed soft black matte, not recovered original alpha.",
+      "sha256": "a9c0e473d25e6e0ef4a49b0a916ba11c670a9d5dfd7dca504d332c67010cf062",
+      "aspect_policy": "contain_with_transparent_padding",
+      "transparency_reconstructed": true
+    },
+    {
+      "file": "assets/weather/weather_cloudy.png",
+      "width": 256,
+      "height": 256,
+      "format": "PNG",
+      "alpha_range": [
+        0,
+        255
+      ],
+      "source": "design_sources/raw_assets_sheet.png",
+      "source_native_size": [
+        1672,
+        941
+      ],
+      "source_bounds": [
+        568,
+        160,
+        696,
+        241
+      ],
+      "provenance": "extracted",
+      "notes": " Original is RGB on black; alpha is a reconstructed soft black matte, not recovered original alpha.",
+      "sha256": "b59c503071a246e3b2b98dd4cdabcaf8f0467d89a6dbf83fbfd28c9daef2ea3b",
+      "aspect_policy": "contain_with_transparent_padding",
+      "transparency_reconstructed": true
+    },
+    {
+      "file": "assets/weather/weather_rain.png",
+      "width": 256,
+      "height": 256,
+      "format": "PNG",
+      "alpha_range": [
+        0,
+        255
+      ],
+      "source": "design_sources/raw_assets_sheet.png",
+      "source_native_size": [
+        1672,
+        941
+      ],
+      "source_bounds": [
+        742,
+        161,
+        867,
+        266
+      ],
+      "provenance": "extracted",
+      "notes": " Original is RGB on black; alpha is a reconstructed soft black matte, not recovered original alpha.",
+      "sha256": "ac82071f4f8a2c278b00c519cc01cdd58edaad26782381a380ad0f4cf13b1925",
+      "aspect_policy": "contain_with_transparent_padding",
+      "transparency_reconstructed": true
+    },
+    {
+      "file": "assets/weather/weather_thunder.png",
+      "width": 256,
+      "height": 256,
+      "format": "PNG",
+      "alpha_range": [
+        0,
+        255
+      ],
+      "source": "design_sources/raw_assets_sheet.png",
+      "source_native_size": [
+        1672,
+        941
+      ],
+      "source_bounds": [
+        901,
+        156,
+        1027,
+        262
+      ],
+      "provenance": "extracted",
+      "notes": " Original is RGB on black; alpha is a reconstructed soft black matte, not recovered original alpha.",
+      "sha256": "4a6a13462f1358e7b1529ef30e037f81b6196a6475bf8a27cb321d4424ab967e",
+      "aspect_policy": "contain_with_transparent_padding",
+      "transparency_reconstructed": true
+    },
+    {
+      "file": "assets/weather/weather_snow.png",
+      "width": 256,
+      "height": 256,
+      "format": "PNG",
+      "alpha_range": [
+        0,
+        255
+      ],
+      "source": "design_sources/raw_assets_sheet.png",
+      "source_native_size": [
+        1672,
+        941
+      ],
+      "source_bounds": [
+        1062,
+        158,
+        1188,
+        265
+      ],
+      "provenance": "extracted",
+      "notes": " Original is RGB on black; alpha is a reconstructed soft black matte, not recovered original alpha.",
+      "sha256": "c116d144c751f7fe20fc28a087d2c5887693c56d963174e965425698e8f0ef15",
+      "aspect_policy": "contain_with_transparent_padding",
+      "transparency_reconstructed": true
+    },
+    {
+      "file": "assets/weather/weather_night_cloudy.png",
+      "width": 256,
+      "height": 256,
+      "format": "PNG",
+      "alpha_range": [
+        0,
+        255
+      ],
+      "source": "design_sources/raw_assets_sheet.png",
+      "source_native_size": [
+        1672,
+        941
+      ],
+      "source_bounds": [
+        1230,
+        156,
+        1370,
+        260
+      ],
+      "provenance": "extracted",
+      "notes": " Original is RGB on black; alpha is a reconstructed soft black matte, not recovered original alpha.",
+      "sha256": "cada559cd66695e821f8ae706edd5732e55f5c13b8ef20279f40c7fc5cbe6ea2",
+      "aspect_policy": "contain_with_transparent_padding",
+      "transparency_reconstructed": true
+    },
+    {
+      "file": "assets/weather/weather_night.png",
+      "width": 256,
+      "height": 256,
+      "format": "PNG",
+      "alpha_range": [
+        0,
+        255
+      ],
+      "source": "design_sources/raw_assets_sheet.png",
+      "source_native_size": [
+        1672,
+        941
+      ],
+      "source_bounds": [
+        1401,
+        158,
+        1498,
+        263
+      ],
+      "provenance": "extracted",
+      "notes": " Original is RGB on black; alpha is a reconstructed soft black matte, not recovered original alpha.",
+      "sha256": "3be71becda862d1eb508c479a7158e85e16fe349b4cad2d9c2abdfa1abc6672d",
+      "aspect_policy": "contain_with_transparent_padding",
+      "transparency_reconstructed": true
+    },
+    {
+      "file": "assets/entertainment/icon_play.png",
+      "width": 256,
+      "height": 256,
+      "format": "PNG",
+      "alpha_range": [
+        0,
+        255
+      ],
+      "source": "design_sources/raw_assets_sheet.png",
+      "source_native_size": [
+        1672,
+        941
+      ],
+      "source_bounds": [
+        144,
+        295,
+        205,
+        359
+      ],
+      "provenance": "extracted",
+      "notes": " Original is RGB on black; alpha is a reconstructed soft black matte, not recovered original alpha.",
+      "sha256": "ba253734eff509534bf7bcd43ed781d6fd64c206fb4678beefa0bab44c616fa8",
+      "aspect_policy": "contain_with_transparent_padding",
+      "transparency_reconstructed": true
+    },
+    {
+      "file": "assets/entertainment/icon_clapperboard.png",
+      "width": 256,
+      "height": 256,
+      "format": "PNG",
+      "alpha_range": [
+        0,
+        255
+      ],
+      "source": "design_sources/raw_assets_sheet.png",
+      "source_native_size": [
+        1672,
+        941
+      ],
+      "source_bounds": [
+        341,
+        269,
+        474,
+        391
+      ],
+      "provenance": "extracted",
+      "notes": " Original is RGB on black; alpha is a reconstructed soft black matte, not recovered original alpha.",
+      "sha256": "88a70a6a877729872c9364e6f9ef6b6c0d1a09212331e1410659dc023a20dbe0",
+      "aspect_policy": "contain_with_transparent_padding",
+      "transparency_reconstructed": true
+    },
+    {
+      "file": "assets/entertainment/icon_popcorn.png",
+      "width": 256,
+      "height": 256,
+      "format": "PNG",
+      "alpha_range": [
+        0,
+        255
+      ],
+      "source": "design_sources/raw_assets_sheet.png",
+      "source_native_size": [
+        1672,
+        941
+      ],
+      "source_bounds": [
+        541,
+        262,
+        656,
+        392
+      ],
+      "provenance": "extracted",
+      "notes": " Original is RGB on black; alpha is a reconstructed soft black matte, not recovered original alpha.",
+      "sha256": "ebbf113914f6ff0f1df1b00661df320121821ee594992f4607be75d97feba2ad",
+      "aspect_policy": "contain_with_transparent_padding",
+      "transparency_reconstructed": true
+    },
+    {
+      "file": "assets/entertainment/icon_film_reel.png",
+      "width": 256,
+      "height": 256,
+      "format": "PNG",
+      "alpha_range": [
+        0,
+        255
+      ],
+      "source": "design_sources/raw_assets_sheet.png",
+      "source_native_size": [
+        1672,
+        941
+      ],
+      "source_bounds": [
+        711,
+        269,
+        866,
+        391
+      ],
+      "provenance": "extracted",
+      "notes": " Original is RGB on black; alpha is a reconstructed soft black matte, not recovered original alpha.",
+      "sha256": "9cf796e991e1519cad2c626699c86b78fd23da05a302281043c51e85ea798522",
+      "aspect_policy": "contain_with_transparent_padding",
+      "transparency_reconstructed": true
+    },
+    {
+      "file": "assets/entertainment/icon_football.png",
+      "width": 256,
+      "height": 256,
+      "format": "PNG",
+      "alpha_range": [
+        0,
+        255
+      ],
+      "source": "design_sources/raw_assets_sheet.png",
+      "source_native_size": [
+        1672,
+        941
+      ],
+      "source_bounds": [
+        912,
+        269,
+        1042,
+        395
+      ],
+      "provenance": "extracted",
+      "notes": " Original is RGB on black; alpha is a reconstructed soft black matte, not recovered original alpha.",
+      "sha256": "c24a9fd8faf0f5f90b23766165d2613c86aa5e97cc6953e95a6dab837489d104",
+      "aspect_policy": "contain_with_transparent_padding",
+      "transparency_reconstructed": true
+    },
+    {
+      "file": "assets/entertainment/icon_gamepad.png",
+      "width": 256,
+      "height": 256,
+      "format": "PNG",
+      "alpha_range": [
+        0,
+        255
+      ],
+      "source": "design_sources/raw_assets_sheet.png",
+      "source_native_size": [
+        1672,
+        941
+      ],
+      "source_bounds": [
+        1095,
+        275,
+        1262,
+        389
+      ],
+      "provenance": "extracted",
+      "notes": " Original is RGB on black; alpha is a reconstructed soft black matte, not recovered original alpha.",
+      "sha256": "5e9e6b66b3f55fbc1c24ca1af98b13da38fc1eb95c0711ad1fae202ae9287282",
+      "aspect_policy": "contain_with_transparent_padding",
+      "transparency_reconstructed": true
+    },
+    {
+      "file": "assets/entertainment/icon_star.png",
+      "width": 256,
+      "height": 256,
+      "format": "PNG",
+      "alpha_range": [
+        0,
+        255
+      ],
+      "source": "design_sources/raw_assets_sheet.png",
+      "source_native_size": [
+        1672,
+        941
+      ],
+      "source_bounds": [
+        1293,
+        269,
+        1416,
+        388
+      ],
+      "provenance": "extracted",
+      "notes": " Original is RGB on black; alpha is a reconstructed soft black matte, not recovered original alpha.",
+      "sha256": "72241973495c2f702feb3354462f1871b373491e8df361f0d0bd7b94bb9c4152",
+      "aspect_policy": "contain_with_transparent_padding",
+      "transparency_reconstructed": true
+    },
+    {
+      "file": "assets/categories/icon_settings.png",
+      "width": 256,
+      "height": 256,
+      "format": "PNG",
+      "alpha_range": [
+        0,
+        255
+      ],
+      "source": "design_sources/raw_assets_sheet.png",
+      "source_native_size": [
+        1672,
+        941
+      ],
+      "source_bounds": [
+        1446,
+        273,
+        1567,
+        390
+      ],
+      "provenance": "extracted",
+      "notes": " Original is RGB on black; alpha is a reconstructed soft black matte, not recovered original alpha.",
+      "sha256": "5852c2b6f075e3b984f3fa0c1a5bd99abe1215c765dcf4c7849ecd5693874708",
+      "aspect_policy": "contain_with_transparent_padding",
+      "transparency_reconstructed": true
+    },
+    {
+      "file": "assets/prayer/icon_mosque.png",
+      "width": 256,
+      "height": 256,
+      "format": "PNG",
+      "alpha_range": [
+        0,
+        255
+      ],
+      "source": "design_sources/raw_assets_sheet.png",
+      "source_native_size": [
+        1672,
+        941
+      ],
+      "source_bounds": [
+        1408,
+        5,
+        1665,
+        159
+      ],
+      "provenance": "extracted",
+      "notes": " Original is RGB on black; alpha is a reconstructed soft black matte, not recovered original alpha.",
+      "sha256": "35791f58bedb5295fa81c81e2fc0cfb6b96b3ed86d25a246096011a53386827d",
+      "aspect_policy": "contain_with_transparent_padding",
+      "transparency_reconstructed": true
+    },
+    {
+      "file": "assets/cards/source_card_large.png",
+      "width": 800,
+      "height": 440,
+      "format": "PNG",
+      "alpha_range": [
+        0,
+        255
+      ],
+      "source": "design_sources/raw_assets_sheet.png",
+      "source_native_size": [
+        1672,
+        941
+      ],
+      "source_bounds": [
+        8,
+        397,
+        390,
+        605
+      ],
+      "provenance": "extracted",
+      "notes": "Original empty source card; canvas padded without stretching. Original is RGB on black; alpha is a reconstructed soft black matte, not recovered original alpha.",
+      "sha256": "887d7aef56b1aa81eb9f2194fcdd21b5bda880a3f634c9fa65b401d667c765b7",
+      "aspect_policy": "contain_with_transparent_padding",
+      "transparency_reconstructed": true
+    },
+    {
+      "file": "assets/cards/source_card_medium.png",
+      "width": 800,
+      "height": 440,
+      "format": "PNG",
+      "alpha_range": [
+        0,
+        255
+      ],
+      "source": "design_sources/raw_assets_sheet.png",
+      "source_native_size": [
+        1672,
+        941
+      ],
+      "source_bounds": [
+        393,
+        397,
+        769,
+        604
+      ],
+      "provenance": "extracted",
+      "notes": "Original empty source card; canvas padded without stretching. Original is RGB on black; alpha is a reconstructed soft black matte, not recovered original alpha.",
+      "sha256": "850c765aa95438d29fb2c0d99b94da08fb57f2260f66e78d685475a71908f0f3",
+      "aspect_policy": "contain_with_transparent_padding",
+      "transparency_reconstructed": true
+    },
+    {
+      "file": "assets/cards/source_card_glass.png",
+      "width": 800,
+      "height": 440,
+      "format": "PNG",
+      "alpha_range": [
+        0,
+        255
+      ],
+      "source": "design_sources/raw_assets_sheet.png",
+      "source_native_size": [
+        1672,
+        941
+      ],
+      "source_bounds": [
+        9,
+        612,
+        398,
+        780
+      ],
+      "provenance": "extracted",
+      "notes": "Original empty source card; canvas padded without stretching. Original is RGB on black; alpha is a reconstructed soft black matte, not recovered original alpha.",
+      "sha256": "9cb0d3312f9532fb7fb8ff6f3176f644694305fd85d45c5df67809c7936be7c5",
+      "aspect_policy": "contain_with_transparent_padding",
+      "transparency_reconstructed": true
+    },
+    {
+      "file": "assets/cards/source_card_pill.png",
+      "width": 800,
+      "height": 440,
+      "format": "PNG",
+      "alpha_range": [
+        0,
+        255
+      ],
+      "source": "design_sources/raw_assets_sheet.png",
+      "source_native_size": [
+        1672,
+        941
+      ],
+      "source_bounds": [
+        401,
+        616,
+        731,
+        690
+      ],
+      "provenance": "extracted",
+      "notes": "Original empty source card; canvas padded without stretching. Original is RGB on black; alpha is a reconstructed soft black matte, not recovered original alpha.",
+      "sha256": "b0bdcd9220c0bb790699c7f8ffc9508e6136b823d43a7fd4b8cd9f4a1641c06e",
+      "aspect_policy": "contain_with_transparent_padding",
+      "transparency_reconstructed": true
+    },
+    {
+      "file": "assets/cards/source_card_small.png",
+      "width": 800,
+      "height": 440,
+      "format": "PNG",
+      "alpha_range": [
+        0,
+        255
+      ],
+      "source": "design_sources/raw_assets_sheet.png",
+      "source_native_size": [
+        1672,
+        941
+      ],
+      "source_bounds": [
+        404,
+        706,
+        721,
+        776
+      ],
+      "provenance": "extracted",
+      "notes": "Original empty source card; canvas padded without stretching. Original is RGB on black; alpha is a reconstructed soft black matte, not recovered original alpha.",
+      "sha256": "079f59af3ac1d38c5334a520901e7edb8c7445616921f4fa272fee6545f4caf1",
+      "aspect_policy": "contain_with_transparent_padding",
+      "transparency_reconstructed": true
+    },
+    {
+      "file": "assets/topbar/button_wifi_source.png",
+      "width": 256,
+      "height": 256,
+      "format": "PNG",
+      "alpha_range": [
+        0,
+        255
+      ],
+      "source": "design_sources/raw_assets_sheet.png",
+      "source_native_size": [
+        1672,
+        941
+      ],
+      "source_bounds": [
+        293,
+        23,
+        431,
+        145
+      ],
+      "provenance": "extracted",
+      "notes": "Original complete button including its original glyph. Original is RGB on black; alpha is a reconstructed soft black matte, not recovered original alpha.",
+      "sha256": "ae4a918cf6bd4ce5692c5f1de85348008d5ae451104867f28c1a00ff290fd9fb",
+      "aspect_policy": "contain_with_transparent_padding",
+      "transparency_reconstructed": true
+    },
+    {
+      "file": "assets/topbar/button_bluetooth_source.png",
+      "width": 256,
+      "height": 256,
+      "format": "PNG",
+      "alpha_range": [
+        0,
+        255
+      ],
+      "source": "design_sources/raw_assets_sheet.png",
+      "source_native_size": [
+        1672,
+        941
+      ],
+      "source_bounds": [
+        444,
+        23,
+        582,
+        145
+      ],
+      "provenance": "extracted",
+      "notes": "Original complete button including its original glyph. Original is RGB on black; alpha is a reconstructed soft black matte, not recovered original alpha.",
+      "sha256": "b54c715dcc4d4c9d2bba966c6ec00acfb4a71d3f7a8a77e30e4d31347b779f1b",
+      "aspect_policy": "contain_with_transparent_padding",
+      "transparency_reconstructed": true
+    },
+    {
+      "file": "assets/topbar/button_settings_source.png",
+      "width": 256,
+      "height": 256,
+      "format": "PNG",
+      "alpha_range": [
+        0,
+        255
+      ],
+      "source": "design_sources/raw_assets_sheet.png",
+      "source_native_size": [
+        1672,
+        941
+      ],
+      "source_bounds": [
+        597,
+        23,
+        735,
+        145
+      ],
+      "provenance": "extracted",
+      "notes": "Original complete button including its original glyph. Original is RGB on black; alpha is a reconstructed soft black matte, not recovered original alpha.",
+      "sha256": "50c6ea9c5690dcb8a3c9ec0419950f27277defcc40366fab80a56877bcc913cd",
+      "aspect_policy": "contain_with_transparent_padding",
+      "transparency_reconstructed": true
+    },
+    {
+      "file": "assets/topbar/button_refresh_source.png",
+      "width": 256,
+      "height": 256,
+      "format": "PNG",
+      "alpha_range": [
+        0,
+        255
+      ],
+      "source": "design_sources/raw_assets_sheet.png",
+      "source_native_size": [
+        1672,
+        941
+      ],
+      "source_bounds": [
+        748,
+        23,
+        886,
+        145
+      ],
+      "provenance": "extracted",
+      "notes": "Original complete button including its original glyph. Original is RGB on black; alpha is a reconstructed soft black matte, not recovered original alpha.",
+      "sha256": "cbfbddf970b9fe48e14b4d78e7002b31c475aae59560fa34634a8f10788797b2",
+      "aspect_policy": "contain_with_transparent_padding",
+      "transparency_reconstructed": true
+    },
+    {
+      "file": "assets/topbar/button_notifications_source.png",
+      "width": 256,
+      "height": 256,
+      "format": "PNG",
+      "alpha_range": [
+        0,
+        255
+      ],
+      "source": "design_sources/raw_assets_sheet.png",
+      "source_native_size": [
+        1672,
+        941
+      ],
+      "source_bounds": [
+        902,
+        23,
+        1040,
+        145
+      ],
+      "provenance": "extracted",
+      "notes": "Original complete button including its original glyph. Original is RGB on black; alpha is a reconstructed soft black matte, not recovered original alpha.",
+      "sha256": "ebf7837aebed7909ecc87cf27af6a57e7834cc59698562fdb1ded5e141ffa0a3",
+      "aspect_policy": "contain_with_transparent_padding",
+      "transparency_reconstructed": true
+    },
+    {
+      "file": "assets/topbar/button_display_source.png",
+      "width": 256,
+      "height": 256,
+      "format": "PNG",
+      "alpha_range": [
+        0,
+        255
+      ],
+      "source": "design_sources/raw_assets_sheet.png",
+      "source_native_size": [
+        1672,
+        941
+      ],
+      "source_bounds": [
+        1055,
+        23,
+        1193,
+        145
+      ],
+      "provenance": "extracted",
+      "notes": "Original complete button including its original glyph. Original is RGB on black; alpha is a reconstructed soft black matte, not recovered original alpha.",
+      "sha256": "a17e6a3793cfd52f2589b0136c139b21bf8098e0cdf9fc1d46045ba2a276d500",
+      "aspect_policy": "contain_with_transparent_padding",
+      "transparency_reconstructed": true
+    },
+    {
+      "file": "assets/topbar/button_power_source.png",
+      "width": 256,
+      "height": 256,
+      "format": "PNG",
+      "alpha_range": [
+        0,
+        255
+      ],
+      "source": "design_sources/raw_assets_sheet.png",
+      "source_native_size": [
+        1672,
+        941
+      ],
+      "source_bounds": [
+        1208,
+        23,
+        1346,
+        145
+      ],
+      "provenance": "extracted",
+      "notes": "Original complete button including its original glyph. Original is RGB on black; alpha is a reconstructed soft black matte, not recovered original alpha.",
+      "sha256": "59f6972dfe18d00dbdad77351bb3156a914f6dcfb7baeb50d4f59bd3317e068e",
+      "aspect_policy": "contain_with_transparent_padding",
+      "transparency_reconstructed": true
+    },
+    {
+      "file": "assets/weather/weather_humidity.png",
+      "width": 256,
+      "height": 256,
+      "format": "PNG",
+      "alpha_range": [
+        0,
+        255
+      ],
+      "source": "design_sources/supplementary_icons.png",
+      "source_native_size": [
+        1536,
+        1024
+      ],
+      "source_bounds": [
+        0,
+        0,
+        256,
+        256
+      ],
+      "provenance": "generated_additional",
+      "notes": "Supplementary element reconstructed/generated to match the supplied gold identity; not claimed as extracted original.",
+      "sha256": "7a0305b504c235d812b9355d38e4e2720f14066ed750aacc5df53b0ebf0613eb",
+      "aspect_policy": "contain_with_transparent_padding",
+      "transparency_reconstructed": false
+    },
+    {
+      "file": "assets/weather/weather_wind.png",
+      "width": 256,
+      "height": 256,
+      "format": "PNG",
+      "alpha_range": [
+        0,
+        255
+      ],
+      "source": "design_sources/supplementary_icons.png",
+      "source_native_size": [
+        1536,
+        1024
+      ],
+      "source_bounds": [
+        256,
+        0,
+        512,
+        256
+      ],
+      "provenance": "generated_additional",
+      "notes": "Supplementary element reconstructed/generated to match the supplied gold identity; not claimed as extracted original.",
+      "sha256": "a95ab43f99ddb4d0f59ab88d4d345b882f5acfbbd4a8b7d00155a4cc3eab23d3",
+      "aspect_policy": "contain_with_transparent_padding",
+      "transparency_reconstructed": false
+    },
+    {
+      "file": "assets/weather/weather_temperature.png",
+      "width": 256,
+      "height": 256,
+      "format": "PNG",
+      "alpha_range": [
+        0,
+        255
+      ],
+      "source": "design_sources/supplementary_icons.png",
+      "source_native_size": [
+        1536,
+        1024
+      ],
+      "source_bounds": [
+        512,
+        0,
+        768,
+        256
+      ],
+      "provenance": "generated_additional",
+      "notes": "Supplementary element reconstructed/generated to match the supplied gold identity; not claimed as extracted original.",
+      "sha256": "93c7c2e84b186cc64743b0eef58a58ae5858cae89457588995da1ac9abad1980",
+      "aspect_policy": "contain_with_transparent_padding",
+      "transparency_reconstructed": false
+    },
+    {
+      "file": "assets/prayer/icon_sunrise.png",
+      "width": 256,
+      "height": 256,
+      "format": "PNG",
+      "alpha_range": [
+        0,
+        255
+      ],
+      "source": "design_sources/supplementary_icons.png",
+      "source_native_size": [
+        1536,
+        1024
+      ],
+      "source_bounds": [
+        768,
+        0,
+        1024,
+        256
+      ],
+      "provenance": "generated_additional",
+      "notes": "Supplementary element reconstructed/generated to match the supplied gold identity; not claimed as extracted original.",
+      "sha256": "4e32f5d703d9a5cf37712c2e0820764df25207374019e57b6301054129db3306",
+      "aspect_policy": "contain_with_transparent_padding",
+      "transparency_reconstructed": false
+    },
+    {
+      "file": "assets/prayer/icon_prayer.png",
+      "width": 256,
+      "height": 256,
+      "format": "PNG",
+      "alpha_range": [
+        0,
+        255
+      ],
+      "source": "design_sources/supplementary_icons.png",
+      "source_native_size": [
+        1536,
+        1024
+      ],
+      "source_bounds": [
+        1024,
+        0,
+        1280,
+        256
+      ],
+      "provenance": "generated_additional",
+      "notes": "Supplementary element reconstructed/generated to match the supplied gold identity; not claimed as extracted original.",
+      "sha256": "96c82854333ee2a1e350fb5d0f17a513303e520a1a69eaea61dca7a9e5a7c3f3",
+      "aspect_policy": "contain_with_transparent_padding",
+      "transparency_reconstructed": false
+    },
+    {
+      "file": "assets/prayer/icon_moon.png",
+      "width": 256,
+      "height": 256,
+      "format": "PNG",
+      "alpha_range": [
+        0,
+        255
+      ],
+      "source": "design_sources/supplementary_icons.png",
+      "source_native_size": [
+        1536,
+        1024
+      ],
+      "source_bounds": [
+        1280,
+        0,
+        1536,
+        256
+      ],
+      "provenance": "generated_additional",
+      "notes": "Supplementary element reconstructed/generated to match the supplied gold identity; not claimed as extracted original.",
+      "sha256": "8506109ffde014b908ea377145bf3ead7ed2b9a76e395104dce145d1130fb6ea",
+      "aspect_policy": "contain_with_transparent_padding",
+      "transparency_reconstructed": false
+    },
+    {
+      "file": "assets/categories/icon_live_tv.png",
+      "width": 256,
+      "height": 256,
+      "format": "PNG",
+      "alpha_range": [
+        0,
+        255
+      ],
+      "source": "design_sources/supplementary_icons.png",
+      "source_native_size": [
+        1536,
+        1024
+      ],
+      "source_bounds": [
+        0,
+        256,
+        256,
+        512
+      ],
+      "provenance": "generated_additional",
+      "notes": "Supplementary element reconstructed/generated to match the supplied gold identity; not claimed as extracted original.",
+      "sha256": "ca923ea6701124ec54eb5e5a7aca49ec244249f69cd0a9a90e389510bcd8eda3",
+      "aspect_policy": "contain_with_transparent_padding",
+      "transparency_reconstructed": false
+    },
+    {
+      "file": "assets/categories/icon_anime.png",
+      "width": 256,
+      "height": 256,
+      "format": "PNG",
+      "alpha_range": [
+        0,
+        255
+      ],
+      "source": "design_sources/supplementary_icons.png",
+      "source_native_size": [
+        1536,
+        1024
+      ],
+      "source_bounds": [
+        256,
+        256,
+        512,
+        512
+      ],
+      "provenance": "generated_additional",
+      "notes": "Supplementary element reconstructed/generated to match the supplied gold identity; not claimed as extracted original.",
+      "sha256": "ac5c3e2e7eae3f20946e09588c5bbba11306a7f497e32c7be5f2a3d1c4cd28c0",
+      "aspect_policy": "contain_with_transparent_padding",
+      "transparency_reconstructed": false
+    },
+    {
+      "file": "assets/categories/icon_apps.png",
+      "width": 256,
+      "height": 256,
+      "format": "PNG",
+      "alpha_range": [
+        0,
+        255
+      ],
+      "source": "design_sources/supplementary_icons.png",
+      "source_native_size": [
+        1536,
+        1024
+      ],
+      "source_bounds": [
+        512,
+        256,
+        768,
+        512
+      ],
+      "provenance": "generated_additional",
+      "notes": "Supplementary element reconstructed/generated to match the supplied gold identity; not claimed as extracted original.",
+      "sha256": "f455f03a86923628d85c54eccf7bf15d4cc3c0a80587d549ad462b7bb9ba5f84",
+      "aspect_policy": "contain_with_transparent_padding",
+      "transparency_reconstructed": false
+    },
+    {
+      "file": "assets/categories/icon_search.png",
+      "width": 256,
+      "height": 256,
+      "format": "PNG",
+      "alpha_range": [
+        0,
+        255
+      ],
+      "source": "design_sources/supplementary_icons.png",
+      "source_native_size": [
+        1536,
+        1024
+      ],
+      "source_bounds": [
+        768,
+        256,
+        1024,
+        512
+      ],
+      "provenance": "generated_additional",
+      "notes": "Supplementary element reconstructed/generated to match the supplied gold identity; not claimed as extracted original.",
+      "sha256": "70bd62d08876c6631423cc8c681043be638f68649e98fe2d14d0fc33e9993350",
+      "aspect_policy": "contain_with_transparent_padding",
+      "transparency_reconstructed": false
+    },
+    {
+      "file": "assets/entertainment/icon_arrow_left.png",
+      "width": 256,
+      "height": 256,
+      "format": "PNG",
+      "alpha_range": [
+        0,
+        255
+      ],
+      "source": "design_sources/supplementary_icons.png",
+      "source_native_size": [
+        1536,
+        1024
+      ],
+      "source_bounds": [
+        1024,
+        256,
+        1280,
+        512
+      ],
+      "provenance": "generated_additional",
+      "notes": "Supplementary element reconstructed/generated to match the supplied gold identity; not claimed as extracted original.",
+      "sha256": "66eeee4e12822469a5b5fe7a906298716c0c83ff0a569aebc3ce9461f1f7d100",
+      "aspect_policy": "contain_with_transparent_padding",
+      "transparency_reconstructed": false
+    },
+    {
+      "file": "assets/entertainment/icon_arrow_right.png",
+      "width": 256,
+      "height": 256,
+      "format": "PNG",
+      "alpha_range": [
+        0,
+        255
+      ],
+      "source": "design_sources/supplementary_icons.png",
+      "source_native_size": [
+        1536,
+        1024
+      ],
+      "source_bounds": [
+        1280,
+        256,
+        1536,
+        512
+      ],
+      "provenance": "generated_additional",
+      "notes": "Supplementary element reconstructed/generated to match the supplied gold identity; not claimed as extracted original.",
+      "sha256": "f2fe43481dd841becab94d74bb4098ad25b0d7cb75ce47f8fa28b2eba3621dce",
+      "aspect_policy": "contain_with_transparent_padding",
+      "transparency_reconstructed": false
+    },
+    {
+      "file": "assets/effects/gold_glow.png",
+      "width": 512,
+      "height": 512,
+      "format": "PNG",
+      "alpha_range": [
+        0,
+        252
+      ],
+      "source": "design_sources/supplementary_icons.png",
+      "source_native_size": [
+        1536,
+        1024
+      ],
+      "source_bounds": [
+        0,
+        512,
+        256,
+        768
+      ],
+      "provenance": "generated_additional",
+      "notes": "Supplementary element reconstructed/generated to match the supplied gold identity; not claimed as extracted original.",
+      "sha256": "024d1c62ab8c25e1c048d090d4d680f633310c2fdacccced19271603d2cfc554",
+      "aspect_policy": "contain_with_transparent_padding",
+      "transparency_reconstructed": false
+    },
+    {
+      "file": "assets/effects/gold_separator.png",
+      "width": 768,
+      "height": 160,
+      "format": "PNG",
+      "alpha_range": [
+        0,
+        255
+      ],
+      "source": "design_sources/supplementary_icons.png",
+      "source_native_size": [
+        1536,
+        1024
+      ],
+      "source_bounds": [
+        290,
+        620,
+        490,
+        680
+      ],
+      "provenance": "generated_additional",
+      "notes": "Supplementary element reconstructed/generated to match the supplied gold identity; not claimed as extracted original.",
+      "sha256": "e7c46eec09c665ee6b2b690c7f2403dbdca8a44cb9c04d84619e5d41cca347e5",
+      "aspect_policy": "contain_with_transparent_padding",
+      "transparency_reconstructed": false
+    },
+    {
+      "file": "assets/effects/focus_glow.png",
+      "width": 512,
+      "height": 512,
+      "format": "PNG",
+      "alpha_range": [
+        0,
+        255
+      ],
+      "source": "design_sources/supplementary_icons.png",
+      "source_native_size": [
+        1536,
+        1024
+      ],
+      "source_bounds": [
+        768,
+        512,
+        1024,
+        768
+      ],
+      "provenance": "generated_additional",
+      "notes": "Supplementary element reconstructed/generated to match the supplied gold identity; not claimed as extracted original.",
+      "sha256": "a51528acfe0300ebff6809f0642990ed1889c49a4e35fc2f610baf43c665be5f",
+      "aspect_policy": "contain_with_transparent_padding",
+      "transparency_reconstructed": false
+    },
+    {
+      "file": "assets/cards/button_gold.png",
+      "width": 480,
+      "height": 160,
+      "format": "PNG",
+      "alpha_range": [
+        0,
+        255
+      ],
+      "source": "design_sources/supplementary_icons.png",
+      "source_native_size": [
+        1536,
+        1024
+      ],
+      "source_bounds": [
+        1280,
+        512,
+        1536,
+        768
+      ],
+      "provenance": "generated_additional",
+      "notes": "Supplementary element reconstructed/generated to match the supplied gold identity; not claimed as extracted original.",
+      "sha256": "f1ce1a1a45bb9aa561a3acc9dc337c561087505620eacec034b630a97d521ff9",
+      "aspect_policy": "contain_with_transparent_padding",
+      "transparency_reconstructed": false
+    },
+    {
+      "file": "assets/prayer/icon_calendar.png",
+      "width": 256,
+      "height": 256,
+      "format": "PNG",
+      "alpha_range": [
+        0,
+        255
+      ],
+      "source": "design_sources/supplementary_icons.png",
+      "source_native_size": [
+        1536,
+        1024
+      ],
+      "source_bounds": [
+        0,
+        768,
+        256,
+        1024
+      ],
+      "provenance": "generated_additional",
+      "notes": "Supplementary element reconstructed/generated to match the supplied gold identity; not claimed as extracted original.",
+      "sha256": "91e7ecf4e3543b4d7dab48d3e5919d7d3d94b31574d0148adda7ee7594edc690",
+      "aspect_policy": "contain_with_transparent_padding",
+      "transparency_reconstructed": false
+    },
+    {
+      "file": "assets/weather/icon_location.png",
+      "width": 256,
+      "height": 256,
+      "format": "PNG",
+      "alpha_range": [
+        0,
+        255
+      ],
+      "source": "design_sources/supplementary_icons.png",
+      "source_native_size": [
+        1536,
+        1024
+      ],
+      "source_bounds": [
+        256,
+        768,
+        512,
+        1024
+      ],
+      "provenance": "generated_additional",
+      "notes": "Supplementary element reconstructed/generated to match the supplied gold identity; not claimed as extracted original.",
+      "sha256": "2eca4246d26a133a1bcc90302deeec28cfd5c4a36dad6ed014b67d3a7714ea3c",
+      "aspect_policy": "contain_with_transparent_padding",
+      "transparency_reconstructed": false
+    },
+    {
+      "file": "assets/prayer/icon_prayer_hands.png",
+      "width": 256,
+      "height": 256,
+      "format": "PNG",
+      "alpha_range": [
+        0,
+        255
+      ],
+      "source": "design_sources/supplementary_icons.png",
+      "source_native_size": [
+        1536,
+        1024
+      ],
+      "source_bounds": [
+        512,
+        768,
+        768,
+        1024
+      ],
+      "provenance": "generated_additional",
+      "notes": "Supplementary element reconstructed/generated to match the supplied gold identity; not claimed as extracted original.",
+      "sha256": "59763b8892d42654dff8a68b72cc2ab819d02955665022694ee0cab19bcc1406",
+      "aspect_policy": "contain_with_transparent_padding",
+      "transparency_reconstructed": false
+    },
+    {
+      "file": "assets/categories/icon_favorites_outline.png",
+      "width": 256,
+      "height": 256,
+      "format": "PNG",
+      "alpha_range": [
+        0,
+        255
+      ],
+      "source": "design_sources/supplementary_icons.png",
+      "source_native_size": [
+        1536,
+        1024
+      ],
+      "source_bounds": [
+        768,
+        768,
+        1024,
+        1024
+      ],
+      "provenance": "generated_additional",
+      "notes": "Supplementary element reconstructed/generated to match the supplied gold identity; not claimed as extracted original.",
+      "sha256": "15a0aaef087869f98de902f3fd5ddd22bb75f84f71321452c99f4a31dd6f2c3f",
+      "aspect_policy": "contain_with_transparent_padding",
+      "transparency_reconstructed": false
+    },
+    {
+      "file": "assets/categories/icon_back.png",
+      "width": 256,
+      "height": 256,
+      "format": "PNG",
+      "alpha_range": [
+        0,
+        255
+      ],
+      "source": "design_sources/supplementary_icons.png",
+      "source_native_size": [
+        1536,
+        1024
+      ],
+      "source_bounds": [
+        1024,
+        768,
+        1280,
+        1024
+      ],
+      "provenance": "generated_additional",
+      "notes": "Supplementary element reconstructed/generated to match the supplied gold identity; not claimed as extracted original.",
+      "sha256": "294cea5d433385350b4811e7436892306f789ae0588f8925c2e8a8c1dddebd02",
+      "aspect_policy": "contain_with_transparent_padding",
+      "transparency_reconstructed": false
+    },
+    {
+      "file": "assets/prayer/icon_sunrise_cloudy.png",
+      "width": 256,
+      "height": 256,
+      "format": "PNG",
+      "alpha_range": [
+        0,
+        255
+      ],
+      "source": "design_sources/supplementary_icons.png",
+      "source_native_size": [
+        1536,
+        1024
+      ],
+      "source_bounds": [
+        1280,
+        768,
+        1536,
+        1024
+      ],
+      "provenance": "generated_additional",
+      "notes": "Supplementary element reconstructed/generated to match the supplied gold identity; not claimed as extracted original.",
+      "sha256": "63f342a5100077e9b3a2cf53bcd5885c877ff034369b67df3cde7b2c5d1fec79",
+      "aspect_policy": "contain_with_transparent_padding",
+      "transparency_reconstructed": false
+    },
+    {
+      "file": "assets/cards/card_weather.png",
+      "width": 800,
+      "height": 440,
+      "format": "PNG",
+      "alpha_range": [
+        0,
+        255
+      ],
+      "source": "design_sources/reconstructed_cards.png",
+      "source_native_size": [
+        1536,
+        1024
+      ],
+      "source_bounds": [
+        34,
+        85,
+        543,
+        355
+      ],
+      "provenance": "reconstructed",
+      "notes": "Empty card rebuilt from source styling; no embedded text or icons.",
+      "sha256": "617c89b2930d0f3156b54bb3071f59d09ede72c02ed22951471731d5f72be277",
+      "aspect_policy": "contain_with_transparent_padding",
+      "transparency_reconstructed": false
+    },
+    {
+      "file": "assets/cards/card_prayer.png",
+      "width": 400,
+      "height": 560,
+      "format": "PNG",
+      "alpha_range": [
+        0,
+        255
+      ],
+      "source": "design_sources/reconstructed_cards.png",
+      "source_native_size": [
+        1536,
+        1024
+      ],
+      "source_bounds": [
+        625,
+        16,
+        915,
+        407
+      ],
+      "provenance": "reconstructed",
+      "notes": "Empty card rebuilt from source styling; no embedded text or icons.",
+      "sha256": "537f8dcc7759cf102772ccead21f27b3165d5c1437c93026745a1981305e918f",
+      "aspect_policy": "contain_with_transparent_padding",
+      "transparency_reconstructed": false
+    },
+    {
+      "file": "assets/cards/card_glass_dark.png",
+      "width": 800,
+      "height": 440,
+      "format": "PNG",
+      "alpha_range": [
+        0,
+        255
+      ],
+      "source": "design_sources/reconstructed_cards.png",
+      "source_native_size": [
+        1536,
+        1024
+      ],
+      "source_bounds": [
+        994,
+        88,
+        1503,
+        359
+      ],
+      "provenance": "reconstructed",
+      "notes": "Empty card rebuilt from source styling; no embedded text or icons.",
+      "sha256": "c5ee98012050bb65f741b465dae37b8d06aa764ce1256f7dcb3de599d43fbbef",
+      "aspect_policy": "contain_with_transparent_padding",
+      "transparency_reconstructed": false
+    },
+    {
+      "file": "assets/cards/card_app_normal.png",
+      "width": 320,
+      "height": 320,
+      "format": "PNG",
+      "alpha_range": [
+        0,
+        255
+      ],
+      "source": "design_sources/reconstructed_cards.png",
+      "source_native_size": [
+        1536,
+        1024
+      ],
+      "source_bounds": [
+        137,
+        431,
+        441,
+        731
+      ],
+      "provenance": "reconstructed",
+      "notes": "Empty card rebuilt from source styling; no embedded text or icons.",
+      "sha256": "475ac38a56d8026d198a6aa9b881ac7ea0939af6d785e9010091fd5e1197b742",
+      "aspect_policy": "contain_with_transparent_padding",
+      "transparency_reconstructed": false
+    },
+    {
+      "file": "assets/cards/card_app_focused.png",
+      "width": 320,
+      "height": 320,
+      "format": "PNG",
+      "alpha_range": [
+        0,
+        253
+      ],
+      "source": "design_sources/reconstructed_cards.png",
+      "source_native_size": [
+        1536,
+        1024
+      ],
+      "source_bounds": [
+        560,
+        410,
+        979,
+        750
+      ],
+      "provenance": "reconstructed",
+      "notes": "Empty card rebuilt from source styling; no embedded text or icons.",
+      "sha256": "85c36436e65d886426485f3c7b4a101b92cb5b8600154524c7b08a59d28e8c08",
+      "aspect_policy": "contain_with_transparent_padding",
+      "transparency_reconstructed": false
+    },
+    {
+      "file": "assets/cards/card_category_normal.png",
+      "width": 480,
+      "height": 300,
+      "format": "PNG",
+      "alpha_range": [
+        0,
+        255
+      ],
+      "source": "design_sources/reconstructed_cards.png",
+      "source_native_size": [
+        1536,
+        1024
+      ],
+      "source_bounds": [
+        1010,
+        442,
+        1491,
+        721
+      ],
+      "provenance": "reconstructed",
+      "notes": "Empty card rebuilt from source styling; no embedded text or icons.",
+      "sha256": "6ee0d2c8d8e98b12014fadb05ef5c13faa5a73ff4739acedc99965edeafb19fb",
+      "aspect_policy": "contain_with_transparent_padding",
+      "transparency_reconstructed": false
+    },
+    {
+      "file": "assets/cards/card_category_focused.png",
+      "width": 480,
+      "height": 300,
+      "format": "PNG",
+      "alpha_range": [
+        0,
+        253
+      ],
+      "source": "design_sources/reconstructed_cards.png",
+      "source_native_size": [
+        1536,
+        1024
+      ],
+      "source_bounds": [
+        45,
+        732,
+        535,
+        1016
+      ],
+      "provenance": "reconstructed",
+      "notes": "Empty card rebuilt from source styling; no embedded text or icons.",
+      "sha256": "e4d75b4c6e5d355fb55bd70b77323dce3f2fdb2a9f5afcac97b49cd17cdef178",
+      "aspect_policy": "contain_with_transparent_padding",
+      "transparency_reconstructed": false
+    },
+    {
+      "file": "assets/prayer/prayer_row_selected.png",
+      "width": 640,
+      "height": 112,
+      "format": "PNG",
+      "alpha_range": [
+        0,
+        255
+      ],
+      "source": "design_sources/reconstructed_cards.png",
+      "source_native_size": [
+        1536,
+        1024
+      ],
+      "source_bounds": [
+        1004,
+        824,
+        1495,
+        927
+      ],
+      "provenance": "reconstructed",
+      "notes": "Long blank selection strip rebuilt from the supplied styling.",
+      "sha256": "876cb523e064cc3dac3ddb6091407851a84cf39a30e6e453fc10cd0283a02e75",
+      "aspect_policy": "contain_with_transparent_padding",
+      "transparency_reconstructed": false
+    },
+    {
+      "file": "assets/topbar/top_button_frame.png",
+      "width": 256,
+      "height": 256,
+      "format": "PNG",
+      "alpha_range": [
+        0,
+        255
+      ],
+      "source": "assets/cards/card_app_normal.png",
+      "source_native_size": [
+        320,
+        320
+      ],
+      "source_bounds": null,
+      "provenance": "derived_from_exported_asset",
+      "notes": "",
+      "sha256": "f01c283e2d6386fe0d4fb8f8a4c24336f28b519db1430f33ac90a9d7fd08ec76",
+      "aspect_policy": "contain_with_transparent_padding",
+      "transparency_reconstructed": false
+    },
+    {
+      "file": "assets/topbar/top_button_frame_focused.png",
+      "width": 256,
+      "height": 256,
+      "format": "PNG",
+      "alpha_range": [
+        0,
+        253
+      ],
+      "source": "assets/cards/card_app_focused.png",
+      "source_native_size": [
+        320,
+        320
+      ],
+      "source_bounds": null,
+      "provenance": "derived_from_exported_asset",
+      "notes": "",
+      "sha256": "dec9227e0794de926357a58076ebc360bb4a2343f250d181377e69823982d471",
+      "aspect_policy": "contain_with_transparent_padding",
+      "transparency_reconstructed": false
+    },
+    {
+      "file": "assets/prayer/prayer_panel.png",
+      "width": 400,
+      "height": 560,
+      "format": "PNG",
+      "alpha_range": [
+        0,
+        255
+      ],
+      "source": "assets/cards/card_prayer.png",
+      "source_native_size": [
+        400,
+        560
+      ],
+      "source_bounds": null,
+      "provenance": "derived_from_exported_asset",
+      "notes": "",
+      "sha256": "1f3799c876dfd7645e06bb7433ff3353a9a9e5037bcc52e3bcdd2e38472b067d",
+      "aspect_policy": "contain_with_transparent_padding",
+      "transparency_reconstructed": false
+    },
+    {
+      "file": "assets/cards/card_category_selected.png",
+      "width": 480,
+      "height": 300,
+      "format": "PNG",
+      "alpha_range": [
+        0,
+        253
+      ],
+      "source": "assets/cards/card_category_focused.png",
+      "source_native_size": [
+        480,
+        300
+      ],
+      "source_bounds": null,
+      "provenance": "derived_from_exported_asset",
+      "notes": "",
+      "sha256": "b9e5fe9469be4afa007c1ae29de0a509fac370552873c420b679defcaa6aaf90",
+      "aspect_policy": "contain_with_transparent_padding",
+      "transparency_reconstructed": false
+    },
+    {
+      "file": "assets/categories/icon_movies.png",
+      "width": 256,
+      "height": 256,
+      "format": "PNG",
+      "alpha_range": [
+        0,
+        255
+      ],
+      "source": "assets/entertainment/icon_film_reel.png",
+      "source_native_size": [
+        256,
+        256
+      ],
+      "source_bounds": null,
+      "provenance": "derived_from_exported_asset",
+      "notes": "",
+      "sha256": "d94486eac66cf533e2a04d234d35586b8602a0df18060e3119cb07557613fbc8",
+      "aspect_policy": "contain_with_transparent_padding",
+      "transparency_reconstructed": false
+    },
+    {
+      "file": "assets/categories/icon_series.png",
+      "width": 256,
+      "height": 256,
+      "format": "PNG",
+      "alpha_range": [
+        0,
+        255
+      ],
+      "source": "assets/entertainment/icon_clapperboard.png",
+      "source_native_size": [
+        256,
+        256
+      ],
+      "source_bounds": null,
+      "provenance": "derived_from_exported_asset",
+      "notes": "",
+      "sha256": "56fd8c5dfeae0a8ad25807bccddd5391cbd4fe7a3fa5c7685fc683b31f64d3e4",
+      "aspect_policy": "contain_with_transparent_padding",
+      "transparency_reconstructed": false
+    },
+    {
+      "file": "assets/categories/icon_sports.png",
+      "width": 256,
+      "height": 256,
+      "format": "PNG",
+      "alpha_range": [
+        0,
+        255
+      ],
+      "source": "assets/entertainment/icon_football.png",
+      "source_native_size": [
+        256,
+        256
+      ],
+      "source_bounds": null,
+      "provenance": "derived_from_exported_asset",
+      "notes": "",
+      "sha256": "3312e0e9ce5e31733486216ace09c35650c26b384288873ef4f87167a93e0a7c",
+      "aspect_policy": "contain_with_transparent_padding",
+      "transparency_reconstructed": false
+    },
+    {
+      "file": "assets/categories/icon_favorites.png",
+      "width": 256,
+      "height": 256,
+      "format": "PNG",
+      "alpha_range": [
+        0,
+        255
+      ],
+      "source": "assets/entertainment/icon_star.png",
+      "source_native_size": [
+        256,
+        256
+      ],
+      "source_bounds": null,
+      "provenance": "derived_from_exported_asset",
+      "notes": "",
+      "sha256": "254f6477d21a3923b70bfd875ce60271adb7ceb39bef9589e64f30ed2b2e2217",
+      "aspect_policy": "contain_with_transparent_padding",
+      "transparency_reconstructed": false
+    },
+    {
+      "file": "assets/backgrounds/gold_waves_bottom.png",
+      "width": 1920,
+      "height": 300,
+      "format": "PNG",
+      "alpha_range": [
+        0,
+        255
+      ],
+      "source": "design_sources/reconstructed_waves.png",
+      "source_native_size": [
+        2172,
+        724
+      ],
+      "source_bounds": null,
+      "provenance": "reconstructed",
+      "notes": "Rebuilt from gold footer motif to remove all water/city contamination.",
+      "sha256": "9ea82c8f1585a139c4fd8fc4b60c00451ce4962f58cd8cacd7d26c13b44efa58",
+      "aspect_policy": "contain_with_transparent_padding",
+      "transparency_reconstructed": false
+    },
+    {
+      "file": "assets/backgrounds/jeddah_background_4k.png",
+      "width": 3840,
+      "height": 2160,
+      "format": "PNG",
+      "alpha_range": null,
+      "source": "design_sources/reconstructed_jeddah.png",
+      "source_native_size": [
+        1672,
+        941
+      ],
+      "source_bounds": null,
+      "provenance": "reconstructed_and_resampled",
+      "notes": "AI-reconstructed clean scene, natively 1672x941, exported by aspect-preserving resampling and minimal crop. NOT native photographic 4K; no UI or typography.",
+      "sha256": "f198a8b4d780af315ac538d0b2006fbbb486cdb62d2c7cf4deeba8dca027ff2e",
+      "native_4k": false
+    },
+    {
+      "file": "assets/backgrounds/jeddah_background_fhd.png",
+      "width": 1920,
+      "height": 1080,
+      "format": "PNG",
+      "alpha_range": null,
+      "source": "design_sources/reconstructed_jeddah.png",
+      "source_native_size": [
+        1672,
+        941
+      ],
+      "source_bounds": null,
+      "provenance": "reconstructed_and_resampled",
+      "notes": "AI-reconstructed clean scene, natively 1672x941, exported by aspect-preserving resampling and minimal crop. NOT native photographic 4K; no UI or typography.",
+      "sha256": "204d18d9f4573ac7a8b4ad908303998da1ac0a85c2635b61e14cca392a9924ed",
+      "native_4k": false
+    },
+    {
+      "file": "assets/backgrounds/background_overlay.png",
+      "width": 1920,
+      "height": 1080,
+      "format": "PNG",
+      "alpha_range": [
+        32,
+        160
+      ],
+      "source": null,
+      "source_native_size": null,
+      "source_bounds": null,
+      "provenance": "procedural",
+      "notes": "Lightweight true-alpha dark vertical gradient; UI text stays programmatic.",
+      "sha256": "ac76164909c5529c44988e4649e85af98be96d8c63a9e4611898bfbca70c33d5"
+    },
+    {
+      "file": "assets/app_logos/apple_tv.png",
+      "width": 256,
+      "height": 256,
+      "format": "PNG",
+      "alpha_range": [
+        0,
+        255
+      ],
+      "source": "design_sources/official_logos/apple_tv.source",
+      "source_native_size": [
+        180,
+        180
+      ],
+      "source_bounds": null,
+      "provenance": "official_source",
+      "notes": "Official published application artwork. Intentional brand tile backgrounds are retained; export canvas is transparent.",
+      "sha256": "a0f35ad2c2de0c44f17b14b77ef743514c9541bef1a3430fd227665805f79ce7",
+      "aspect_policy": "contain_with_transparent_padding",
+      "transparency_reconstructed": false,
+      "official_source_url": "https://tv.apple.com/",
+      "download_url": "https://tv.apple.com/assets/favicon/favicon-180.png"
+    },
+    {
+      "file": "assets/app_logos/nuvio_tv.png",
+      "width": 256,
+      "height": 256,
+      "format": "PNG",
+      "alpha_range": [
+        0,
+        255
+      ],
+      "source": "design_sources/official_logos/nuvio_tv.source",
+      "source_native_size": [
+        1080,
+        1080
+      ],
+      "source_bounds": null,
+      "provenance": "official_source",
+      "notes": "Official published application artwork. Intentional brand tile backgrounds are retained; export canvas is transparent.",
+      "sha256": "3275963f4bf1368adc3dfa45b41ca66eb8cc90a5a893e4f145a4c6b49c9831f4",
+      "aspect_policy": "contain_with_transparent_padding",
+      "transparency_reconstructed": false,
+      "official_source_url": "https://github.com/NuvioMedia/NuvioTV/blob/dev/assets/brand/app_logo_mark.png",
+      "download_url": "https://raw.githubusercontent.com/NuvioMedia/NuvioTV/dev/assets/brand/app_logo_mark.png"
+    },
+    {
+      "file": "assets/app_logos/stremio.png",
+      "width": 256,
+      "height": 256,
+      "format": "PNG",
+      "alpha_range": [
+        0,
+        255
+      ],
+      "source": "design_sources/official_logos/stremio.source",
+      "source_native_size": [
+        512,
+        512
+      ],
+      "source_bounds": null,
+      "provenance": "official_source",
+      "notes": "Official published application artwork. Intentional brand tile backgrounds are retained; export canvas is transparent.",
+      "sha256": "1afdfaf44eac0cbc24b59c35f30daae7a8c02781e8d82a6a85fcc0c09e026650",
+      "aspect_policy": "contain_with_transparent_padding",
+      "transparency_reconstructed": false,
+      "official_source_url": "https://play.google.com/store/apps/details?id=com.stremio.one&hl=en",
+      "download_url": "https://play-lh.googleusercontent.com/OvTwEXzvUbeyfqdXd1vZiTfbBOTdMAA6EWw5TV00PiSirn7C1iz__HVD6PfXCHkN9quH_XdoPwCIT3GhB1Ukmw=s0-br30"
+    },
+    {
+      "file": "assets/app_logos/shahid.png",
+      "width": 256,
+      "height": 256,
+      "format": "PNG",
+      "alpha_range": [
+        0,
+        255
+      ],
+      "source": "design_sources/official_logos/shahid.source",
+      "source_native_size": [
+        512,
+        512
+      ],
+      "source_bounds": null,
+      "provenance": "official_source",
+      "notes": "Official published application artwork. Intentional brand tile backgrounds are retained; export canvas is transparent.",
+      "sha256": "b0700b424ffebd7bfdcb579df1e3b669435e13ce97a4987abeba81cd120a2d92",
+      "aspect_policy": "contain_with_transparent_padding",
+      "transparency_reconstructed": false,
+      "official_source_url": "https://play.google.com/store/apps/details?id=net.mbc.shahid&hl=en",
+      "download_url": "https://play-lh.googleusercontent.com/OX_8Lxi6zQdeob7G9t45jHK889TOrfULfn4vf6MP6a3lx4U26naAbim14BIIKOmt1_5AbUpqgCFqldWzpp-LMro=s0-br30"
+    },
+    {
+      "file": "assets/app_logos/aiostreams.png",
+      "width": 256,
+      "height": 256,
+      "format": "PNG",
+      "alpha_range": [
+        0,
+        255
+      ],
+      "source": "design_sources/official_logos/aiostreams.source",
+      "source_native_size": [
+        512,
+        512
+      ],
+      "source_bounds": null,
+      "provenance": "official_source",
+      "notes": "Official published application artwork. Intentional brand tile backgrounds are retained; export canvas is transparent.",
+      "sha256": "b24d731818240dece0fb75f049f7626d2108634e33061338fae1da8a44f7d289",
+      "aspect_policy": "contain_with_transparent_padding",
+      "transparency_reconstructed": false,
+      "official_source_url": "https://github.com/Viren070/AIOStreams/blob/main/packages/desktop/app/icons/aiostreams.png",
+      "download_url": "https://raw.githubusercontent.com/Viren070/AIOStreams/main/packages/desktop/app/icons/aiostreams.png"
+    },
+    {
+      "file": "assets/app_logos/movieboxpro.png",
+      "width": 256,
+      "height": 256,
+      "format": "PNG",
+      "alpha_range": [
+        0,
+        255
+      ],
+      "source": "design_sources/official_logos/movieboxpro.source",
+      "source_native_size": [
+        152,
+        152
+      ],
+      "source_bounds": null,
+      "provenance": "official_source",
+      "notes": "Official published application artwork. Intentional brand tile backgrounds are retained; export canvas is transparent.",
+      "sha256": "f6e72b249e1365a925db821e3f4312d7305bfeb928f3ac9106fdea836501d862",
+      "aspect_policy": "contain_with_transparent_padding",
+      "transparency_reconstructed": false,
+      "official_source_url": "https://www.movieboxpro.app/",
+      "download_url": "https://www.movieboxpro.app/static/img/apple-touch-icon.png"
+    },
+    {
+      "file": "assets/app_logos/vlc.png",
+      "width": 256,
+      "height": 256,
+      "format": "PNG",
+      "alpha_range": [
+        0,
+        255
+      ],
+      "source": "design_sources/official_logos/vlc.source",
+      "source_native_size": [
+        512,
+        512
+      ],
+      "source_bounds": null,
+      "provenance": "official_source",
+      "notes": "Official published application artwork. Intentional brand tile backgrounds are retained; export canvas is transparent.",
+      "sha256": "2035ddd0c76d1fd015882f6b0788a74ed2b5f7464e45724cfc732d53a3911999",
+      "aspect_policy": "contain_with_transparent_padding",
+      "transparency_reconstructed": false,
+      "official_source_url": "https://play.google.com/store/apps/details?id=org.videolan.vlc&hl=en",
+      "download_url": "https://play-lh.googleusercontent.com/BG5YwziGHjh0wvWg6VO9c3iprYa3vFww1CnNqPvFszUVxcY4yB29dy7t2jsLwwI4jAqX08_--12FmMxgNG1JFg=s0-br30"
+    },
+    {
+      "file": "assets/app_logos/mx_player.png",
+      "width": 256,
+      "height": 256,
+      "format": "PNG",
+      "alpha_range": [
+        0,
+        255
+      ],
+      "source": "design_sources/official_logos/mx_player.source",
+      "source_native_size": [
+        512,
+        512
+      ],
+      "source_bounds": null,
+      "provenance": "official_source",
+      "notes": "Official published application artwork. Intentional brand tile backgrounds are retained; export canvas is transparent.",
+      "sha256": "9baf4c0c446f2aa3cc34e2a91741c15560b214f0dc4e3edc6c89531b9d11ee4c",
+      "aspect_policy": "contain_with_transparent_padding",
+      "transparency_reconstructed": false,
+      "official_source_url": "https://play.google.com/store/apps/details?id=com.mxtech.videoplayer.ad&hl=en",
+      "download_url": "https://play-lh.googleusercontent.com/kuU8L2zHfkE8rDQ8iUwMpYcV8TzUDBz7n_KYaEV4R5M7W5qHiZGqxWk9f1ysP2Lk72GmRTps3iaXUXfH-18pWw=s0-br30"
+    },
+    {
+      "file": "assets/app_logos/aervix_tv.png",
+      "width": 256,
+      "height": 256,
+      "format": "PNG",
+      "alpha_range": [
+        0,
+        255
+      ],
+      "source": "design_sources/raw_assets_sheet.png",
+      "source_native_size": [
+        1672,
+        941
+      ],
+      "source_bounds": [
+        30,
+        8,
+        231,
+        168
+      ],
+      "provenance": "user_provided_brand",
+      "notes": "User-provided new AERVIX brand mark. The installed Android launcher icon is not changed by this library export. Original is RGB on black; alpha is a reconstructed soft black matte, not recovered original alpha.",
+      "sha256": "987192bcf64e7635043f6c4fd8fdedbf0e6c4bd2aece386a919af57964937194",
+      "aspect_policy": "contain_with_transparent_padding",
+      "transparency_reconstructed": true
+    }
+  ],
+  "unavailable_official_logos": [
+    {
+      "name": "Yacine TV",
+      "file": null,
+      "status": "requires_verified_source_or_installed_package",
+      "reason": "No verified official artwork available. A mock logo is not exported. Runtime must use PackageManager icons."
+    }
+  ],
+  "important_notes": [
+    "Black matte alpha is reconstructed because source contains no original alpha.",
+    "No mockup application logo is accepted as official.",
+    "The 3840x2160 file is a reconstructed/resampled export, not a native 4K photograph.",
+    "Text, dates, clock, weather values and prayer values must remain runtime widgets."
+  ]
+}

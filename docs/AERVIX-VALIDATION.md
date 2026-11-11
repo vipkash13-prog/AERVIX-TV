@@ -28,3 +28,13 @@ An additional RTL stress test traversed 18 installed-app fixtures left to the fi
 
 
 Version 1.2.4+4131 corrects the approved image usage: it is the Android app icon, not a home-screen element. Legacy mipmap sizes remain 48/72/96/144/192px. The adaptive foreground has a 24% inset for mask-safe display without stretching. The Android TV banner uses 160x90dp (320x180px at xhdpi), with a centered 80x80dp image. Package, signing secrets and application settings are unchanged.
+
+## Design asset library release 1.2.5
+
+90 standalone PNG exports passed dimension, alpha, checksum and source validation before interface code was changed. The opaque source sheet is 1672x941 RGB; extracted alpha is explicitly reconstructed from its black matte. Missing artwork and overlapping footer/background areas were reconstructed and identified in assets_manifest.json. The 3840x2160 Jeddah export is resampled from a 1672x941 reconstruction and is explicitly not native photographic 4K.
+
+Nine static application logos have documented official/user-provided sources. No guessed Yacine TV logo was exported; the existing installed-package icon path remains responsible for that application and for all runtime app icons. Source requests for external official artwork were read-only.
+
+The home uses FHD background and small icon assets; the 4K file, source atlases and contact sheet are not bundled in the APK. Nine-slice empty frames preserve corners and reuse Flutter's image cache, while existing directional/activation callbacks and 180ms focus animations are retained. Information panels occupy a bounded band, and a regression test proves weather/prayer text remains above the app row with 200% device text scaling. Native launcher icon, package, signing configuration, app database and update handlers are unchanged.
+
+Final local checks: all 194 tests passed, 4 existing skips; scoped Flutter analysis passed without issues. A fixture screenshot with real decoded raster assets and official logo samples passed rendering without exceptions. The fixture screenshot is not a physical MECOOL capture, and its weather/prayer data is illustrative.
