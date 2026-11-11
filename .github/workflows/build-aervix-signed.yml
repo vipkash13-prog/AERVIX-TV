@@ -1,0 +1,37 @@
+name: Build signed AERVIX TV APK
+on:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.41.9'
+          channel: stable
+          cache: true
+      - name: Prepare signing keystore
+        env:
+          KEYSTORE_B64: ${{ secrets.AERVIX_RELEASE_KEYSTORE_B64 }}
+        run: |
+          test -n "$KEYSTORE_B64" || { echo "Missing AERVIX_RELEASE_KEYSTORE_B64"; exit 1; }
+          printf '%s' "$KEYSTORE_B64" | base64 --decode > android/app/upload-keystore.jks
+      - name: Install dependencies
+        run: flutter pub get
+      - name: Build signed APK for Android TV
+        env:
+          AERVIX_RELEASE_STORE_PASSWORD: ${{ secrets.AERVIX_RELEASE_STORE_PASSWORD }}
+          AERVIX_RELEASE_KEY_ALIAS: ${{ secrets.AERVIX_RELEASE_KEY_ALIAS }}
+          AERVIX_RELEASE_KEY_PASSWORD: ${{ secrets.AERVIX_RELEASE_KEY_PASSWORD }}
+        run: flutter build apk --release --flavor github --target-platform android-arm --split-per-abi
+      - name: Verify signing certificate
+        run: |
+          find build/app/outputs/flutter-apk -name '*.apk' -print -exec keytool -printcert -jarfile {} \;
+      - uses: actions/upload-artifact@v4
+        with:
+          name: AERVIX-TV-signed-APK
+          path: build/app/outputs/flutter-apk/*.apk
+          if-no-files-found: error
