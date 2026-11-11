@@ -1,0 +1,25 @@
+name: Import Arc Launcher source
+on:
+  push:
+    paths:
+      - '.github/workflows/import-arc-launcher.yml'
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  import:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: true
+      - name: Clone upstream Arc Launcher
+        run: git clone --depth 1 https://github.com/meddouribadis/arclauncher.git /tmp/arc-launcher
+      - name: Replace old files and commit source
+        run: |
+          rsync -a --delete --exclude='.git/' /tmp/arc-launcher/ ./
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git commit -m "Import Arc Launcher upstream source" || exit 0
+          git push origin HEAD:main
