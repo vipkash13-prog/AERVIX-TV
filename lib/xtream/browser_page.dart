@@ -157,7 +157,7 @@ class _XtreamBrowserPageState extends State<XtreamBrowserPage> {
       if (item.kind == MediaKind.series) {
         await Navigator.of(context).push(
           MaterialPageRoute<void>(
-            builder: (_) => _SeriesPage(service: service, series: item),
+            builder: (_) => XtreamSeriesPage(service: service, series: item),
           ),
         );
       } else {
@@ -349,11 +349,15 @@ class _RemoteMediaRow extends StatefulWidget {
   final bool autofocus, favourite;
   final VoidCallback onOpen;
   final VoidCallback? onOptions;
+  final FocusNode? focusNode;
+  final ValueChanged<bool>? onFocused;
   const _RemoteMediaRow({
     super.key,
     required this.title,
     required this.onOpen,
     this.onOptions,
+    this.focusNode,
+    this.onFocused,
     this.autofocus = false,
     this.favourite = false,
   });
@@ -378,6 +382,7 @@ class _RemoteMediaRowState extends State<_RemoteMediaRow> {
       return KeyEventResult.ignored;
     },
     child: FocusableActionDetector(
+      focusNode: widget.focusNode,
       autofocus: widget.autofocus,
       shortcuts: const {
         SingleActivator(LogicalKeyboardKey.select): ActivateIntent(),
@@ -394,6 +399,7 @@ class _RemoteMediaRowState extends State<_RemoteMediaRow> {
       },
       onFocusChange: (focused) {
         setState(() => _focused = focused);
+        widget.onFocused?.call(focused);
         if (focused)
           Scrollable.ensureVisible(
             context,
@@ -434,19 +440,65 @@ class _RemoteMediaRowState extends State<_RemoteMediaRow> {
   );
 }
 
-class _SeriesPage extends StatefulWidget {
+class XtreamSeriesPage extends StatefulWidget {
   final XtreamService service;
   final MediaEntry series;
-  const _SeriesPage({required this.service, required this.series});
+  const XtreamSeriesPage({required this.service, required this.series});
   @override
-  State<_SeriesPage> createState() => _SeriesPageState();
+  State<XtreamSeriesPage> createState() => _SeriesPageState();
 }
 
-class _SeriesPageState extends State<_SeriesPage> {
+class _SeriesPageState extends State<XtreamSeriesPage> {
   late Future<List<MediaEpisode>> _episodes = widget.service.episodes(
     widget.series,
   );
   int? _season;
+  final _scrolls = <int, ScrollController>{};
+  final _focus = <String, FocusNode>{};
+  final _lastEpisode = <int, String>{};
+  Timer? _backCooldown;
+  bool _returning = false, _playing = false;
+  ScrollController _scroll(int season) =>
+      _scrolls.putIfAbsent(season, () => ScrollController());
+  FocusNode _node(String id) =>
+      _focus.putIfAbsent(id, () => FocusNode(debugLabel: 'episode-$id'));
+  Future<void> _playEpisode(MediaEpisode episode, int season) async {
+    if (_playing) return;
+    _playing = true;
+    _season = season;
+    _lastEpisode[season] = episode.media.id;
+    final scroll = _scroll(season);
+    final offset = scroll.hasClients ? scroll.offset : 0.0;
+    try {
+      await Navigator.of(context).push(
+        MaterialPageRoute<void>(
+          builder: (_) => XtreamPlayerPage(
+            service: widget.service,
+            playlist: [episode.media],
+            series: widget.series,
+          ),
+        ),
+      );
+    } finally {
+      _playing = false;
+      if (mounted) {
+        // Android remotes may emit both a key and a system Back during the
+        // player's reverse transition. Keep this route through that transition.
+        setState(() => _returning = true);
+        _backCooldown?.cancel();
+        _backCooldown = Timer(const Duration(milliseconds: 350), () {
+          if (mounted) setState(() => _returning = false);
+        });
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (!mounted) return;
+          if (scroll.hasClients)
+            scroll.jumpTo(offset.clamp(0.0, scroll.position.maxScrollExtent));
+          _node(episode.media.id).requestFocus();
+        });
+      }
+    }
+  }
+
   @override
   void initState() {
     super.initState();
@@ -460,93 +512,136 @@ class _SeriesPageState extends State<_SeriesPage> {
   @override
   void dispose() {
     widget.service.removeListener(_changed);
+    _backCooldown?.cancel();
+    for (final controller in _scrolls.values) {
+      controller.dispose();
+    }
+    for (final node in _focus.values) {
+      node.dispose();
+    }
     super.dispose();
   }
 
   @override
-  Widget build(BuildContext context) => Directionality(
-    textDirection: TextDirection.rtl,
-    child: Scaffold(
-      backgroundColor: const Color(0xFF090E16),
-      appBar: AppBar(
-        title: Text(
-          widget.service.isAllowed(widget.series)
-              ? widget.series.name
-              : 'المحتوى غير متاح',
+  Widget build(BuildContext context) => PopScope(
+    canPop: false,
+    onPopInvokedWithResult: (didPop, result) {
+      if (!didPop && !_returning) Navigator.of(context).pop();
+    },
+    child: Focus(
+      canRequestFocus: false,
+      onKeyEvent: (_, event) {
+        if (_returning &&
+            [
+              LogicalKeyboardKey.escape,
+              LogicalKeyboardKey.goBack,
+              LogicalKeyboardKey.gameButtonB,
+            ].contains(event.logicalKey))
+          return KeyEventResult.handled;
+        return KeyEventResult.ignored;
+      },
+      child: Directionality(
+        key: ValueKey('series-episodes-${widget.series.id}'),
+        textDirection: TextDirection.rtl,
+        child: Scaffold(
+          backgroundColor: const Color(0xFF090E16),
+          appBar: AppBar(
+            title: Text(
+              widget.service.isAllowed(widget.series)
+                  ? widget.series.name
+                  : 'المحتوى غير متاح',
+            ),
+          ),
+          body: !widget.service.isAllowed(widget.series)
+              ? const Center(child: Text('المحتوى محظور'))
+              : FutureBuilder<List<MediaEpisode>>(
+                  future: _episodes,
+                  builder: (context, snapshot) {
+                    if (snapshot.hasError)
+                      return Center(
+                        child: TextButton(
+                          onPressed: () => setState(
+                            () => _episodes = widget.service.episodes(
+                              widget.series,
+                            ),
+                          ),
+                          child: const Text(
+                            'تعذر تحميل الحلقات — إعادة المحاولة',
+                          ),
+                        ),
+                      );
+                    if (!snapshot.hasData)
+                      return const Center(child: CircularProgressIndicator());
+                    final all = snapshot.data!
+                        .where(
+                          (e) => widget.service.episodeAllowed(
+                            e.media,
+                            widget.series,
+                          ),
+                        )
+                        .toList();
+                    final seasons = all.map((e) => e.season).toSet().toList()
+                      ..sort();
+                    final selected =
+                        _season ?? (seasons.isEmpty ? null : seasons.first);
+                    final episodes = all
+                        .where((e) => e.season == selected)
+                        .toList();
+                    return Column(
+                      children: [
+                        Wrap(
+                          spacing: 12,
+                          children: seasons
+                              .map(
+                                (s) => ChoiceChip(
+                                  key: ValueKey('series-season-$s'),
+                                  label: Text('الموسم $s'),
+                                  selected: s == selected,
+                                  onSelected: (_) =>
+                                      setState(() => _season = s),
+                                ),
+                              )
+                              .toList(),
+                        ),
+                        Expanded(
+                          child: episodes.isEmpty
+                              ? const Center(child: Text('لا توجد حلقات متاحة'))
+                              : ListView.builder(
+                                  key: PageStorageKey(
+                                    'series-${widget.series.id}-season-$selected',
+                                  ),
+                                  controller: _scroll(selected!),
+                                  itemCount: episodes.length,
+                                  itemBuilder: (context, index) {
+                                    final episode = episodes[index];
+                                    return _RemoteMediaRow(
+                                      key: ValueKey(
+                                        'series-episode-${widget.series.id}-${episode.media.id}',
+                                      ),
+                                      focusNode: _node(episode.media.id),
+                                      onFocused: (focused) {
+                                        if (focused)
+                                          _lastEpisode[selected] =
+                                              episode.media.id;
+                                      },
+                                      autofocus:
+                                          (_lastEpisode[selected] ??
+                                              episodes.first.media.id) ==
+                                          episode.media.id,
+                                      title:
+                                          '${episode.order} · ${episode.media.name}',
+                                      onOpen: () =>
+                                          _playEpisode(episode, selected),
+                                    );
+                                  },
+                                ),
+                        ),
+                      ],
+                    );
+                  },
+                ),
         ),
       ),
-      body: !widget.service.isAllowed(widget.series)
-          ? const Center(child: Text('المحتوى محظور'))
-          : FutureBuilder<List<MediaEpisode>>(
-              future: _episodes,
-              builder: (context, snapshot) {
-                if (snapshot.hasError)
-                  return Center(
-                    child: TextButton(
-                      onPressed: () => setState(
-                        () =>
-                            _episodes = widget.service.episodes(widget.series),
-                      ),
-                      child: const Text('تعذر تحميل الحلقات — إعادة المحاولة'),
-                    ),
-                  );
-                if (!snapshot.hasData)
-                  return const Center(child: CircularProgressIndicator());
-                final all = snapshot.data!
-                    .where(
-                      (e) =>
-                          widget.service.episodeAllowed(e.media, widget.series),
-                    )
-                    .toList();
-                final seasons = all.map((e) => e.season).toSet().toList()
-                  ..sort();
-                final selected =
-                    _season ?? (seasons.isEmpty ? null : seasons.first);
-                final episodes = all
-                    .where((e) => e.season == selected)
-                    .toList();
-                return Column(
-                  children: [
-                    Wrap(
-                      spacing: 12,
-                      children: seasons
-                          .map(
-                            (s) => ChoiceChip(
-                              label: Text('الموسم $s'),
-                              selected: s == selected,
-                              onSelected: (_) => setState(() => _season = s),
-                            ),
-                          )
-                          .toList(),
-                    ),
-                    Expanded(
-                      child: episodes.isEmpty
-                          ? const Center(child: Text('لا توجد حلقات متاحة'))
-                          : ListView.builder(
-                              itemCount: episodes.length,
-                              itemBuilder: (context, index) {
-                                final episode = episodes[index];
-                                return _RemoteMediaRow(
-                                  autofocus: index == 0,
-                                  title:
-                                      '${episode.order} · ${episode.media.name}',
-                                  onOpen: () => Navigator.of(context).push(
-                                    MaterialPageRoute<void>(
-                                      builder: (_) => XtreamPlayerPage(
-                                        service: widget.service,
-                                        playlist: [episode.media],
-                                        series: widget.series,
-                                      ),
-                                    ),
-                                  ),
-                                );
-                              },
-                            ),
-                    ),
-                  ],
-                );
-              },
-            ),
     ),
   );
 }

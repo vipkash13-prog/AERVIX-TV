@@ -6,6 +6,7 @@ import 'package:flauncher/providers/apps_service.dart';
 import 'package:flauncher/providers/settings_service.dart';
 import 'package:flauncher/widgets/aervix_home.dart';
 import 'package:flauncher/widgets/reference_chrome.dart';
+import 'package:flauncher/widgets/reference_dock.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
@@ -156,9 +157,6 @@ void main() {
         'weather': ReferenceLayout.weather,
         'prayer': ReferenceLayout.prayer,
         'clock': ReferenceLayout.clock,
-        'movies': ReferenceLayout.movies,
-        'series': ReferenceLayout.series,
-        'live': ReferenceLayout.live,
         'applications-band': ReferenceLayout.dock,
       };
       for (final entry in expected.entries) {
@@ -188,6 +186,11 @@ void main() {
           reason: entry.key,
         );
       }
+      for (final id in ['movies', 'series', 'live'])
+        expect(find.byKey(ValueKey('reference-$id')), findsNothing);
+      expect(find.text('الألعاب'), findsNothing);
+      expect(find.text('التطبيقات'), findsNothing);
+      expect(find.byType(ReferenceDock), findsOneWidget);
       expect(find.text('26.7°C'), findsOneWidget);
       expect(find.text('05:11'), findsOneWidget);
       expect(find.text('07:36'), findsOneWidget);
@@ -216,7 +219,7 @@ void main() {
             const AssetImage('assets/weather/weather_partly_cloudy.png'),
             for (final asset in assets)
               ResizeImage.resizeIfNeeded(
-                256,
+                512,
                 null,
                 MemoryImage(
                   File('assets/app_logos/$asset.png').readAsBytesSync(),
@@ -232,7 +235,7 @@ void main() {
         await expectLater(
           find.byType(AervixHome),
           matchesGoldenFile(
-            '../../design_preview/reference_match/interface_$width.png',
+            '../../design_preview/clean_home/interface_$width.png',
           ),
         );
       }
@@ -243,20 +246,16 @@ void main() {
         }
 
         await key(LogicalKeyboardKey.arrowRight);
-        expect(FocusManager.instance.primaryFocus?.debugLabel, 'hero-0');
-        await key(LogicalKeyboardKey.arrowUp);
+        expect(FocusManager.instance.primaryFocus?.debugLabel, 'header-0');
         for (var i = 0; i < 7; i++) {
           expect(FocusManager.instance.primaryFocus?.debugLabel, 'header-$i');
           if (i < 6) await key(LogicalKeyboardKey.arrowRight);
         }
         await key(LogicalKeyboardKey.arrowDown);
-        expect(FocusManager.instance.primaryFocus?.debugLabel, 'hero-2');
-        await key(LogicalKeyboardKey.arrowLeft);
-        expect(FocusManager.instance.primaryFocus?.debugLabel, 'hero-1');
-        await key(LogicalKeyboardKey.arrowLeft);
+        expect(FocusManager.instance.primaryFocus?.debugLabel, 'dock-first');
         await key(LogicalKeyboardKey.arrowLeft);
         expect(FocusManager.instance.primaryFocus?.debugLabel, 'navigation-0');
-        for (var i = 1; i <= 5; i++) {
+        for (var i = 1; i <= 3; i++) {
           await key(LogicalKeyboardKey.arrowDown);
           expect(
             FocusManager.instance.primaryFocus?.debugLabel,
@@ -264,8 +263,6 @@ void main() {
           );
           await key(LogicalKeyboardKey.select);
           expect(find.byType(AlertDialog), findsOneWidget);
-          if (i == 4)
-            expect(find.text('لا توجد تطبيقات في هذه القائمة'), findsOneWidget);
           await tester.binding.handlePopRoute();
           await tester.pumpAndSettle();
         }
@@ -278,7 +275,7 @@ void main() {
           await expectLater(
             find.byType(MaterialApp),
             matchesGoldenFile(
-              '../../design_preview/reference_match/settings_ar.png',
+              '../../design_preview/clean_home/settings_ar.png',
             ),
           );
         }

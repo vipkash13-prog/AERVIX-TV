@@ -19,9 +19,9 @@ public final class IconArtworkTest {
             assert Math.abs((fit[2]-fit[0])/(fit[3]-fit[1])-(float)size[0]/size[1]) < .001;
             assert Math.abs(Math.max(fit[2]-fit[0],fit[3]-fit[1])-488)<.001;
         }
-        float[] tile = IconArtwork.fit(488,488,512,348,8);
+        float[] tile = IconArtwork.fit(488,488,512,288,8);
         assert Math.abs((tile[2]-tile[0])-(tile[3]-tile[1])) < .001;
-        assert tile[1] == 8 && tile[3] == 340;
+        assert tile[1] == 8 && tile[3] == 280;
         System.out.println("Original icon alpha bounds, faint shadows, portrait/landscape/square aspect ratios and uniform visible size verified.");
     }
 }

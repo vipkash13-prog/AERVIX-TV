@@ -362,12 +362,12 @@ public class MainActivity extends FlutterActivity {
         icon.getPixels(pixels, 0, width, 0, 0, width, height);
         int[] bounds = IconArtwork.alphaBounds(pixels, width, height);
         if (bounds == null) {icon.recycle(); return new byte[0];}
-        // The same TV-card ratio as the dock. Extend only a uniform opaque icon
+        // Standard 16:9 TV artwork. Extend only a uniform opaque icon
         // background, keeping the full original logo visible without stretching.
-        Bitmap tile = Bitmap.createBitmap(512, 348, Bitmap.Config.ARGB_8888);
+        Bitmap tile = Bitmap.createBitmap(512, 288, Bitmap.Config.ARGB_8888);
         Canvas canvas = new Canvas(tile);
         canvas.drawColor(IconArtwork.background(pixels, width, bounds));
-        float[] fitted = IconArtwork.fit(bounds[2]-bounds[0], bounds[3]-bounds[1], 512, 348, 8);
+        float[] fitted = IconArtwork.fit(bounds[2]-bounds[0], bounds[3]-bounds[1], 512, 288, 8);
         canvas.drawBitmap(icon, new Rect(bounds[0],bounds[1],bounds[2],bounds[3]),
                 new RectF(fitted[0],fitted[1],fitted[2],fitted[3]), new Paint(Paint.FILTER_BITMAP_FLAG));
         ByteArrayOutputStream stream = new ByteArrayOutputStream();

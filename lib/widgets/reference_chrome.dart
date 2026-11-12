@@ -14,7 +14,7 @@ abstract final class ReferenceLayout {
   static const series = Rect.fromLTWH(570, 386, 327, 164);
   static const live = Rect.fromLTWH(909, 386, 333, 162);
   static const dock = Rect.fromLTWH(241, 567, 1009, 92);
-  static const navigationY = [167.0, 229.0, 287.0, 342.0, 398.0, 452.0, 505.0];
+  static const navigationY = [167.0, 229.0, 287.0, 342.0, 398.0];
   static String wallpaper(double physicalWidth) => physicalWidth >= 3000
       ? 'assets/reference_ui/jeddah_reference_uhd.png'
       : 'assets/reference_ui/jeddah_reference_fhd.png';

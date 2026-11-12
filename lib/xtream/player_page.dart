@@ -28,7 +28,7 @@ class XtreamPlayerPage extends StatefulWidget {
 class _XtreamPlayerPageState extends State<XtreamPlayerPage> {
   late final ChannelPlayback _session;
   Timer? _overlay;
-  bool _show = true;
+  bool _show = true, _exiting = false;
   @override
   void initState() {
     super.initState();
@@ -102,7 +102,11 @@ class _XtreamPlayerPageState extends State<XtreamPlayerPage> {
       LogicalKeyboardKey.goBack,
       LogicalKeyboardKey.gameButtonB,
     ].contains(key)) {
-      if (event is KeyDownEvent) Navigator.of(context).pop();
+      if (event is KeyDownEvent && !_exiting) {
+        _exiting = true;
+        unawaited(_session.engine.stop());
+        Navigator.of(context).pop();
+      }
       return KeyEventResult.handled;
     }
     if (_session.live &&

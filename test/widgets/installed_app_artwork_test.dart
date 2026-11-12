@@ -82,72 +82,79 @@ void main() {
       expect(tester.takeException(), isNull);
     },
   );
-  testWidgets(
-    'all installed apps keep equal 103x70 frames and equal remote spacing',
-    (tester) async {
-      tester.view.physicalSize = const Size(1280, 720);
-      tester.view.devicePixelRatio = 1;
-      addTearDown(tester.view.resetPhysicalSize);
-      addTearDown(tester.view.resetDevicePixelRatio);
-      final service = MockAppsService();
-      final apps = [app('tv.one'), app('phone.two'), app('tv.three')];
-      for (final installed in apps) {
-        when(
-          service.getAppBanner(installed.packageName),
-        ).thenAnswer((_) async => installed == apps[1] ? Uint8List(0) : banner);
-        when(
-          service.getAppIcon(installed.packageName),
-        ).thenAnswer((_) async => icon);
-      }
-      final first = FocusNode(), all = FocusNode();
-      addTearDown(first.dispose);
-      addTearDown(all.dispose);
-      final launched = <App>[];
-      await tester.pumpWidget(
-        ChangeNotifierProvider<AppsService>.value(
-          value: service,
-          child: MaterialApp(
-            home: Center(
-              child: SizedBox(
-                width: 1009,
-                height: 92,
-                child: ReferenceDock(
-                  apps: apps,
-                  onLaunch: launched.add,
-                  onAllApps: () {},
-                  onLeftBoundary: () {},
-                  onUp: (_) {},
-                  firstFocus: first,
-                  allAppsFocus: all,
-                ),
+  testWidgets('seven slots keep equal frame sizes and remote spacing', (
+    tester,
+  ) async {
+    tester.view.physicalSize = const Size(1280, 720);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+    final service = MockAppsService();
+    final apps = [app('tv.one'), app('phone.two'), app('tv.three')];
+    for (final installed in apps) {
+      when(
+        service.getAppBanner(installed.packageName),
+      ).thenAnswer((_) async => installed == apps[1] ? Uint8List(0) : banner);
+      when(
+        service.getAppIcon(installed.packageName),
+      ).thenAnswer((_) async => icon);
+    }
+    final first = FocusNode(), all = FocusNode();
+    addTearDown(first.dispose);
+    addTearDown(all.dispose);
+    final launched = <App>[];
+    await tester.pumpWidget(
+      ChangeNotifierProvider<AppsService>.value(
+        value: service,
+        child: MaterialApp(
+          home: Center(
+            child: SizedBox(
+              width: 1009,
+              height: 92,
+              child: ReferenceDock(
+                apps: apps,
+                onLaunch: launched.add,
+                onEdit: () {},
+                onLeftBoundary: () {},
+                onUp: (_) {},
+                firstFocus: first,
               ),
             ),
           ),
         ),
-      );
+      ),
+    );
+    await tester.pumpAndSettle();
+    final frames = [
+      for (final installed in apps)
+        tester.getRect(find.byKey(ValueKey('dock-${installed.packageName}'))),
+    ];
+    for (final frame in frames) {
+      expect(frame.height, 70);
+      expect(frame.width, closeTo((981 - 72) / 7, .001));
+    }
+    expect(
+      frames[1].left - frames[0].left,
+      closeTo(frames.first.width + 12, .001),
+    );
+    expect(
+      frames[2].left - frames[1].left,
+      closeTo(frames.first.width + 12, .001),
+    );
+    for (final artwork in tester.widgetList<InstalledAppIcon>(
+      find.byType(InstalledAppIcon),
+    ))
+      expect(artwork.preferTvBanner, isTrue);
+    first.requestFocus();
+    await tester.pumpAndSettle();
+    for (var i = 0; i < 2; i++) {
+      await tester.sendKeyEvent(LogicalKeyboardKey.arrowRight);
       await tester.pumpAndSettle();
-      final frames = [
-        for (final installed in apps)
-          tester.getRect(find.byKey(ValueKey('dock-${installed.packageName}'))),
-      ];
-      for (final frame in frames) expect(frame.size, const Size(103, 70));
-      expect(frames[1].left - frames[0].left, 113);
-      expect(frames[2].left - frames[1].left, 113);
-      for (final artwork in tester.widgetList<InstalledAppIcon>(
-        find.byType(InstalledAppIcon),
-      ))
-        expect(artwork.preferTvBanner, isTrue);
-      first.requestFocus();
-      await tester.pumpAndSettle();
-      for (var i = 0; i < 2; i++) {
-        await tester.sendKeyEvent(LogicalKeyboardKey.arrowRight);
-        await tester.pumpAndSettle();
-      }
-      await tester.sendKeyEvent(LogicalKeyboardKey.select);
-      await tester.pumpAndSettle();
-      expect(launched, [apps.last]);
-      expect(tester.takeException(), isNull);
-      await tester.pumpWidget(const SizedBox());
-    },
-  );
+    }
+    await tester.sendKeyEvent(LogicalKeyboardKey.select);
+    await tester.pumpAndSettle();
+    expect(launched, [apps.last]);
+    expect(tester.takeException(), isNull);
+    await tester.pumpWidget(const SizedBox());
+  });
 }

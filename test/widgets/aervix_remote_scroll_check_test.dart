@@ -13,7 +13,7 @@ import '../mocks.mocks.dart';
 
 void main() {
   testWidgets(
-    'remote reaches offscreen installed apps and returns across the whole RTL row',
+    'remote crosses exactly seven favourites and returns without scrolling through installed apps',
     (tester) async {
       await initializeDateFormatting('ar');
       tester.view.physicalSize = const Size(1280, 720);
@@ -48,20 +48,21 @@ void main() {
         ),
       );
       await tester.pumpAndSettle();
-      for (var i = 0; i < 5; i++) {
+      for (var i = 0; i < 4; i++) {
         await tester.sendKeyEvent(LogicalKeyboardKey.arrowDown);
         await tester.pumpAndSettle();
       }
       await tester.sendKeyEvent(LogicalKeyboardKey.arrowRight);
       await tester.pumpAndSettle();
-      for (var i = 0; i < 17; i++) {
+      for (var i = 0; i < 6; i++) {
         await tester.sendKeyEvent(LogicalKeyboardKey.arrowRight);
         await tester.pumpAndSettle();
       }
+      expect(find.byKey(const ValueKey('dock-installed.7')), findsNothing);
       await tester.sendKeyEvent(LogicalKeyboardKey.enter);
       await tester.pumpAndSettle();
-      verify(service.launchApp(apps.last)).called(1);
-      for (var i = 0; i < 17; i++) {
+      verify(service.launchApp(apps[6])).called(1);
+      for (var i = 0; i < 6; i++) {
         await tester.sendKeyEvent(LogicalKeyboardKey.arrowLeft);
         await tester.pumpAndSettle();
       }
