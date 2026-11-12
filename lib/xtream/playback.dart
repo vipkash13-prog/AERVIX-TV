@@ -18,7 +18,10 @@ abstract class MediaEngine extends ChangeNotifier {
 class VideoMediaEngine extends MediaEngine {
   VideoPlayerController? _controller;
   Future<void> _queue = Future.value();
-  int _generation = 0;
+  int _generation = 0, _retryCount = 0, _failedGeneration = -1;
+  Timer? _retryTimer;
+  Uri? _uri;
+
   final _initTimeouts = <VideoPlayerController, Timer>{};
   void _cancelTimeouts() {
     for (final timer in _initTimeouts.values) {
@@ -41,6 +44,15 @@ class VideoMediaEngine extends MediaEngine {
 
   @override
   Future<void> open(Uri uri, {required bool live}) {
+    _uri = uri;
+    _retryCount = 0;
+    return _openAttempt();
+  }
+
+  Future<void> _openAttempt() {
+    _retryTimer?.cancel();
+    _retryTimer = null;
+    final uri = _uri!;
     final generation = ++_generation;
     _cancelTimeouts();
     _loading = true;
@@ -48,6 +60,7 @@ class VideoMediaEngine extends MediaEngine {
     _notify();
     // Pause immediately so the previous channel's audio cannot leak into the next.
     final previous = _controller;
+    previous?.removeListener(_changed);
     if (previous != null) unawaited(previous.pause().catchError((Object _) {}));
     _queue = _queue.catchError((Object _) {}).then((_) async {
       if (_closed || generation != _generation) return;
@@ -68,9 +81,7 @@ class VideoMediaEngine extends MediaEngine {
     });
     _queue = _queue.catchError((Object _) {
       if (!_closed && generation == _generation) {
-        _loading = false;
-        _error = 'تعذر إعداد المشغل. اضغط موافق لإعادة المحاولة.';
-        _notify();
+        _failed(generation);
       }
     });
     return _queue;
@@ -79,9 +90,7 @@ class VideoMediaEngine extends MediaEngine {
   Future<void> _initialize(VideoPlayerController next, int generation) async {
     _initTimeouts[next] = Timer(const Duration(seconds: 18), () {
       if (!_closed && generation == _generation) {
-        _error = 'انتهت مهلة الاتصال بالمشغل. اضغط موافق لإعادة المحاولة.';
-        unawaited(stop());
-        _notify();
+        _failed(generation);
       }
     });
     try {
@@ -93,22 +102,42 @@ class VideoMediaEngine extends MediaEngine {
       _notify();
     } catch (_) {
       if (!_closed && generation == _generation) {
-        _loading = false;
-        _error =
-            'تعذر تشغيل المحتوى. تحقق من الاتصال وصلاحية الاشتراك، ثم اضغط موافق لإعادة المحاولة.';
-        _notify();
+        _failed(generation);
       }
     } finally {
       _initTimeouts.remove(next)?.cancel();
     }
   }
 
+  void _failed(int generation) {
+    if (_closed || generation != _generation || _failedGeneration == generation)
+      return;
+    _failedGeneration = generation;
+    _controller?.removeListener(_changed);
+    _cancelTimeouts();
+    if (_retryCount < 2) {
+      _retryCount++;
+      _loading = true;
+      _error = null;
+      final current = _controller;
+      if (current != null) unawaited(current.pause().catchError((Object _) {}));
+      _retryTimer = Timer(Duration(milliseconds: 800 * _retryCount), () {
+        if (!_closed && generation == _generation) unawaited(_openAttempt());
+      });
+    } else {
+      unawaited(stop());
+      _error =
+          'تعذر تشغيل المحتوى بعد إعادة المحاولة تلقائيًا. تحقق من الاتصال وصلاحية الاشتراك، ثم اضغط موافق للمحاولة مجددًا.';
+    }
+    _notify();
+  }
+
   void _changed() {
     final value = _controller?.value;
     if (value == null || _closed) return;
     if (value.hasError) {
-      _error = 'تعذر تشغيل المحتوى. اضغط موافق لإعادة المحاولة.';
-      _loading = false;
+      _failed(_generation);
+      return;
     }
     _notify();
   }
@@ -151,9 +180,12 @@ class VideoMediaEngine extends MediaEngine {
   @override
   Future<void> stop() {
     ++_generation;
+    _retryTimer?.cancel();
+    _retryTimer = null;
     _cancelTimeouts();
     _loading = false;
     final previous = _controller;
+    previous?.removeListener(_changed);
     if (previous != null) unawaited(previous.pause().catchError((Object _) {}));
     _queue = _queue
         .catchError((Object _) {})

@@ -126,7 +126,7 @@ class _XtreamPlayerPageState extends State<XtreamPlayerPage> {
       if (event is KeyDownEvent) {
         if (_session.engine.error != null) {
           _session.retry();
-        } else {
+        } else if (!_session.engine.loading) {
           unawaited(_session.engine.togglePause());
         }
         _showInfo();

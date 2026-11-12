@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
@@ -46,6 +47,7 @@ class ReferenceFocusable extends StatefulWidget {
   final bool autofocus;
   final String label;
   final VoidCallback onPressed;
+  final VoidCallback? onLongPress;
   final KeyEventResult Function(KeyEvent)? onKey;
   final ValueChanged<bool>? onFocusChanged;
   final Widget Function(BuildContext, bool) builder;
@@ -57,6 +59,7 @@ class ReferenceFocusable extends StatefulWidget {
     required this.onPressed,
     required this.builder,
     this.onKey,
+    this.onLongPress,
     this.onFocusChanged,
   });
   @override
@@ -64,7 +67,37 @@ class ReferenceFocusable extends StatefulWidget {
 }
 
 class _ReferenceFocusableState extends State<ReferenceFocusable> {
-  bool _focused = false;
+  bool _focused = false, _pending = false, _held = false;
+  Timer? _holdTimer;
+  static const _activationKeys = [
+    LogicalKeyboardKey.enter,
+    LogicalKeyboardKey.numpadEnter,
+    LogicalKeyboardKey.select,
+    LogicalKeyboardKey.gameButtonA,
+    LogicalKeyboardKey.space,
+  ];
+  void _activate() {
+    if (widget.onLongPress == null) {
+      widget.onPressed();
+      return;
+    }
+    if (_pending) return;
+    _pending = true;
+    _held = false;
+    _holdTimer = Timer(const Duration(milliseconds: 600), () {
+      if (mounted && _pending) {
+        _held = true;
+        widget.onLongPress!();
+      }
+    });
+  }
+
+  @override
+  void dispose() {
+    _holdTimer?.cancel();
+    super.dispose();
+  }
+
   @override
   Widget build(BuildContext context) {
     Widget result = FocusableActionDetector(
@@ -85,13 +118,17 @@ class _ReferenceFocusableState extends State<ReferenceFocusable> {
       actions: {
         ActivateIntent: CallbackAction<ActivateIntent>(
           onInvoke: (_) {
-            widget.onPressed();
+            _activate();
             return null;
           },
         ),
       },
       onFocusChange: (value) {
         setState(() => _focused = value);
+        if (!value) {
+          _holdTimer?.cancel();
+          _pending = false;
+        }
         widget.onFocusChanged?.call(value);
       },
       child: Semantics(
@@ -106,6 +143,14 @@ class _ReferenceFocusableState extends State<ReferenceFocusable> {
     result = Focus(
       canRequestFocus: false,
       onKeyEvent: (_, event) {
+        if (event is KeyUpEvent &&
+            _pending &&
+            _activationKeys.contains(event.logicalKey)) {
+          _holdTimer?.cancel();
+          _pending = false;
+          if (!_held) widget.onPressed();
+          return KeyEventResult.handled;
+        }
         if (event is KeyRepeatEvent &&
             const [
               LogicalKeyboardKey.enter,

@@ -16,6 +16,7 @@ class FakeVideoPlatform extends VideoPlayerPlatform {
   final paused = <int>[];
   final events = <int, StreamController<VideoEvent>>{};
   bool initializeImmediately = true;
+  int startupFailures = 0;
   int _next = 0, maxAlive = 0;
   @override
   Future<void> init() async {}
@@ -26,6 +27,18 @@ class FakeVideoPlatform extends VideoPlayerPlatform {
     events[id] = StreamController<VideoEvent>.broadcast(
       sync: true,
       onListen: () {
+        if (startupFailures > 0) {
+          startupFailures--;
+          scheduleMicrotask(
+            () => events[id]!.addError(
+              PlatformException(
+                code: 'transient',
+                message: 'private stream URI',
+              ),
+            ),
+          );
+          return;
+        }
         if (initializeImmediately)
           scheduleMicrotask(
             () => events[id]!.add(
@@ -229,13 +242,79 @@ void main() {
       );
       await frames(tester);
       expect(engine.error, isNot(contains('secret')));
-      expect(engine.loading, isFalse);
+      expect(engine.error, isNull);
+      expect(engine.loading, isTrue);
       engine.dispose();
       await frames(tester);
       expect(platform.maxAlive, 1);
       expect(tester.takeException(), isNull);
     },
   );
+  testWidgets(
+    'two transient startup failures recover without pressing OK again',
+    (tester) async {
+      platform.startupFailures = 2;
+      final engine = VideoMediaEngine();
+      unawaited(
+        engine.open(
+          Uri.parse('https://fixture.test/movie/user/secret/1.mp4'),
+          live: false,
+        ),
+      );
+      await frames(tester);
+      expect(engine.loading, isTrue);
+      expect(engine.error, isNull);
+      await tester.pump(const Duration(milliseconds: 850));
+      await frames(tester);
+      await tester.pump(const Duration(milliseconds: 1650));
+      await frames(tester);
+      expect(platform.sources.length, 3);
+      expect(platform.played, [3]);
+      expect(platform.maxAlive, 1);
+      expect(engine.error, isNull);
+      expect(engine.loading, isFalse);
+      engine.dispose();
+      await frames(tester);
+    },
+  );
+  testWidgets('retries are bounded and stop cancels a pending retry', (
+    tester,
+  ) async {
+    platform.startupFailures = 20;
+    final engine = VideoMediaEngine();
+    unawaited(
+      engine.open(
+        Uri.parse('https://fixture.test/movie/user/secret/1.mp4'),
+        live: false,
+      ),
+    );
+    await frames(tester);
+    await tester.pump(const Duration(milliseconds: 850));
+    await frames(tester);
+    await tester.pump(const Duration(milliseconds: 1650));
+    await frames(tester);
+    expect(platform.sources.length, 3);
+    expect(engine.loading, isFalse);
+    expect(engine.error, contains('تلقائيًا'));
+    expect(engine.error, isNot(contains('private')));
+    await tester.pump(const Duration(seconds: 10));
+    await frames(tester);
+    expect(platform.sources.length, 3);
+    unawaited(
+      engine.open(
+        Uri.parse('https://fixture.test/live/user/secret/2.ts'),
+        live: true,
+      ),
+    );
+    await frames(tester);
+    unawaited(engine.stop());
+    await tester.pump(const Duration(seconds: 5));
+    await frames(tester);
+    expect(platform.sources.length, 4);
+    expect(platform.disposed.length, 4);
+    engine.dispose();
+    await frames(tester);
+  });
   testWidgets(
     'movies and series browse through internal player; adult categories absent',
     (tester) async {
