@@ -44,6 +44,7 @@ class AppsService extends ChangeNotifier
   Map<String, Uint8List> _iconCache = Map();
   final _iconRequests = <String, Future<Uint8List>>{};
   Map<String, Uint8List> _bannerCache = Map();
+  final _bannerRequests = <String, Future<Uint8List>>{};
 
   Map<int, Category> _categoriesById = Map();
 
@@ -109,7 +110,7 @@ class AppsService extends ChangeNotifier
 
       if (changedPackageName != null) {
         _invalidateIcon(changedPackageName);
-        _bannerCache.remove(changedPackageName);
+        _invalidateBanner(changedPackageName);
         _dirtyImagePackages.add(changedPackageName);
       }
 
@@ -172,7 +173,7 @@ class AppsService extends ChangeNotifier
               _applications[newApp.packageName] = newApp;
             }
             _invalidateIcon(newApp.packageName);
-            _bannerCache.remove(newApp.packageName);
+            _invalidateBanner(newApp.packageName);
           }
           break;
         case "PACKAGE_REMOVED":
@@ -181,7 +182,7 @@ class AppsService extends ChangeNotifier
 
           // Clear icon cache for removed app
           _invalidateIcon(packageName);
-          _bannerCache.remove(packageName);
+          _invalidateBanner(packageName);
 
           App? application = _applications.remove(packageName);
 
@@ -380,11 +381,27 @@ class AppsService extends ChangeNotifier
     );
   }
 
-  Future<Uint8List> getAppBanner(String packageName) async {
-    if (_bannerCache.containsKey(packageName)) {
-      return _bannerCache[packageName]!;
-    }
+  void _invalidateBanner(String packageName) {
+    _bannerCache.remove(packageName);
+    _bannerRequests.remove(packageName);
+  }
 
+  Future<Uint8List> getAppBanner(String packageName) {
+    final cached = _bannerCache[packageName];
+    if (cached != null) return Future.value(cached);
+    return _bannerRequests.putIfAbsent(packageName, () {
+      late final Future<Uint8List> request;
+      request = _readAppBanner(packageName).catchError((Object _) => Uint8List(0)).then((bytes) {
+        if (identical(_bannerRequests[packageName], request)) _bannerCache[packageName] = bytes;
+        return bytes;
+      }).whenComplete(() {
+        if (identical(_bannerRequests[packageName], request)) _bannerRequests.remove(packageName);
+      });
+      return request;
+    });
+  }
+
+  Future<Uint8List> _readAppBanner(String packageName) async {
     try {
       final prefs = await _prefsAsync;
       final customBannerPath = prefs.getString('custom_banner_$packageName');
@@ -392,7 +409,6 @@ class AppsService extends ChangeNotifier
         final file = File(customBannerPath);
         if (await file.exists()) {
           final bytes = await file.readAsBytes();
-          _bannerCache[packageName] = bytes;
           return bytes;
         }
       }
@@ -404,17 +420,13 @@ class AppsService extends ChangeNotifier
       // Ignore other errors reading custom banner
     }
 
-    final bytes = await _fLauncherChannel.getApplicationBanner(packageName);
-    if (bytes.isNotEmpty) {
-      _bannerCache[packageName] = bytes;
-    }
-    return bytes;
+    return _fLauncherChannel.getApplicationBanner(packageName);
   }
 
   Future<void> setCustomAppBanner(String packageName, String imagePath) async {
     final prefs = await _prefsAsync;
     await prefs.setString('custom_banner_$packageName', imagePath);
-    _bannerCache.remove(packageName);
+    _invalidateBanner(packageName);
     _dirtyImagePackages.add(packageName);
     notifyListeners();
   }
@@ -430,7 +442,7 @@ class AppsService extends ChangeNotifier
       }
     }
     await prefs.remove('custom_banner_$packageName');
-    _bannerCache.remove(packageName);
+    _invalidateBanner(packageName);
     _dirtyImagePackages.add(packageName);
     notifyListeners();
   }
