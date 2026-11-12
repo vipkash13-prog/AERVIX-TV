@@ -3,13 +3,15 @@ import 'package:flutter/services.dart';
 import '../models/app.dart';
 import 'installed_app_icon.dart';
 import 'reference_chrome.dart';
+import 'original_app_frame.dart';
 
 class ReferenceDock extends StatefulWidget {
   final List<App> apps;
   final ValueChanged<App> onLaunch;
   final VoidCallback onEdit, onLeftBoundary;
   final ValueChanged<double> onUp;
-  final FocusNode firstFocus;
+  final FocusNode firstFocus, editFocus;
+  final ValueChanged<FocusNode>? onAppFocused;
   const ReferenceDock({
     super.key,
     required this.apps,
@@ -18,6 +20,8 @@ class ReferenceDock extends StatefulWidget {
     required this.onLeftBoundary,
     required this.onUp,
     required this.firstFocus,
+    required this.editFocus,
+    this.onAppFocused,
   });
   @override
   State<ReferenceDock> createState() => _ReferenceDockState();
@@ -61,6 +65,9 @@ class _ReferenceDockState extends State<ReferenceDock> {
                             : 'dock-${app.packageName}',
                       ),
                       focusNode: _node(i),
+                      onFocusChanged: (focused) {
+                        if (focused) widget.onAppFocused?.call(_node(i));
+                      },
                       label: app?.name ?? 'إضافة تطبيق للمفضلة',
                       onPressed: app == null
                           ? widget.onEdit
@@ -84,13 +91,12 @@ class _ReferenceDockState extends State<ReferenceDock> {
                               i < 6 ? _node(i + 1).requestFocus() : null,
                           up: () =>
                               widget.onUp(255 + i * (width + 12) + width / 2),
-                          down: () => widget.onEdit(),
+                          down: widget.editFocus.requestFocus,
                         );
                       },
                       builder: (context, focused) => GestureDetector(
                         onLongPress: widget.onEdit,
-                        child: ReferenceGlass(
-                          radius: 15,
+                        child: OriginalAppFrame(
                           focused: focused,
                           child: app == null
                               ? const Center(

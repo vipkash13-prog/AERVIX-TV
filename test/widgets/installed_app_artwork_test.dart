@@ -118,6 +118,7 @@ void main() {
                 onLeftBoundary: () {},
                 onUp: (_) {},
                 firstFocus: first,
+                editFocus: all,
               ),
             ),
           ),

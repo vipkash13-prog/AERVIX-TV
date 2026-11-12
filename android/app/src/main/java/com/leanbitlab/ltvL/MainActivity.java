@@ -23,11 +23,7 @@ import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.content.pm.*;
 import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
-import android.graphics.Paint;
-import android.graphics.Rect;
-import android.graphics.RectF;
 import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
 import android.net.ConnectivityManager;
@@ -344,36 +340,11 @@ public class MainActivity extends FlutterActivity {
 
             if (drawable != null) {
                 imageBytes = drawableToByteArray(drawable);
-            } else {
-                imageBytes = buildIconTile(getApplicationIcon(packageName));
             }
         } catch (PackageManager.NameNotFoundException ignored) {
         }
 
         return imageBytes;
-    }
-
-    private byte[] buildIconTile(byte[] originalIcon) {
-        if (originalIcon.length == 0) return originalIcon;
-        Bitmap icon = BitmapFactory.decodeByteArray(originalIcon, 0, originalIcon.length);
-        if (icon == null) return new byte[0];
-        int width = icon.getWidth(), height = icon.getHeight();
-        int[] pixels = new int[width * height];
-        icon.getPixels(pixels, 0, width, 0, 0, width, height);
-        int[] bounds = IconArtwork.alphaBounds(pixels, width, height);
-        if (bounds == null) {icon.recycle(); return new byte[0];}
-        // Standard 16:9 TV artwork. Extend only a uniform opaque icon
-        // background, keeping the full original logo visible without stretching.
-        Bitmap tile = Bitmap.createBitmap(512, 288, Bitmap.Config.ARGB_8888);
-        Canvas canvas = new Canvas(tile);
-        canvas.drawColor(IconArtwork.background(pixels, width, bounds));
-        float[] fitted = IconArtwork.fit(bounds[2]-bounds[0], bounds[3]-bounds[1], 512, 288, 8);
-        canvas.drawBitmap(icon, new Rect(bounds[0],bounds[1],bounds[2],bounds[3]),
-                new RectF(fitted[0],fitted[1],fitted[2],fitted[3]), new Paint(Paint.FILTER_BITMAP_FLAG));
-        ByteArrayOutputStream stream = new ByteArrayOutputStream();
-        tile.compress(Bitmap.CompressFormat.PNG, 100, stream);
-        tile.recycle();icon.recycle();
-        return stream.toByteArray();
     }
 
     private byte[] getApplicationIcon(String packageName) {
@@ -390,36 +361,8 @@ public class MainActivity extends FlutterActivity {
                 } catch (android.content.res.Resources.NotFoundException ignored) { }
             }
             if (drawable != null) {
-                final int size = 512;
-                Bitmap bitmap = Bitmap.createBitmap(size, size, Bitmap.Config.ARGB_8888);
-                Canvas canvas = new Canvas(bitmap);
-                int width = Math.max(1, drawable.getIntrinsicWidth());
-                int height = Math.max(1, drawable.getIntrinsicHeight());
-                // Render the original drawable first; normalize transparent margins below.
-                final int contentSize = 512;
-                float factor = Math.min((float) contentSize / width, (float) contentSize / height);
-                int drawWidth = Math.round(width * factor), drawHeight = Math.round(height * factor);
-                drawable.setBounds((size - drawWidth) / 2, (size - drawHeight) / 2,
-                        (size + drawWidth) / 2, (size + drawHeight) / 2);
-                drawable.draw(canvas);
-                int[] pixels = new int[size * size];
-                bitmap.getPixels(pixels, 0, size, 0, 0, size, size);
-                int[] bounds = IconArtwork.alphaBounds(pixels, size, size);
-                if (bounds == null) {
-                    bitmap.recycle();
-                    return imageBytes;
-                }
-                // Remove transparent padding only, preserving every visible pixel and aspect ratio.
-                Bitmap normalized = Bitmap.createBitmap(size, size, Bitmap.Config.ARGB_8888);
-                float[] fitted = IconArtwork.fit(bounds[2] - bounds[0], bounds[3] - bounds[1], size, size, 12);
-                new Canvas(normalized).drawBitmap(bitmap,
-                        new Rect(bounds[0], bounds[1], bounds[2], bounds[3]),
-                        new RectF(fitted[0], fitted[1], fitted[2], fitted[3]), new Paint(Paint.FILTER_BITMAP_FLAG));
-                ByteArrayOutputStream stream = new ByteArrayOutputStream();
-                normalized.compress(Bitmap.CompressFormat.PNG, 100, stream);
-                imageBytes = stream.toByteArray();
-                normalized.recycle();
-                bitmap.recycle();
+                // Export the package resource at its own aspect/padding/colours.
+                imageBytes = drawableToByteArray(drawable);
             }
         } catch (PackageManager.NameNotFoundException ignored) {
         }

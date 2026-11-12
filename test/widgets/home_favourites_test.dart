@@ -62,6 +62,25 @@ void main() {
       expect(find.byKey(const ValueKey('dock-installed.7')), findsNothing);
       await tester.sendKeyEvent(LogicalKeyboardKey.select);
       await tester.pumpAndSettle();
+      await tester.sendKeyEvent(LogicalKeyboardKey.arrowDown);
+      await tester.pumpAndSettle();
+      expect(find.text('تعديل التطبيقات المفضلة (7/7)'), findsNothing);
+      expect(
+        FocusManager.instance.primaryFocus?.debugLabel,
+        'dock-edit-button',
+      );
+      await tester.sendKeyEvent(LogicalKeyboardKey.arrowUp);
+      await tester.pumpAndSettle();
+      await tester.sendKeyEvent(LogicalKeyboardKey.arrowDown);
+      await tester.pumpAndSettle();
+      await tester.sendKeyEvent(LogicalKeyboardKey.select);
+      await tester.pumpAndSettle();
+      expect(find.text('تعديل التطبيقات المفضلة (7/7)'), findsOneWidget);
+      await tester.sendKeyEvent(LogicalKeyboardKey.select);
+      await tester.pumpAndSettle();
+      expect(find.text('تعديل التطبيقات المفضلة (7/7)'), findsNothing);
+      await tester.sendKeyEvent(LogicalKeyboardKey.arrowUp);
+      await tester.pumpAndSettle();
       await tester.sendKeyEvent(LogicalKeyboardKey.contextMenu);
       await tester.pumpAndSettle();
       expect(find.text('تعديل التطبيقات المفضلة (7/7)'), findsOneWidget);
