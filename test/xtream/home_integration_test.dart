@@ -41,14 +41,14 @@ void main() {
   }
 
   testWidgets(
-    'the three existing home cards open the corresponding internal catalogue',
+    'sidebar media items open internal catalogues without duplicated home cards',
     (tester) async {
       final f = CatalogueFixture();
       await f.init();
       addTearDown(f.service.dispose);
       await home(tester, f);
-      for (final name in ['movies', 'series', 'live']) {
-        await tester.tap(find.byKey(ValueKey('reference-$name')));
+      for (final name in [2, 3, 1]) {
+        await tester.tap(find.byKey(ValueKey('navigation-$name')));
         await tester.pumpAndSettle();
         expect(find.byType(XtreamBrowserPage), findsOneWidget);
         expect(find.text('Adult XXX'), findsNothing);
@@ -70,22 +70,19 @@ void main() {
       await tester.pumpWidget(const SizedBox());
     },
   );
-  testWidgets(
-    'without an account, existing card opens setup dialog without adding a home card',
-    (tester) async {
-      final f = CatalogueFixture();
-      await f.init(emptyAccount: true);
-      addTearDown(f.service.dispose);
-      await home(tester, f);
-      await tester.tap(find.byKey(const ValueKey('reference-live')));
-      await tester.pumpAndSettle();
-      expect(find.text('اشتراك Xtream Codes'), findsOneWidget);
-      expect(find.byType(TextField), findsNWidgets(3));
-      await tester.tap(find.text('إلغاء'));
-      await tester.pumpAndSettle();
-      expect(find.byType(XtreamBrowserPage), findsNothing);
-      expect(f.actions, isEmpty);
-      await tester.pumpWidget(const SizedBox());
-    },
-  );
+  testWidgets('without an account, sidebar media opens setup', (tester) async {
+    final f = CatalogueFixture();
+    await f.init(emptyAccount: true);
+    addTearDown(f.service.dispose);
+    await home(tester, f);
+    await tester.tap(find.byKey(const ValueKey('navigation-1')));
+    await tester.pumpAndSettle();
+    expect(find.text('اشتراك Xtream Codes'), findsOneWidget);
+    expect(find.byType(TextField), findsNWidgets(3));
+    await tester.tap(find.text('إلغاء'));
+    await tester.pumpAndSettle();
+    expect(find.byType(XtreamBrowserPage), findsNothing);
+    expect(f.actions, isEmpty);
+    await tester.pumpWidget(const SizedBox());
+  });
 }

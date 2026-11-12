@@ -35,6 +35,7 @@ import 'package:intl/date_symbol_data_local.dart';
 import 'flauncher_app.dart';
 import 'xtream/account_store.dart';
 import 'xtream/xtream_service.dart';
+import 'providers/dock_favourites.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -47,6 +48,9 @@ Future<void> main() async {
   runApp(
     MultiProvider(
       providers: [
+        ChangeNotifierProvider(
+          create: (_) => DockFavourites(sharedPreferences),
+        ),
         ChangeNotifierProvider(
           create: (_) => XtreamService(
             SecureAccountStore(sharedPreferences),

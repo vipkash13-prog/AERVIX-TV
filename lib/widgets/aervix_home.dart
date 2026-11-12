@@ -5,12 +5,12 @@ import 'package:flutter/services.dart';
 import 'package:http/http.dart' as http;
 import 'package:intl/intl.dart' show DateFormat;
 import 'settings/settings_panel.dart';
-import 'gold_focus_tile.dart';
-import 'installed_app_icon.dart';
 import 'design_asset_icon.dart';
 import 'aervix_update_button.dart';
 import 'reference_chrome.dart';
 import 'reference_dock.dart';
+import '../providers/dock_favourites.dart';
+import 'dock_favourites_editor.dart';
 import '../xtream/models.dart';
 import '../xtream/xtream_service.dart';
 import '../xtream/account_dialog.dart';
@@ -44,16 +44,14 @@ class _AervixHomeState extends State<AervixHome> with WidgetsBindingObserver {
   bool _prayersFailed = false;
   bool _fetching = false;
   final _navFocus = List.generate(
-    7,
+    5,
     (i) => FocusNode(debugLabel: 'navigation-$i'),
   );
-  final _heroFocus = List.generate(3, (i) => FocusNode(debugLabel: 'hero-$i'));
   final _headerFocus = List.generate(
     7,
     (i) => FocusNode(debugLabel: 'header-$i'),
   );
   final _dockFocus = FocusNode(debugLabel: 'dock-first');
-  final _allAppsFocus = FocusNode(debugLabel: 'dock-all-apps');
   DateTime get _riyadhNow => _now.toUtc().add(const Duration(hours: 3));
 
   @override
@@ -169,13 +167,7 @@ class _AervixHomeState extends State<AervixHome> with WidgetsBindingObserver {
     _clockTimer?.cancel();
     _weatherTimer?.cancel();
     _client.close();
-    for (final node in [
-      ..._navFocus,
-      ..._heroFocus,
-      ..._headerFocus,
-      _dockFocus,
-      _allAppsFocus,
-    ]) {
+    for (final node in [..._navFocus, ..._headerFocus, _dockFocus]) {
       node.dispose();
     }
     super.dispose();
@@ -192,48 +184,22 @@ class _AervixHomeState extends State<AervixHome> with WidgetsBindingObserver {
     }
   }
 
-  void _showApps(String title, List<App> apps) {
-    showDialog<void>(
-      context: context,
-      builder: (context) => Directionality(
-        textDirection: TextDirection.rtl,
-        child: AlertDialog(
-          title: Text(title),
-          content: SizedBox(
-            width: 700,
-            height: 360,
-            child: apps.isEmpty
-                ? const Center(child: Text('لا توجد تطبيقات في هذه القائمة'))
-                : GridView.builder(
-                    itemCount: apps.length,
-                    gridDelegate:
-                        const SliverGridDelegateWithFixedCrossAxisCount(
-                          crossAxisCount: 5,
-                          mainAxisSpacing: 14,
-                          crossAxisSpacing: 14,
-                        ),
-                    itemBuilder: (context, index) =>
-                        _appTile(apps[index], autofocus: index == 0),
-                  ),
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(context),
-              child: const Text('رجوع'),
-            ),
-          ],
-        ),
-      ),
+  bool _editingDock = false;
+  Future<void> _editDock() async {
+    if (_editingDock) return;
+    final store = context.read<DockFavourites?>();
+    if (store == null) return;
+    final apps = _orderedDock(
+      context.read<AppsService>().applications.where((a) => !a.hidden).toList(),
     );
+    _editingDock = true;
+    try {
+      await editDockFavourites(context, store, apps);
+    } finally {
+      _editingDock = false;
+    }
+    if (mounted) _dockFocus.requestFocus();
   }
-
-  Widget _appTile(App app, {bool autofocus = false}) => GoldFocusTile(
-    key: ValueKey(app.packageName),
-    autofocus: autofocus,
-    label: app.name,
-    onPressed: () => _run(() => context.read<AppsService>().launchApp(app)),
-    child: InstalledAppIcon(app: app),
-  );
 
   List<App> _orderedDock(List<App> apps) {
     const priority = [
@@ -293,7 +259,7 @@ class _AervixHomeState extends State<AervixHome> with WidgetsBindingObserver {
   void _navigate(int index, List<App> apps) {
     switch (index) {
       case 0:
-        _heroFocus[0].requestFocus();
+        _dockFocus.requestFocus();
       case 1:
         _openXtream(MediaKind.live);
       case 2:
@@ -301,10 +267,6 @@ class _AervixHomeState extends State<AervixHome> with WidgetsBindingObserver {
       case 3:
         _openXtream(MediaKind.series);
       case 4:
-        _showApps('الألعاب', apps.where((a) => a.isGame).toList());
-      case 5:
-        _showApps('جميع التطبيقات', apps);
-      case 6:
         _settings();
     }
   }
@@ -426,13 +388,7 @@ class _AervixHomeState extends State<AervixHome> with WidgetsBindingObserver {
         : _headerFocus[index - 1].requestFocus(),
     right: () => index < 6 ? _headerFocus[index + 1].requestFocus() : null,
     up: () {},
-    down: () =>
-        _heroFocus[index == 0
-                ? 0
-                : index == 1
-                ? 1
-                : 2]
-            .requestFocus(),
+    down: () => _dockFocus.requestFocus(),
   );
 
   Widget _place(Rect rect, Widget child, {Key? key}) => Positioned(
@@ -758,132 +714,12 @@ class _AervixHomeState extends State<AervixHome> with WidgetsBindingObserver {
     ),
   );
 
-  Widget _hero(
-    int index,
-    String title,
-    String subtitle,
-    String art,
-    List<App> apps, {
-    int skew = 0,
-    bool live = false,
-  }) => ReferenceFocusable(
-    focusNode: _heroFocus[index],
-    label: title,
-    onPressed: () => _openXtream(
-      index == 0
-          ? MediaKind.movie
-          : index == 1
-          ? MediaKind.series
-          : MediaKind.live,
-    ),
-    onKey: (event) => referenceDirections(
-      event,
-      left: () => index == 0
-          ? _navFocus[0].requestFocus()
-          : _heroFocus[index - 1].requestFocus(),
-      right: () => index < 2 ? _heroFocus[index + 1].requestFocus() : null,
-      up: () =>
-          _headerFocus[index == 0
-                  ? 0
-                  : index == 1
-                  ? 1
-                  : 6]
-              .requestFocus(),
-      down: () => _dockFocus.requestFocus(),
-    ),
-    builder: (context, focused) => ReferenceGlass(
-      hero: true,
-      skew: skew,
-      radius: 27,
-      focused: focused,
-      child: Stack(
-        children: [
-          Positioned.fill(
-            child: Image.asset(
-              art,
-              fit: BoxFit.cover,
-              filterQuality: FilterQuality.medium,
-              cacheWidth:
-                  MediaQuery.sizeOf(context).width *
-                          MediaQuery.devicePixelRatioOf(context) >=
-                      3000
-                  ? 1024
-                  : 512,
-            ),
-          ),
-          const Positioned.fill(
-            child: DecoratedBox(
-              decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  begin: Alignment.centerLeft,
-                  end: Alignment.centerRight,
-                  colors: [
-                    Colors.transparent,
-                    Color(0x20000000),
-                    Color(0x8D010307),
-                  ],
-                  stops: [0, .55, 1],
-                ),
-              ),
-            ),
-          ),
-          Positioned(
-            right: 69,
-            bottom: 22,
-            width: 153,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                FittedBox(
-                  fit: BoxFit.scaleDown,
-                  child: Text(title, style: _text(22, weight: FontWeight.w800)),
-                ),
-                const SizedBox(height: 5),
-                Text(
-                  subtitle,
-                  style: _text(
-                    13,
-                    weight: FontWeight.w400,
-                    color: const Color(0xFFDDDAD1),
-                  ),
-                ),
-              ],
-            ),
-          ),
-          const Positioned(right: 22, bottom: 29, child: ReferencePlayGlyph()),
-          if (live)
-            Positioned(
-              right: 23,
-              top: 43,
-              child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
-                decoration: BoxDecoration(
-                  color: const Color(0xFFED0613),
-                  borderRadius: BorderRadius.circular(4),
-                ),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Text('مباشر', style: _text(10)),
-                    const SizedBox(width: 4),
-                    const Icon(Icons.circle, size: 5, color: Colors.white),
-                  ],
-                ),
-              ),
-            ),
-        ],
-      ),
-    ),
-  );
-
   Widget _navigation(List<App> apps) {
     const titles = [
       'الرئيسية',
       'البث المباشر',
       'الأفلام',
       'المسلسلات',
-      'الألعاب',
-      'التطبيقات',
       'الإعدادات',
     ];
     const icons = [
@@ -891,8 +727,6 @@ class _AervixHomeState extends State<AervixHome> with WidgetsBindingObserver {
       Icons.live_tv_outlined,
       Icons.movie_filter_outlined,
       Icons.movie_outlined,
-      Icons.sports_esports_outlined,
-      Icons.grid_view_rounded,
       Icons.settings_outlined,
     ];
     return Stack(
@@ -956,16 +790,11 @@ class _AervixHomeState extends State<AervixHome> with WidgetsBindingObserver {
               onKey: (event) => referenceDirections(
                 event,
                 up: () => i > 0 ? _navFocus[i - 1].requestFocus() : null,
-                down: () => i < 6 ? _navFocus[i + 1].requestFocus() : null,
+                down: () => i < 4 ? _navFocus[i + 1].requestFocus() : null,
                 left: () {},
-                right: () => i == 5
+                right: () => i >= 3
                     ? _dockFocus.requestFocus()
-                    : _heroFocus[i == 1
-                              ? 2
-                              : i == 3
-                              ? 1
-                              : 0]
-                          .requestFocus(),
+                    : _headerFocus[0].requestFocus(),
               ),
               builder: (context, focused) => ReferenceGlass(
                 radius: 14,
@@ -1014,7 +843,14 @@ class _AervixHomeState extends State<AervixHome> with WidgetsBindingObserver {
   Widget build(BuildContext context) {
     final service = context.watch<AppsService>();
     final apps = service.applications.where((a) => !a.hidden).toList();
-    final dockApps = _orderedDock(apps);
+    final ordered = _orderedDock(apps);
+    final favourites = context.watch<DockFavourites?>();
+    final dockApps = favourites?.visible(ordered) ?? ordered.take(7).toList();
+    if (favourites != null && !favourites.initialized && service.initialized) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) favourites.seed(ordered).catchError((Object _) {});
+      });
+    }
     return PopScope(
       canPop: false,
       onPopInvokedWithResult: (didPop, result) {
@@ -1151,66 +987,16 @@ class _AervixHomeState extends State<AervixHome> with WidgetsBindingObserver {
                                 ),
                               ),
                               _place(
-                                ReferenceLayout.movies,
-                                _hero(
-                                  0,
-                                  'الأفلام',
-                                  'عالم السينما',
-                                  'assets/reference_ui/movies_art.png',
-                                  apps,
-                                  skew: -1,
-                                ),
-                                key: const ValueKey('reference-movies'),
-                              ),
-                              _place(
-                                ReferenceLayout.series,
-                                _hero(
-                                  1,
-                                  'المسلسلات',
-                                  'عروض ومسلسلات',
-                                  'assets/reference_ui/series_art.png',
-                                  apps,
-                                ),
-                                key: const ValueKey('reference-series'),
-                              ),
-                              _place(
-                                ReferenceLayout.live,
-                                _hero(
-                                  2,
-                                  'البث المباشر',
-                                  'قنوات مباشرة',
-                                  'assets/reference_ui/live_art.png',
-                                  apps,
-                                  skew: 1,
-                                  live: true,
-                                ),
-                                key: const ValueKey('reference-live'),
-                              ),
-                              _place(
                                 ReferenceLayout.dock,
                                 ReferenceDock(
                                   apps: dockApps,
                                   onLaunch: (app) =>
                                       _run(() => service.launchApp(app)),
-                                  onAllApps: () =>
-                                      _showApps('جميع التطبيقات', apps),
+                                  onEdit: _editDock,
                                   onLeftBoundary: () =>
                                       _navFocus[0].requestFocus(),
                                   firstFocus: _dockFocus,
-                                  allAppsFocus: _allAppsFocus,
-                                  onUp: (x) {
-                                    final distances = [
-                                      (x - 400).abs(),
-                                      (x - 733).abs(),
-                                      (x - 1075).abs(),
-                                    ];
-                                    var nearest = 0;
-                                    for (var i = 1; i < 3; i++) {
-                                      if (distances[i] < distances[nearest])
-                                        nearest = i;
-                                    }
-                                    _heroFocus[nearest].requestFocus();
-                                  },
+                                  onUp: (_) => _headerFocus[0].requestFocus(),
                                 ),
                                 key: const ValueKey('applications-band'),
                               ),

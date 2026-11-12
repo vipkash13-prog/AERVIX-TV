@@ -152,7 +152,7 @@ void main() {
       await tester.tap(find.byKey(const ValueKey('dock-installed.example')));
       await tester.pumpAndSettle();
       verify(service.launchApp(app)).called(1);
-      await tester.tap(find.byKey(const ValueKey('navigation-5')));
+      await tester.tap(find.byKey(const ValueKey('reference-weather')));
       await tester.pumpAndSettle();
       expect(find.byType(AlertDialog), findsOneWidget);
       await tester.binding.handlePopRoute();
