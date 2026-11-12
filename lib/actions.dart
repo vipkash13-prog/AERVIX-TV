@@ -53,15 +53,20 @@ class BackAction extends Action<BackIntent> {
 
   @override
   Future<void> invoke(BackIntent intent) async {
-    NavigatorState? navigator = Navigator.maybeOf(context);
-
+    // The action is registered above MaterialApp's Navigator. Resolve the
+    // focused route, including settings' nested Navigator, before falling back.
+    final focusedContext = FocusManager.instance.primaryFocus?.context;
+    NavigatorState? navigator = Navigator.maybeOf(focusedContext ?? context);
     if (navigator != null) {
-      navigator.maybePop();
+      while (navigator != null && navigator.mounted) {
+        if (await navigator.maybePop()) return;
+        if (!navigator.mounted) return;
+        navigator = navigator.context.findAncestorStateOfType<NavigatorState>();
+      }
+      return;
     }
-    else {
-      LauncherState state = context.read<LauncherState>();
-      state.handleBackNavigation(context);
-    }
+    LauncherState state = context.read<LauncherState>();
+    state.handleBackNavigation(context);
   }
 }
 
