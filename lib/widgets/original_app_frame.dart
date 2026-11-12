@@ -13,10 +13,10 @@ class OriginalAppFrame extends StatelessWidget {
   Widget build(BuildContext context) => AnimatedContainer(
     duration: const Duration(milliseconds: 160),
     decoration: BoxDecoration(
-      color: const Color(0x66040810),
+      color: focused ? const Color(0x38FFFFFF) : const Color(0x24FFFFFF),
       borderRadius: BorderRadius.circular(15),
       boxShadow: focused
-          ? const [BoxShadow(color: Color(0x66FFFFFF), blurRadius: 8)]
+          ? const [BoxShadow(color: Color(0x33FFFFFF), blurRadius: 5)]
           : const [],
     ),
     foregroundDecoration: BoxDecoration(

@@ -62,26 +62,20 @@ void main() {
       expect(find.byKey(const ValueKey('dock-installed.7')), findsNothing);
       await tester.sendKeyEvent(LogicalKeyboardKey.select);
       await tester.pumpAndSettle();
+      expect(find.byKey(const ValueKey('dock-edit-area')), findsNothing);
       await tester.sendKeyEvent(LogicalKeyboardKey.arrowDown);
       await tester.pumpAndSettle();
-      expect(find.text('تعديل التطبيقات المفضلة (7/7)'), findsNothing);
-      expect(
-        FocusManager.instance.primaryFocus?.debugLabel,
-        'dock-edit-button',
-      );
-      await tester.sendKeyEvent(LogicalKeyboardKey.arrowUp);
+      expect(FocusManager.instance.primaryFocus?.debugLabel, 'dock-first');
+      await tester.sendKeyDownEvent(LogicalKeyboardKey.select);
+      await tester.pump(const Duration(milliseconds: 650));
       await tester.pumpAndSettle();
-      await tester.sendKeyEvent(LogicalKeyboardKey.arrowDown);
+      expect(find.text('تعديل TV 0'), findsOneWidget);
+      await tester.sendKeyUpEvent(LogicalKeyboardKey.select);
       await tester.pumpAndSettle();
-      await tester.sendKeyEvent(LogicalKeyboardKey.select);
-      await tester.pumpAndSettle();
-      expect(find.text('تعديل التطبيقات المفضلة (7/7)'), findsOneWidget);
-      await tester.sendKeyEvent(LogicalKeyboardKey.select);
-      await tester.pumpAndSettle();
-      expect(find.text('تعديل التطبيقات المفضلة (7/7)'), findsNothing);
-      await tester.sendKeyEvent(LogicalKeyboardKey.arrowUp);
-      await tester.pumpAndSettle();
-      await tester.sendKeyEvent(LogicalKeyboardKey.contextMenu);
+      expect(find.text('نقل التطبيق'), findsOneWidget);
+      expect(find.text('إخفاء التطبيق'), findsOneWidget);
+      expect(find.text('إلغاء التثبيت'), findsOneWidget);
+      await tester.tap(find.text('تعديل المفضلة وإضافة تطبيق'));
       await tester.pumpAndSettle();
       expect(find.text('تعديل التطبيقات المفضلة (7/7)'), findsOneWidget);
       await tester.tap(find.byTooltip('إزالة من المفضلة').first);

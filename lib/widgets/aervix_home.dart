@@ -11,7 +11,7 @@ import 'reference_chrome.dart';
 import 'reference_dock.dart';
 import '../providers/dock_favourites.dart';
 import 'dock_favourites_editor.dart';
-import 'original_app_frame.dart';
+import 'dock_app_actions.dart';
 import '../xtream/models.dart';
 import '../xtream/xtream_service.dart';
 import '../xtream/account_dialog.dart';
@@ -53,7 +53,6 @@ class _AervixHomeState extends State<AervixHome> with WidgetsBindingObserver {
     (i) => FocusNode(debugLabel: 'header-$i'),
   );
   final _dockFocus = FocusNode(debugLabel: 'dock-first');
-  final _editDockFocus = FocusNode(debugLabel: 'dock-edit-button');
   FocusNode? _lastDockFocus;
   DateTime get _riyadhNow => _now.toUtc().add(const Duration(hours: 3));
 
@@ -170,12 +169,7 @@ class _AervixHomeState extends State<AervixHome> with WidgetsBindingObserver {
     _clockTimer?.cancel();
     _weatherTimer?.cancel();
     _client.close();
-    for (final node in [
-      ..._navFocus,
-      ..._headerFocus,
-      _dockFocus,
-      _editDockFocus,
-    ]) {
+    for (final node in [..._navFocus, ..._headerFocus, _dockFocus]) {
       node.dispose();
     }
     super.dispose();
@@ -206,7 +200,21 @@ class _AervixHomeState extends State<AervixHome> with WidgetsBindingObserver {
     } finally {
       _editingDock = false;
     }
-    if (mounted) _editDockFocus.requestFocus();
+    if (mounted) (_lastDockFocus ?? _dockFocus).requestFocus();
+  }
+
+  Future<void> _appOptions(App app) async {
+    if (_editingDock) return;
+    final store = context.read<DockFavourites?>();
+    if (store == null) return;
+    final service = context.read<AppsService>();
+    _editingDock = true;
+    try {
+      await editDockApp(context, app, store, service);
+    } finally {
+      _editingDock = false;
+    }
+    if (mounted) _dockFocus.requestFocus();
   }
 
   List<App> _orderedDock(List<App> apps) {
@@ -1004,56 +1012,11 @@ class _AervixHomeState extends State<AervixHome> with WidgetsBindingObserver {
                                   onLeftBoundary: () =>
                                       _navFocus[0].requestFocus(),
                                   firstFocus: _dockFocus,
-                                  editFocus: _editDockFocus,
+                                  onAppOptions: _appOptions,
                                   onAppFocused: (node) => _lastDockFocus = node,
                                   onUp: (_) => _headerFocus[0].requestFocus(),
                                 ),
                                 key: const ValueKey('applications-band'),
-                              ),
-                              _place(
-                                const Rect.fromLTWH(1100, 667, 150, 30),
-                                ReferenceFocusable(
-                                  key: const ValueKey('dock-edit-control'),
-                                  focusNode: _editDockFocus,
-                                  label: 'تعديل المفضلة',
-                                  onPressed: _editDock,
-                                  onKey: (event) => referenceDirections(
-                                    event,
-                                    up: () => (_lastDockFocus ?? _dockFocus)
-                                        .requestFocus(),
-                                    down: () {},
-                                    left: () {},
-                                    right: () {},
-                                  ),
-                                  builder: (context, focused) =>
-                                      OriginalAppFrame(
-                                        focused: focused,
-                                        child: const Row(
-                                          mainAxisAlignment:
-                                              MainAxisAlignment.center,
-                                          children: [
-                                            Icon(
-                                              Icons.edit_outlined,
-                                              size: 17,
-                                              color: Colors.white,
-                                            ),
-                                            SizedBox(width: 6),
-                                            Flexible(
-                                              child: Text(
-                                                'تعديل المفضلة',
-                                                maxLines: 1,
-                                                overflow: TextOverflow.ellipsis,
-                                                style: TextStyle(
-                                                  fontSize: 13,
-                                                  color: Colors.white,
-                                                ),
-                                              ),
-                                            ),
-                                          ],
-                                        ),
-                                      ),
-                                ),
-                                key: const ValueKey('dock-edit-area'),
                               ),
                             ],
                           ),

@@ -83,7 +83,7 @@ class _InstalledAppIconState extends State<InstalledAppIcon> {
             );
       return widget.preferTvBanner
           ? SizedBox.expand(
-              child: Padding(padding: const EdgeInsets.all(2), child: image),
+              child: Padding(padding: const EdgeInsets.all(6), child: image),
             )
           : SizedBox.square(dimension: widget.size, child: image);
     },

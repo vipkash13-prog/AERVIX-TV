@@ -3,6 +3,7 @@ import 'package:flauncher/models/app.dart';
 import 'package:flauncher/providers/apps_service.dart';
 import 'package:flauncher/widgets/installed_app_icon.dart';
 import 'package:flauncher/widgets/reference_dock.dart';
+import 'package:flauncher/widgets/original_app_frame.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -40,7 +41,7 @@ void main() {
       await tester.pumpAndSettle();
       final image = tester.widget<Image>(find.byType(Image));
       expect(image.fit, BoxFit.contain);
-      expect(tester.getSize(find.byType(Image)), const Size(99, 66));
+      expect(tester.getSize(find.byType(Image)), const Size(91, 58));
       final source = (image.image as ResizeImage).imageProvider as MemoryImage;
       expect(source.bytes, same(banner));
       verify(service.getAppBanner(installed.packageName)).called(1);
@@ -73,7 +74,7 @@ void main() {
       );
       await tester.pumpWidget(build());
       await tester.pumpAndSettle();
-      expect(tester.getSize(find.byType(Image)), const Size(99, 66));
+      expect(tester.getSize(find.byType(Image)), const Size(91, 58));
       expect(tester.widget<Image>(find.byType(Image)).fit, BoxFit.contain);
       await tester.pumpWidget(build());
       await tester.pumpAndSettle();
@@ -118,7 +119,6 @@ void main() {
                 onLeftBoundary: () {},
                 onUp: (_) {},
                 firstFocus: first,
-                editFocus: all,
               ),
             ),
           ),
@@ -155,6 +155,31 @@ void main() {
     await tester.sendKeyEvent(LogicalKeyboardKey.select);
     await tester.pumpAndSettle();
     expect(launched, [apps.last]);
+    for (var i = 0; i < apps.length; i++) {
+      expect(
+        tester.getRect(find.byKey(ValueKey('dock-${apps[i].packageName}'))),
+        frames[i],
+      );
+    }
+    for (final image in tester.widgetList<Image>(find.byType(Image))) {
+      expect(image.fit, BoxFit.contain);
+      expect(image.color, isNull);
+    }
+    for (final frame in find.byType(OriginalAppFrame).evaluate()) {
+      final box = tester.widget<AnimatedContainer>(
+        find
+            .descendant(
+              of: find.byWidget(frame.widget),
+              matching: find.byType(AnimatedContainer),
+            )
+            .first,
+      );
+      final color = (box.decoration! as BoxDecoration).color!;
+      expect(color.r, 1);
+      expect(color.g, 1);
+      expect(color.b, 1);
+      expect(color.a, inExclusiveRange(0, .3));
+    }
     expect(tester.takeException(), isNull);
     await tester.pumpWidget(const SizedBox());
   });

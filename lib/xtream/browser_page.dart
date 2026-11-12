@@ -23,7 +23,8 @@ class _XtreamBrowserPageState extends State<XtreamBrowserPage> {
   String? _category;
   String _query = '';
   bool _favourites = false, _opening = false;
-  Timer? _search;
+  Timer? _search, _backCooldown;
+  bool _returning = false;
   final _searchText = TextEditingController();
   final _searchFocus = FocusNode(debugLabel: 'xtream-search');
   final _accountFocus = FocusNode(debugLabel: 'xtream-account');
@@ -132,6 +133,7 @@ class _XtreamBrowserPageState extends State<XtreamBrowserPage> {
   void dispose() {
     service.removeListener(_updated);
     _search?.cancel();
+    _backCooldown?.cancel();
     _searchText.dispose();
     for (final node in [
       _searchFocus,
@@ -245,6 +247,9 @@ class _XtreamBrowserPageState extends State<XtreamBrowserPage> {
   Future<void> _open(MediaEntry item) async {
     if (_opening || !service.isAllowed(item)) return;
     setState(() => _opening = true);
+    final returnOffset = _resultsScroll.hasClients
+        ? _resultsScroll.offset
+        : 0.0;
     try {
       if (item.kind == MediaKind.movie && !await service.checkMovie(item))
         return;
@@ -290,7 +295,25 @@ class _XtreamBrowserPageState extends State<XtreamBrowserPage> {
           context,
         ).showSnackBar(SnackBar(content: Text(error.message)));
     } finally {
-      if (mounted) setState(() => _opening = false);
+      if (mounted) {
+        setState(() {
+          _opening = false;
+          _returning = true;
+        });
+        _backCooldown?.cancel();
+        _backCooldown = Timer(const Duration(milliseconds: 350), () {
+          if (mounted) setState(() => _returning = false);
+        });
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (!mounted) return;
+          if (_resultsScroll.hasClients)
+            _resultsScroll.jumpTo(
+              returnOffset.clamp(0.0, _resultsScroll.position.maxScrollExtent),
+            );
+          if (_entries.any((entry) => entry.key == item.key))
+            _resultNode(item).requestFocus();
+        });
+      }
     }
   }
 
@@ -300,174 +323,200 @@ class _XtreamBrowserPageState extends State<XtreamBrowserPage> {
     final entries = _entries;
     _categoryExtent = (MediaQuery.textScalerOf(context).scale(16) / 16 * 56)
         .clamp(56.0, double.infinity);
-    return Directionality(
-      textDirection: TextDirection.rtl,
-      child: Scaffold(
-        backgroundColor: const Color(0xFF090E16),
-        appBar: AppBar(
-          title: Text(widget.kind.label),
-          actions: [
-            IconButton(
-              tooltip: 'تحديث الاشتراك',
-              onPressed: service.loading(widget.kind)
-                  ? null
-                  : () => service.refresh(widget.kind),
-              icon: const Icon(Icons.refresh),
-            ),
-            IconButton(
-              tooltip: 'بيانات الاشتراك',
-              focusNode: _accountFocus,
-              onPressed: () async {
-                if (await showXtreamAccount(context, service))
-                  await service.refresh(widget.kind);
-              },
-              icon: const Icon(Icons.account_circle_outlined),
-            ),
-            IconButton(
-              tooltip: 'الحظر اليدوي',
-              onPressed: _manageBlocks,
-              icon: const Icon(Icons.block),
-            ),
-          ],
-        ),
-        body: Column(
-          children: [
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
-              child: Row(
-                children: [
-                  Expanded(
-                    child: RemoteSearchField(
-                      controller: _searchText,
-                      focusNode: _searchFocus,
-                      onSubmit: _submitSearch,
-                      onUp: _accountFocus.requestFocus,
-                      onLeft: () => _query.isEmpty
-                          ? _favouritesFocus.requestFocus()
-                          : _clearFocus.requestFocus(),
-                      onRight: _focusCategory,
-                      onChanged: (value) {
-                        _search?.cancel();
-                        _search = Timer(const Duration(milliseconds: 220), () {
-                          if (mounted) setState(() => _query = value);
-                        });
-                      },
-                    ),
-                  ),
-                  IconButton(
-                    tooltip: 'مسح البحث',
-                    focusNode: _clearFocus,
-                    onPressed: _searchText.text.isEmpty
-                        ? null
-                        : () {
-                            _searchText.clear();
-                            _search?.cancel();
-                            setState(() => _query = '');
-                            _searchFocus.requestFocus();
-                          },
-                    icon: const Icon(Icons.clear),
-                  ),
-                  const SizedBox(width: 16),
-                  FilterChip(
-                    label: const Text('المفضلة'),
-                    focusNode: _favouritesFocus,
-                    selected: _favourites,
-                    onSelected: (value) => setState(() => _favourites = value),
-                  ),
-                  if (_category != null)
-                    TextButton(
-                      onPressed: _blockCategory,
-                      child: const Text('حظر التصنيف'),
-                    ),
-                ],
-              ),
-            ),
-            if (service.loading(widget.kind) || _opening)
-              const LinearProgressIndicator(color: Color(0xFFFFD68A)),
-            if (service.error(widget.kind) != null)
-              Padding(
-                padding: const EdgeInsets.all(8),
-                child: Text(
-                  service.error(widget.kind)!,
-                  style: const TextStyle(color: Colors.amber),
+    return PopScope(
+      canPop: false,
+      onPopInvokedWithResult: (didPop, result) {
+        if (!didPop && !_returning) Navigator.of(context).pop();
+      },
+      child: Focus(
+        canRequestFocus: false,
+        onKeyEvent: (_, event) =>
+            _returning &&
+                const [
+                  LogicalKeyboardKey.escape,
+                  LogicalKeyboardKey.goBack,
+                  LogicalKeyboardKey.gameButtonB,
+                ].contains(event.logicalKey)
+            ? KeyEventResult.handled
+            : KeyEventResult.ignored,
+        child: Directionality(
+          textDirection: TextDirection.rtl,
+          child: Scaffold(
+            backgroundColor: const Color(0xFF090E16),
+            appBar: AppBar(
+              title: Text(widget.kind.label),
+              actions: [
+                IconButton(
+                  tooltip: 'تحديث الاشتراك',
+                  onPressed: service.loading(widget.kind)
+                      ? null
+                      : () => service.refresh(widget.kind),
+                  icon: const Icon(Icons.refresh),
                 ),
-              ),
-            Expanded(
-              child: Row(
-                children: [
-                  SizedBox(
-                    width: 240,
-                    child: ListView.builder(
-                      controller: _categoriesScroll,
-                      itemExtent: _categoryExtent,
-                      itemCount: categories.length + 1,
-                      itemBuilder: (context, index) => index == 0
-                          ? _categoryRow(
-                              null,
-                              'جميع التصنيفات',
-                              -1,
-                              categories.length,
-                            )
-                          : _categoryRow(
-                              categories[index - 1].id,
-                              categories[index - 1].name,
-                              index - 1,
-                              categories.length,
-                            ),
+                IconButton(
+                  tooltip: 'بيانات الاشتراك',
+                  focusNode: _accountFocus,
+                  onPressed: () async {
+                    if (await showXtreamAccount(context, service))
+                      await service.refresh(widget.kind);
+                  },
+                  icon: const Icon(Icons.account_circle_outlined),
+                ),
+                IconButton(
+                  tooltip: 'الحظر اليدوي',
+                  onPressed: _manageBlocks,
+                  icon: const Icon(Icons.block),
+                ),
+              ],
+            ),
+            body: Column(
+              children: [
+                Padding(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 20,
+                    vertical: 8,
+                  ),
+                  child: Row(
+                    children: [
+                      Expanded(
+                        child: RemoteSearchField(
+                          controller: _searchText,
+                          focusNode: _searchFocus,
+                          onSubmit: _submitSearch,
+                          onUp: _accountFocus.requestFocus,
+                          onLeft: () => _query.isEmpty
+                              ? _favouritesFocus.requestFocus()
+                              : _clearFocus.requestFocus(),
+                          onRight: _focusCategory,
+                          onChanged: (value) {
+                            _search?.cancel();
+                            _search = Timer(
+                              const Duration(milliseconds: 220),
+                              () {
+                                if (mounted) setState(() => _query = value);
+                              },
+                            );
+                          },
+                        ),
+                      ),
+                      IconButton(
+                        tooltip: 'مسح البحث',
+                        focusNode: _clearFocus,
+                        onPressed: _searchText.text.isEmpty
+                            ? null
+                            : () {
+                                _searchText.clear();
+                                _search?.cancel();
+                                setState(() => _query = '');
+                                _searchFocus.requestFocus();
+                              },
+                        icon: const Icon(Icons.clear),
+                      ),
+                      const SizedBox(width: 16),
+                      FilterChip(
+                        label: const Text('المفضلة'),
+                        focusNode: _favouritesFocus,
+                        selected: _favourites,
+                        onSelected: (value) =>
+                            setState(() => _favourites = value),
+                      ),
+                      if (_category != null)
+                        TextButton(
+                          onPressed: _blockCategory,
+                          child: const Text('حظر التصنيف'),
+                        ),
+                    ],
+                  ),
+                ),
+                if (service.loading(widget.kind) || _opening)
+                  const LinearProgressIndicator(color: Color(0xFFFFD68A)),
+                if (service.error(widget.kind) != null)
+                  Padding(
+                    padding: const EdgeInsets.all(8),
+                    child: Text(
+                      service.error(widget.kind)!,
+                      style: const TextStyle(color: Colors.amber),
                     ),
                   ),
-                  const VerticalDivider(width: 1),
-                  Expanded(
-                    child: entries.isEmpty
-                        ? Center(
-                            child: Text(
-                              service.loading(widget.kind)
-                                  ? 'جارٍ تحميل المحتوى…'
-                                  : 'لا يوجد محتوى متاح',
-                            ),
-                          )
-                        : ListView.builder(
-                            controller: _resultsScroll,
-                            key: ValueKey(
-                              'xtream-items-${widget.kind.name}-${_category ?? 'all'}-$_favourites-$_query',
-                            ),
-                            itemCount: entries.length,
-                            itemBuilder: (context, index) {
-                              final item = entries[index];
-                              return _RemoteMediaRow(
-                                key: ValueKey('xtream-item-${item.key}'),
-                                focusNode: _resultNode(item),
-                                onKey: (event) {
-                                  if (event is KeyDownEvent ||
-                                      event is KeyRepeatEvent) {
-                                    if (event.logicalKey ==
-                                            LogicalKeyboardKey.arrowUp &&
-                                        index == 0) {
-                                      _searchFocus.requestFocus();
-                                      return KeyEventResult.handled;
-                                    }
-                                    if (event.logicalKey ==
-                                        LogicalKeyboardKey.arrowRight) {
-                                      _focusCategory();
-                                      return KeyEventResult.handled;
-                                    }
-                                  }
-                                  return KeyEventResult.ignored;
+                Expanded(
+                  child: Row(
+                    children: [
+                      SizedBox(
+                        width: 240,
+                        child: ListView.builder(
+                          controller: _categoriesScroll,
+                          itemExtent: _categoryExtent,
+                          itemCount: categories.length + 1,
+                          itemBuilder: (context, index) => index == 0
+                              ? _categoryRow(
+                                  null,
+                                  'جميع التصنيفات',
+                                  -1,
+                                  categories.length,
+                                )
+                              : _categoryRow(
+                                  categories[index - 1].id,
+                                  categories[index - 1].name,
+                                  index - 1,
+                                  categories.length,
+                                ),
+                        ),
+                      ),
+                      const VerticalDivider(width: 1),
+                      Expanded(
+                        child: entries.isEmpty
+                            ? Center(
+                                child: Text(
+                                  service.loading(widget.kind)
+                                      ? 'جارٍ تحميل المحتوى…'
+                                      : 'لا يوجد محتوى متاح',
+                                ),
+                              )
+                            : ListView.builder(
+                                controller: _resultsScroll,
+                                key: ValueKey(
+                                  'xtream-items-${widget.kind.name}-${_category ?? 'all'}-$_favourites-$_query',
+                                ),
+                                itemCount: entries.length,
+                                itemBuilder: (context, index) {
+                                  final item = entries[index];
+                                  return _RemoteMediaRow(
+                                    key: ValueKey('xtream-item-${item.key}'),
+                                    focusNode: _resultNode(item),
+                                    onKey: (event) {
+                                      if (event is KeyDownEvent ||
+                                          event is KeyRepeatEvent) {
+                                        if (event.logicalKey ==
+                                                LogicalKeyboardKey.arrowUp &&
+                                            index == 0) {
+                                          _searchFocus.requestFocus();
+                                          return KeyEventResult.handled;
+                                        }
+                                        if (event.logicalKey ==
+                                            LogicalKeyboardKey.arrowRight) {
+                                          _focusCategory();
+                                          return KeyEventResult.handled;
+                                        }
+                                      }
+                                      return KeyEventResult.ignored;
+                                    },
+                                    autofocus:
+                                        index == 0 && !_searchFocus.hasFocus,
+                                    title:
+                                        '${widget.kind == MediaKind.live ? '${index + 1} · ' : ''}${item.name}',
+                                    onOpen: () => _open(item),
+                                    onOptions: () => _options(item),
+                                    favourite: service.favourite(item),
+                                  );
                                 },
-                                autofocus: index == 0 && !_searchFocus.hasFocus,
-                                title:
-                                    '${widget.kind == MediaKind.live ? '${index + 1} · ' : ''}${item.name}',
-                                onOpen: () => _open(item),
-                                onOptions: () => _options(item),
-                                favourite: service.favourite(item),
-                              );
-                            },
-                          ),
+                              ),
+                      ),
+                    ],
                   ),
-                ],
-              ),
+                ),
+              ],
             ),
-          ],
+          ),
         ),
       ),
     );

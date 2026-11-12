@@ -10,7 +10,8 @@ class ReferenceDock extends StatefulWidget {
   final ValueChanged<App> onLaunch;
   final VoidCallback onEdit, onLeftBoundary;
   final ValueChanged<double> onUp;
-  final FocusNode firstFocus, editFocus;
+  final FocusNode firstFocus;
+  final ValueChanged<App>? onAppOptions;
   final ValueChanged<FocusNode>? onAppFocused;
   const ReferenceDock({
     super.key,
@@ -20,7 +21,7 @@ class ReferenceDock extends StatefulWidget {
     required this.onLeftBoundary,
     required this.onUp,
     required this.firstFocus,
-    required this.editFocus,
+    this.onAppOptions,
     this.onAppFocused,
   });
   @override
@@ -69,6 +70,9 @@ class _ReferenceDockState extends State<ReferenceDock> {
                         if (focused) widget.onAppFocused?.call(_node(i));
                       },
                       label: app?.name ?? 'إضافة تطبيق للمفضلة',
+                      onLongPress: app == null
+                          ? widget.onEdit
+                          : () => widget.onAppOptions?.call(app),
                       onPressed: app == null
                           ? widget.onEdit
                           : () => widget.onLaunch(app),
@@ -79,7 +83,9 @@ class _ReferenceDockState extends State<ReferenceDock> {
                               LogicalKeyboardKey.keyM,
                               LogicalKeyboardKey.gameButtonX,
                             ].contains(event.logicalKey)) {
-                          widget.onEdit();
+                          app == null
+                              ? widget.onEdit()
+                              : widget.onAppOptions?.call(app);
                           return KeyEventResult.handled;
                         }
                         return referenceDirections(
@@ -91,11 +97,13 @@ class _ReferenceDockState extends State<ReferenceDock> {
                               i < 6 ? _node(i + 1).requestFocus() : null,
                           up: () =>
                               widget.onUp(255 + i * (width + 12) + width / 2),
-                          down: widget.editFocus.requestFocus,
+                          down: () {},
                         );
                       },
                       builder: (context, focused) => GestureDetector(
-                        onLongPress: widget.onEdit,
+                        onLongPress: app == null
+                            ? widget.onEdit
+                            : () => widget.onAppOptions?.call(app),
                         child: OriginalAppFrame(
                           focused: focused,
                           child: app == null
