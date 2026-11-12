@@ -14,6 +14,9 @@ class FakeVideoPlatform extends VideoPlayerPlatform {
   final disposed = <int>[];
   final played = <int>[];
   final paused = <int>[];
+  final positions = <int, Duration>{};
+  final playPositions = <int, Duration>{};
+  final seeks = <(int, Duration)>[];
   final events = <int, StreamController<VideoEvent>>{};
   bool initializeImmediately = true;
   int startupFailures = 0;
@@ -70,6 +73,7 @@ class FakeVideoPlatform extends VideoPlayerPlatform {
   @override
   Future<void> play(int playerId) async {
     played.add(playerId);
+    playPositions[playerId] = positions[playerId] ?? Duration.zero;
   }
 
   @override
@@ -86,9 +90,14 @@ class FakeVideoPlatform extends VideoPlayerPlatform {
   @override
   Future<void> setPlaybackSpeed(int playerId, double speed) async {}
   @override
-  Future<void> seekTo(int playerId, Duration position) async {}
+  Future<void> seekTo(int playerId, Duration position) async {
+    positions[playerId] = position;
+    seeks.add((playerId, position));
+  }
+
   @override
-  Future<Duration> getPosition(int playerId) async => Duration.zero;
+  Future<Duration> getPosition(int playerId) async =>
+      positions[playerId] ?? Duration.zero;
   @override
   Widget buildViewWithOptions(VideoViewOptions options) =>
       const ColoredBox(color: Colors.black);
@@ -315,6 +324,67 @@ void main() {
     engine.dispose();
     await frames(tester);
   });
+  testWidgets(
+    'VOD reconnect at 43 seconds restores position before playing and repeated retry retains it',
+    (tester) async {
+      final engine = VideoMediaEngine();
+      final uri = Uri.parse('https://fixture.test/movie/user/secret/1.mp4');
+      unawaited(engine.open(uri, live: false));
+      await frames(tester);
+      platform.positions[1] = const Duration(seconds: 43);
+      await tester.pump(const Duration(milliseconds: 600));
+      await frames(tester);
+      platform.events[1]!.addError(
+        PlatformException(code: 'network', message: 'interrupted'),
+      );
+      await frames(tester);
+      await tester.pump(const Duration(milliseconds: 850));
+      await frames(tester);
+      expect(platform.seeks, contains((2, const Duration(seconds: 43))));
+      expect(platform.played, [1, 2]);
+      expect(platform.playPositions[2], const Duration(seconds: 43));
+      platform.positions[2] = const Duration(seconds: 51);
+      await tester.pump(const Duration(milliseconds: 600));
+      await frames(tester);
+      platform.events[2]!.addError(
+        PlatformException(code: 'network', message: 'interrupted'),
+      );
+      await frames(tester);
+      await tester.pump(const Duration(milliseconds: 1650));
+      await frames(tester);
+      expect(platform.seeks.last, (3, const Duration(seconds: 51)));
+      expect(platform.playPositions[3], const Duration(seconds: 51));
+      platform.events[3]!.addError(
+        PlatformException(code: 'network', message: 'interrupted'),
+      );
+      await frames(tester);
+      expect(engine.error, isNotNull);
+      unawaited(engine.retry(uri, live: false));
+      await frames(tester);
+      expect(platform.seeks.last, (4, const Duration(seconds: 51)));
+      expect(platform.playPositions[4], const Duration(seconds: 51));
+      // A different film starts at zero; a channel never uses VOD seek state.
+      unawaited(
+        engine.open(
+          Uri.parse('https://fixture.test/movie/user/secret/2.mp4'),
+          live: false,
+        ),
+      );
+      await frames(tester);
+      expect(platform.seeks.where((entry) => entry.$1 == 5), isEmpty);
+      unawaited(
+        engine.open(
+          Uri.parse('https://fixture.test/live/user/secret/1.ts'),
+          live: true,
+        ),
+      );
+      await frames(tester);
+      expect(platform.seeks.where((entry) => entry.$1 == 6), isEmpty);
+      expect(platform.maxAlive, 1);
+      engine.dispose();
+      await frames(tester);
+    },
+  );
   testWidgets(
     'movies and series browse through internal player; adult categories absent',
     (tester) async {

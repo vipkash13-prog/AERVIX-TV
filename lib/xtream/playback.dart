@@ -9,6 +9,7 @@ abstract class MediaEngine extends ChangeNotifier {
   String? get error;
   Widget picture();
   Future<void> open(Uri uri, {required bool live});
+  Future<void> retry(Uri uri, {required bool live}) => open(uri, live: live);
   Future<void> togglePause();
   Future<void> seekBy(Duration amount);
   Future<void> stop();
@@ -21,6 +22,8 @@ class VideoMediaEngine extends MediaEngine {
   int _generation = 0, _retryCount = 0, _failedGeneration = -1;
   Timer? _retryTimer;
   Uri? _uri;
+  bool _live = false;
+  Duration _resumePosition = Duration.zero;
 
   final _initTimeouts = <VideoPlayerController, Timer>{};
   void _cancelTimeouts() {
@@ -45,6 +48,15 @@ class VideoMediaEngine extends MediaEngine {
   @override
   Future<void> open(Uri uri, {required bool live}) {
     _uri = uri;
+    _live = live;
+    _resumePosition = Duration.zero;
+    _retryCount = 0;
+    return _openAttempt();
+  }
+
+  @override
+  Future<void> retry(Uri uri, {required bool live}) {
+    if (_uri != uri || _live != live) return open(uri, live: live);
     _retryCount = 0;
     return _openAttempt();
   }
@@ -96,8 +108,16 @@ class VideoMediaEngine extends MediaEngine {
     try {
       await next.initialize();
       if (_closed || generation != _generation || _controller != next) return;
+      // Restore VOD before play so a reconnect cannot show the beginning.
+      if (!_live && _resumePosition > Duration.zero) {
+        await next.seekTo(_resumePosition);
+        if (_closed || generation != _generation || _controller != next) return;
+      }
       await next.play();
-      if (_closed || generation != _generation) return;
+      if (_closed ||
+          generation != _generation ||
+          _failedGeneration == generation)
+        return;
       _loading = false;
       _notify();
     } catch (_) {
@@ -139,6 +159,9 @@ class VideoMediaEngine extends MediaEngine {
       _failed(_generation);
       return;
     }
+    // Ignore the new controller's initial zero while restoring a reconnect.
+    if (!_live && !_loading && value.isInitialized)
+      _resumePosition = value.position;
     _notify();
   }
 
@@ -227,12 +250,14 @@ class ChannelPlayback extends ChangeNotifier {
     _open();
   }
 
-  void _open() {
+  void _open({bool retry = false}) {
     final media = current;
     if (media == null || _disposed) return;
     try {
       unawaited(
-        engine.open(resolve(media), live: media.kind == MediaKind.live),
+        retry
+            ? engine.retry(resolve(media), live: media.kind == MediaKind.live)
+            : engine.open(resolve(media), live: media.kind == MediaKind.live),
       );
     } on XtreamFailure {
       unawaited(engine.stop());
@@ -253,7 +278,7 @@ class ChannelPlayback extends ChangeNotifier {
 
   void retry() {
     _zap?.cancel();
-    _open();
+    _open(retry: true);
   }
 
   void update(List<MediaEntry> playlist) {
