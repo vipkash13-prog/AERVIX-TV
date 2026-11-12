@@ -23,26 +23,30 @@ import 'package:flauncher/l10n/app_localizations.dart';
 class LTvLauncherAboutDialog extends StatelessWidget {
   final PackageInfo packageInfo;
 
-  LTvLauncherAboutDialog({
-    Key? key,
-    required this.packageInfo,
-  }) : super(key: key);
+  LTvLauncherAboutDialog({Key? key, required this.packageInfo})
+    : super(key: key);
 
   @override
   Widget build(BuildContext context) {
     AppLocalizations localizations = AppLocalizations.of(context)!;
 
     return AboutDialog(
-      applicationName: "Arc Launcher",
-      applicationVersion: "v${packageInfo.version} (${packageInfo.buildNumber})",
+      applicationName: "AERVIX TV",
+      applicationVersion:
+          "v${packageInfo.version} (${packageInfo.buildNumber})",
       applicationIcon: ClipRRect(
         borderRadius: BorderRadius.circular(12),
-        child: Image.asset("assets/icon.png", height: 72),
+        child: Image.asset("assets/aervix-icon.jpg", height: 72),
       ),
-      applicationLegalese: "Developed by Badis Meddouri\nBased on LTvLauncher © 2026 LeanBitLab",
+      applicationLegalese:
+          "تطوير الأساس: Badis Meddouri\nمبني على LTvLauncher © 2026 LeanBitLab",
       children: [
         SizedBox(height: 24),
-        Text(localizations.textAboutDialog("https://github.com/meddouribadis/arclauncher"))
+        Text(
+          localizations.textAboutDialog(
+            "https://github.com/vipkash13-prog/AERVIX-TV",
+          ),
+        ),
       ],
     );
   }

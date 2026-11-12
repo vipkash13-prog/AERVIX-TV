@@ -1,0 +1,364 @@
+{
+  "aboutFlauncher": "حول AERVIX TV",
+  "addCategory": "إضافة فئة",
+  "addSection": "إضافة قسم",
+  "alphabetical": "أبجديًا",
+  "appCardHighlightAnimation": "حركة تمييز بطاقة التطبيق",
+  "showFocusBorders": "إظهار حدود التحديد",
+  "focusBorderThickness": "سُمك حدود التحديد",
+  "focusBorderThin": "خفيف (1.0 dp)",
+  "focusBorderDefault": "افتراضي (1.5 dp)",
+  "focusBorderMedium": "متوسط (2.0 dp)",
+  "focusBorderBold": "عريض (3.0 dp)",
+  "appInfo": "معلومات التطبيق",
+  "appKeyClick": "صوت الضغط على أزرار الريموت",
+  "appearanceSettings": "المظهر",
+  "backgroundBlur": "تمويه الخلفية",
+  "dockBlur": "تمويه شريط التطبيقات",
+  "dockDarkBackground": "خلفية داكنة لشريط التطبيقات",
+  "dockShadow": "ظل شريط التطبيقات",
+  "applications": "التطبيقات",
+  "autoHideAppBar": "إخفاء شريط الحالة تلقائيًا",
+  "hideStatusBarInGrid": "إخفاء شريط الحالة داخل شبكة التطبيقات",
+  "backButtonAction": "وظيفة زر الرجوع",
+  "category": "الفئة",
+  "categories": "الفئات",
+  "columnCount": "عدد الأعمدة",
+  "date": "التاريخ",
+  "dateAndTimeFormat": "تنسيق التاريخ والوقت",
+  "delete": "حذف",
+  "dialogOptionBackButtonActionDoNothing": "عدم تنفيذ أي إجراء",
+  "dialogOptionBackButtonActionShowScreensaver": "عرض شاشة التوقف",
+  "dialogOptionBackButtonActionShowClock": "عرض الساعة",
+  "dialogTextNoFileExplorer": "ثبّت مدير ملفات لاختيار صورة.",
+  "dialogTitleBackButtonAction": "اختر وظيفة زر الرجوع",
+  "disambiguateCategoryTitle": "{title} (فئة)",
+  "@disambiguateCategoryTitle": {
+    "placeholders": {
+      "title": {
+        "type": "String"
+      }
+    }
+  },
+  "formattedDate": "التاريخ المنسق: {dateString}",
+  "@formattedDate": {
+    "placeholders": {
+      "dateString": {
+        "type": "String"
+      }
+    }
+  },
+  "formattedTime": "الوقت المنسق: {timeString}",
+  "@formattedTime": {
+    "placeholders": {
+      "timeString": {
+        "type": "String"
+      }
+    }
+  },
+  "gradient": "تدرج لوني",
+  "favoriteApps": "التطبيقات المفضلة",
+  "grid": "شبكة",
+  "height": "الارتفاع",
+  "hide": "إخفاء",
+  "hiddenApplications": "التطبيقات المخفية",
+  "launcherSections": "الأقسام",
+  "layout": "التخطيط",
+  "loading": "جارٍ التحميل",
+  "manual": "يدويًا",
+  "modifySection": "تعديل القسم",
+  "mustNotBeEmpty": "يجب ألا يكون فارغًا",
+  "name": "الاسم",
+  "newSection": "قسم جديد",
+  "noDateFormatSpecified": "لم يُحدّد تنسيق للتاريخ",
+  "noTimeFormatSpecified": "لم يُحدّد تنسيق للوقت",
+  "allApplications": "جميع التطبيقات",
+  "nonTvApplications": "التطبيقات غير المخصصة للتلفاز",
+  "open": "فتح",
+  "orSelectFormatSpecifiers": "أو اختر عناصر التنسيق",
+  "picture": "صورة",
+  "removeFrom": "إزالة من {name}",
+  "@removeFrom": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "renameCategory": "إعادة تسمية الفئة",
+  "reorder": "إعادة الترتيب",
+  "row": "صف",
+  "rowHeight": "ارتفاع الصف",
+  "save": "حفظ",
+  "spacer": "فاصل",
+  "spacerMaxHeightRequirement": "يجب أن يكون أكبر من 0 وأقل من أو يساوي 500",
+  "statusBar": "شريط الحالة",
+  "settings": "الإعدادات",
+  "show": "إظهار",
+  "showCategoryTitles": "إظهار أسماء الفئات",
+  "sort": "الترتيب",
+  "systemSettings": "إعدادات الجهاز",
+  "updateCheck": "التحقق من التحديثات",
+  "updateNoUpdateTitle": "لا توجد تحديثات",
+  "updateNoUpdateBody": "أنت تستخدم أحدث إصدار ({currentVersion}).",
+  "@updateNoUpdateBody": {
+    "placeholders": {
+      "currentVersion": {
+        "type": "String"
+      }
+    }
+  },
+  "updateAvailableTitle": "يتوفر تحديث",
+  "updateAvailableBody": "يتوفر الإصدار {latestVersion} (الإصدار الحالي: {currentVersion}).",
+  "@updateAvailableBody": {
+    "placeholders": {
+      "latestVersion": {
+        "type": "String"
+      },
+      "currentVersion": {
+        "type": "String"
+      }
+    }
+  },
+  "updateChangelog": "الجديد في هذا الإصدار",
+  "updateDownloadButton": "تنزيل",
+  "updateReadyToInstallTitle": "التحديث جاهز للتثبيت",
+  "updateReadyToInstallBody": "اكتمل تنزيل الإصدار {latestVersion}. هل تريد بدء التثبيت الآن؟",
+  "@updateReadyToInstallBody": {
+    "placeholders": {
+      "latestVersion": {
+        "type": "String"
+      }
+    }
+  },
+  "updateInstallButton": "تثبيت",
+  "updateInstallPermissionTitle": "يلزم السماح بتثبيت التحديثات",
+  "updateInstallPermissionBody": "اسمح لتطبيق AERVIX TV بتثبيت التطبيقات من هذا المصدر، ثم أعد محاولة التحديث.",
+  "updateOpenPermissionSettingsButton": "فتح إعدادات الإذن",
+  "updateErrorGeneric": "تعذر التحقق من التحديث. حاول مجددًا.",
+  "textAboutDialog": "AERVIX TV واجهة مفتوحة المصدر لأجهزة Android TV، مبنية على FLauncher وArc Launcher.\n\nتطوير النسخة الأساسية: Meddouri Badis.\nالمصدر البرمجي: {repoUrl}.",
+  "@textAboutDialog": {
+    "placeholders": {
+      "repoUrl": {
+        "type": "String"
+      }
+    }
+  },
+  "textEmptyCategory": "هذه الفئة فارغة.",
+  "time": "الوقت",
+  "titleStatusBarSettingsPage": "اختر ما يظهر في شريط الحالة",
+  "tvApplications": "تطبيقات التلفاز",
+  "type": "النوع",
+  "typeInTheDateFormat": "أدخل تنسيق التاريخ",
+  "typeInTheHourFormat": "أدخل تنسيق الوقت",
+  "uninstall": "إلغاء التثبيت",
+  "wallpaper": "الخلفية",
+  "withEllipsisAddTo": "إضافة إلى…",
+  "timeBasedWallpaper": "خلفية حسب الوقت",
+  "unsplashSlideshow": "عرض صور Unsplash",
+  "unsplashEnable": "إظهار صور Unsplash",
+  "unsplashAccessKey": "مفتاح الوصول إلى Unsplash",
+  "unsplashAccessKeyHelp": "أنشئ تطبيقًا مجانيًا في unsplash.com/developers، ثم ألصق مفتاح الوصول.",
+  "unsplashNotSet": "غير محدد",
+  "unsplashInterval": "تغيير الصورة كل",
+  "unsplashIntervalMinutes": "{minutes} دقيقة",
+  "@unsplashIntervalMinutes": {
+    "placeholders": {
+      "minutes": {
+        "type": "int"
+      }
+    }
+  },
+  "slideshowCategories": "الفئات",
+  "slideshowDay": "النهار (06:00–18:00)",
+  "slideshowNight": "الليل (18:00–06:00)",
+  "unsplashPhotoCredit": "الصورة: {author} / Unsplash",
+  "@unsplashPhotoCredit": {
+    "placeholders": {
+      "author": {
+        "type": "String"
+      }
+    }
+  },
+  "pickDayWallpaper": "اختيار خلفية النهار",
+  "pickNightWallpaper": "اختيار خلفية الليل",
+  "video": "فيديو",
+  "pickDayVideoWallpaper": "اختيار فيديو للنهار",
+  "pickNightVideoWallpaper": "اختيار فيديو لليل",
+  "watchNextSectionTitle": "متابعة المشاهدة",
+  "showWatchNextSection": "إظهار قسم متابعة المشاهدة",
+  "watchNextPermissionTitle": "يلزم إذن متابعة المشاهدة",
+  "watchNextPermissionBody": "اسمح بالوصول إلى قوائم التلفاز لعرض العناصر التي تتابع مشاهدتها.",
+  "watchNextGrantPermission": "منح الإذن",
+  "watchNextCheckPermission": "التحقق مجددًا",
+  "interface": "الواجهة",
+  "system": "النظام",
+  "accentColor": "لون التمييز",
+  "miscellaneous": "خيارات إضافية",
+  "brightnessScheduler": "جدولة السطوع",
+  "screensaverSettings": "إعدادات شاشة التوقف",
+  "screensaverClockStyle": "نمط ساعة شاشة التوقف",
+  "wifiUsagePeriod": "فترة قياس استهلاك Wi-Fi",
+  "showAppNamesBelowIcons": "إظهار أسماء التطبيقات أسفل الأيقونات",
+  "wifiUsage": "استهلاك Wi-Fi",
+  "networkIndicator": "مؤشر الشبكة",
+  "customName": "اسم مخصص",
+  "lastUsed": "آخر استخدام",
+  "daily": "يوميًا",
+  "weekly": "أسبوعيًا",
+  "monthly": "شهريًا",
+  "grantPermission": "منح الإذن",
+  "checkStatus": "التحقق من الحالة",
+  "watchNextBigPictureMode": "وضع العرض الواسع",
+  "watchNextBigPictureModeDescription": "خلفية بعرض الشاشة مع زر لبدء المشاهدة",
+  "watchNextWatch": "مشاهدة",
+  "watchNextResume": "استئناف",
+  "watchNextRefresh": "تحديث المحتوى",
+  "watchNextRefreshDescription": "إعادة تحميل الاقتراحات من تطبيقات الوسائط",
+  "watchNextRefreshed": "تم تحديث محتوى متابعة المشاهدة",
+  "watchNextFilterApps": "تصفية التطبيقات",
+  "watchNextFilterAppsDescription": "اختر التطبيقات التي يمكنها عرض عناصر متابعة المشاهدة",
+  "watchNextNoApps": "لا توجد تطبيقات تقدم محتوى متابعة المشاهدة حاليًا",
+  "watchNextShowAllApps": "إظهار جميع التطبيقات المثبتة",
+  "watchNextHideWithoutImages": "إخفاء البرامج التي لا تحتوي على صورة",
+  "watchNextHideWithoutImagesDescription": "إظهار البرامج التي توفر ملصقًا أو صورة خلفية فقط",
+  "watchNextMaxItems": "الحد الأقصى للبرامج",
+  "watchNextMaxItemsDescription": "تحديد عدد البرامج في قسم متابعة المشاهدة",
+  "watchNextMaxItemsUnlimited": "بلا حد",
+  "redditWallpaper": "خلفيات Reddit",
+  "redditWallpaperEnable": "إظهار خلفيات Reddit",
+  "redditSubreddits": "مجتمعات Reddit",
+  "redditSort": "الترتيب حسب",
+  "redditSortHot": "الرائج",
+  "redditSortTopDay": "الأفضل اليوم",
+  "redditSortTopWeek": "الأفضل هذا الأسبوع",
+  "redditSortTopMonth": "الأفضل هذا الشهر",
+  "redditSortTopAll": "الأفضل على الإطلاق",
+  "redditSortNew": "الأحدث",
+  "redditInterval": "تغيير الخلفية كل",
+  "redditIntervalMinutes": "{minutes} دقيقة",
+  "@redditIntervalMinutes": {
+    "placeholders": {
+      "minutes": {
+        "type": "int"
+      }
+    }
+  },
+  "redditInterval1Hour": "ساعة واحدة",
+  "redditIntervalHours": "{hours} ساعة",
+  "@redditIntervalHours": {
+    "placeholders": {
+      "hours": {
+        "type": "int"
+      }
+    }
+  },
+  "redditInterval1Day": "يوم واحد",
+  "redditIntervalDays": "{days} يوم",
+  "@redditIntervalDays": {
+    "placeholders": {
+      "days": {
+        "type": "int"
+      }
+    }
+  },
+  "redditClientId": "معرّف عميل Reddit (اختياري)",
+  "redditClientIdHelp": "اختياري: أنشئ تطبيقًا مثبتًا في reddit.com/prefs/apps، ثم ألصق معرّفه إذا كانت شبكتك تتطلبه.",
+  "redditChangeNow": "تغيير الخلفية الآن",
+  "redditAddSubreddit": "إضافة مجتمع مخصص",
+  "redditSubredditName": "اسم المجتمع (دون r/)",
+  "redditSubredditAdded": "تمت إضافة المجتمع",
+  "redditSubredditInvalid": "أدخل اسم مجتمع صالحًا",
+  "redditWallpaperUpdated": "تم تحديث الخلفية",
+  "redditWallpaperFailed": "تعذر جلب الخلفية. إذا استمرت المشكلة، أضف معرّف عميل Reddit في الإعدادات.",
+  "addToFavorites": "إضافة إلى المفضلة",
+  "removeFromFavorites": "إزالة من المفضلة",
+  "addToCategory": "إضافة إلى فئة",
+  "setCustomBanner": "تعيين صورة مخصصة",
+  "clearCustomBanner": "إزالة الصورة المخصصة",
+  "customBannerSetFailed": "تعذر تعيين الصورة: {error}",
+  "customBannerClearFailed": "تعذر إزالة الصورة: {error}",
+  "selectImage": "اختيار صورة",
+  "selectVideo": "اختيار فيديو",
+  "mediaItemCount": "{count} عنصر",
+  "noImagesFound": "لا توجد صور على الجهاز",
+  "noVideosFound": "لا توجد مقاطع فيديو على الجهاز",
+  "mediaNavigationHint": "أسهم الريموت: تنقل • رجوع: إلغاء",
+  "mediaSelectionHint": "أسهم الريموت: تنقل • موافق: تعيين الخلفية • رجوع: إلغاء",
+  "mediaPermissionRequired": "يلزم إذن الوصول إلى الوسائط",
+  "mediaPermissionHelp": "امنح الإذن لاستعراض الصور ومقاطع الفيديو",
+  "preview": "معاينة",
+  "colorPurple": "بنفسجي",
+  "colorTeal": "أخضر مزرق",
+  "colorBlue": "أزرق",
+  "colorOrange": "برتقالي",
+  "colorPink": "وردي",
+  "colorGreen": "أخضر",
+  "colorWhite": "أبيض",
+  "colorYellow": "أصفر",
+  "colorRed": "أحمر",
+  "colorCyan": "سماوي",
+  "colorIndigo": "نيلي",
+  "colorLime": "ليموني",
+  "colorAmber": "كهرماني",
+  "colorRose": "وردي داكن",
+  "colorIceBlue": "أزرق جليدي",
+  "clockStyleMinimal": "بسيط",
+  "clockStyleMinimalDescription": "خط رفيع وأنيق (افتراضي)",
+  "clockStyleBold": "عريض",
+  "clockStyleBoldDescription": "خط سميك واضح من بعيد",
+  "clockStyleRetro": "كلاسيكي رقمي",
+  "clockStyleRetroDescription": "خط ثابت العرض بطابع الأجهزة القديمة",
+  "clockStyleElegant": "أنيق",
+  "clockStyleElegantDescription": "خط كلاسيكي بتفاصيل زخرفية",
+  "clockStyleNeon": "نيون",
+  "clockStyleNeonDescription": "خط فائق النحافة مع توهج",
+  "clockStylePixel": "بكسل",
+  "clockStylePixelDescription": "خط عريض بطابع ألعاب الأركيد",
+  "clockStyleDigital": "رقمي",
+  "clockStyleDigitalDescription": "عرض رقمي بخط ثابت العرض",
+  "brightnessPermissionRequired": "يلزم منح إذن",
+  "brightnessPermissionHelp": "للتحكم بالسطوع على هذا الجهاز، امنح الإذن باستخدام ADB:",
+  "brightnessExperimentalNotice": "ميزة تجريبية: لم تُختبر على جميع الأجهزة وقد تتغير بناءً على ملاحظات المستخدمين.",
+  "brightnessDeviceSupportNote": "ملاحظة: قد لا تدعم بعض أجهزة Android TV التحكم بسطوع التطبيق.",
+  "enableBrightnessScheduler": "تفعيل الجدولة",
+  "currentBrightnessSlot": "الفترة الحالية: {slot}",
+  "brightnessSlotMorning": "06:00–09:00 صباحًا",
+  "brightnessSlotDay": "09:00 صباحًا–03:00 عصرًا",
+  "brightnessSlotAfternoon": "03:00–06:00 مساءً",
+  "brightnessSlotEvening": "06:00–10:00 مساءً",
+  "brightnessSlotNight": "10:00 مساءً–06:00 صباحًا",
+  "@customBannerSetFailed": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "@customBannerClearFailed": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "@mediaItemCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "@currentBrightnessSlot": {
+    "placeholders": {
+      "slot": {
+        "type": "String"
+      }
+    }
+  },
+  "@@locale": "ar",
+  "noApplicationsFound": "لا توجد تطبيقات",
+  "invalidDateTimeFormat": "صيغة غير صالحة",
+  "selectFormatsBelow": "اختر صيغة من الخيارات أدناه",
+  "selectSectionName": "اختر اسمًا للقسم"
+}

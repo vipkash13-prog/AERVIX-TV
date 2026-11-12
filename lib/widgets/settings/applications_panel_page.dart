@@ -16,7 +16,6 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-
 import 'package:flauncher/providers/apps_service.dart';
 
 import 'package:flauncher/widgets/ensure_visible.dart';
@@ -50,7 +49,7 @@ class _ApplicationsPanelPageState extends State<ApplicationsPanelPage> {
     _TabData(1, Icons.star, (l) => l.favoriteApps),
     _TabData(2, Icons.visibility_off_outlined, (l) => l.hiddenApplications),
   ];
-  
+
   late List<FocusNode> _tabFocusNodes;
 
   @override
@@ -88,7 +87,15 @@ class _ApplicationsPanelPageState extends State<ApplicationsPanelPage> {
               border: Border.all(color: Colors.white.withValues(alpha: 0.06)),
             ),
             child: Row(
-              children: _tabs.map((tab) => _buildTabButton(tab.index, tab.icon, tab.getTitle(localizations))).toList(),
+              children: _tabs
+                  .map(
+                    (tab) => _buildTabButton(
+                      tab.index,
+                      tab.icon,
+                      tab.getTitle(localizations),
+                    ),
+                  )
+                  .toList(),
             ),
           ),
         ),
@@ -96,8 +103,10 @@ class _ApplicationsPanelPageState extends State<ApplicationsPanelPage> {
         Expanded(
           child: Shortcuts(
             shortcuts: <LogicalKeySet, Intent>{
-              LogicalKeySet(LogicalKeyboardKey.arrowLeft): const ChangeTabIntent(-1),
-              LogicalKeySet(LogicalKeyboardKey.arrowRight): const ChangeTabIntent(1),
+              LogicalKeySet(LogicalKeyboardKey.arrowLeft):
+                  const ChangeTabIntent(-1),
+              LogicalKeySet(LogicalKeyboardKey.arrowRight):
+                  const ChangeTabIntent(1),
             },
             child: Actions(
               actions: <Type, Action<Intent>>{
@@ -113,7 +122,6 @@ class _ApplicationsPanelPageState extends State<ApplicationsPanelPage> {
   }
 
   void _selectTab(int index, String title) {
-
     if (_selectedIndex != index) {
       if (mounted) {
         setState(() {
@@ -124,7 +132,6 @@ class _ApplicationsPanelPageState extends State<ApplicationsPanelPage> {
     }
   }
 
-
   void changeTab(int direction) {
     // ... (existing code, ensure it matches previous edits)
 
@@ -132,23 +139,20 @@ class _ApplicationsPanelPageState extends State<ApplicationsPanelPage> {
     if (newIndex != _selectedIndex) {
       final localizations = AppLocalizations.of(context)!;
 
-      
       _isSwitchingViaKeyboard = true;
       _selectTab(newIndex, _tabs[newIndex].getTitle(localizations));
-      
 
       _tabFocusNodes[newIndex].requestFocus();
-      
+
       Future.delayed(const Duration(milliseconds: 150), () {
         if (mounted) {
-           _isSwitchingViaKeyboard = false;
+          _isSwitchingViaKeyboard = false;
         }
       });
     }
   }
 
   void focusCurrentTab() {
-
     _tabFocusNodes[_selectedIndex].requestFocus();
   }
 
@@ -161,24 +165,31 @@ class _ApplicationsPanelPageState extends State<ApplicationsPanelPage> {
           onFocusChange: (focused) {
             if (focused) {
               if (_isSwitchingViaKeyboard) {
-
                 return;
               }
 
               _selectTab(index, title);
             }
           },
-          child: Builder(builder: (context) {
-            final focused = Focus.of(context).hasFocus;
-            final selected = _selectedIndex == index;
-            return navButton(selected, focused, index, title, icon);
-          }),
+          child: Builder(
+            builder: (context) {
+              final focused = Focus.of(context).hasFocus;
+              final selected = _selectedIndex == index;
+              return navButton(selected, focused, index, title, icon);
+            },
+          ),
         ),
       ),
     );
   }
 
-  Widget navButton(bool selected, bool focused, int index, String title, IconData icon) {
+  Widget navButton(
+    bool selected,
+    bool focused,
+    int index,
+    String title,
+    IconData icon,
+  ) {
     final accentColor = Theme.of(context).colorScheme.primary;
 
     return Semantics(
@@ -196,17 +207,23 @@ class _ApplicationsPanelPageState extends State<ApplicationsPanelPage> {
             decoration: BoxDecoration(
               color: selected
                   ? accentColor.withValues(alpha: 0.26)
-                  : (focused ? Colors.white.withValues(alpha: 0.12) : Colors.transparent),
+                  : (focused
+                        ? Colors.white.withValues(alpha: 0.12)
+                        : Colors.transparent),
               borderRadius: BorderRadius.circular(12),
               border: Border.all(
-                color: focused ? Colors.white.withValues(alpha: 0.28) : Colors.transparent,
+                color: focused
+                    ? Colors.white.withValues(alpha: 0.28)
+                    : Colors.transparent,
               ),
             ),
             child: Center(
               child: Icon(
                 icon,
                 size: 20,
-                color: (selected || focused) ? Colors.white : Colors.white.withValues(alpha: 0.5),
+                color: (selected || focused)
+                    ? Colors.white
+                    : Colors.white.withValues(alpha: 0.5),
               ),
             ),
           ),
@@ -216,12 +233,16 @@ class _ApplicationsPanelPageState extends State<ApplicationsPanelPage> {
   }
 
   Widget _buildCurrentTab() {
-     // ... (same)
+    // ... (same)
     switch (_selectedIndex) {
-      case 0: return _AllAppsTab();
-      case 1: return _FavoritesTab();
-      case 2: return _HiddenTab();
-      default: return Container();
+      case 0:
+        return _AllAppsTab();
+      case 1:
+        return _FavoritesTab();
+      case 2:
+        return _HiddenTab();
+      default:
+        return Container();
     }
   }
 }
@@ -233,7 +254,6 @@ class _TabData {
 
   _TabData(this.index, this.icon, this.getTitle);
 }
-
 
 class MoveFocusToTabIntent extends Intent {
   const MoveFocusToTabIntent();
@@ -266,77 +286,105 @@ class ChangeTabAction extends Action<ChangeTabIntent> {
   }
 }
 
-
 class _AllAppsTab extends StatelessWidget {
   @override
   Widget build(BuildContext context) => Selector<AppsService, List<App>>(
-        selector: (_, appsService) => appsService.applications.where((app) => !app.hidden).toList(),
-        builder: (context, applications, _) {
-          if (applications.isEmpty) {
-            return const _EmptyListPlaceholder("No applications found", autofocus: true);
-          }
-          return ListView(
-            children: applications
-                .asMap()
-                .entries
-                .map((entry) => EnsureVisible(
-                      alignment: 0.5,
-                      child: _AppListItem(entry.value, autofocus: entry.key == 0, isFirst: entry.key == 0),
-                    ))
-                .toList(),
-          );
-        },
+    selector: (_, appsService) =>
+        appsService.applications.where((app) => !app.hidden).toList(),
+    builder: (context, applications, _) {
+      if (applications.isEmpty) {
+        return _EmptyListPlaceholder(
+          AppLocalizations.of(context)!.noApplicationsFound,
+          autofocus: true,
+        );
+      }
+      return ListView(
+        children: applications
+            .asMap()
+            .entries
+            .map(
+              (entry) => EnsureVisible(
+                alignment: 0.5,
+                child: _AppListItem(
+                  entry.value,
+                  autofocus: entry.key == 0,
+                  isFirst: entry.key == 0,
+                ),
+              ),
+            )
+            .toList(),
       );
+    },
+  );
 }
 
 class _FavoritesTab extends StatelessWidget {
   @override
   Widget build(BuildContext context) => Selector<AppsService, List<App>>(
-        selector: (_, appsService) {
-           final favorites = appsService.categories.firstWhere(
-            (category) => category.name == 'Favorites',
-            orElse: () => Category(name: 'Favorites'),
-          );
-          return favorites.applications.where((app) => !app.hidden).toList();
-        },
-        builder: (context, applications, _) {
-          if (applications.isEmpty) {
-            return const _EmptyListPlaceholder("No applications found", autofocus: true);
-          }
-          return ListView(
-            children: applications
-                .asMap()
-                .entries
-                .map((entry) => EnsureVisible(
-                      alignment: 0.5,
-                      child: _AppListItem(entry.value, autofocus: entry.key == 0, isFirst: entry.key == 0),
-                    ))
-                .toList(),
-          );
-        },
+    selector: (_, appsService) {
+      final favorites = appsService.categories.firstWhere(
+        (category) => category.name == 'Favorites',
+        orElse: () => Category(name: 'Favorites'),
       );
+      return favorites.applications.where((app) => !app.hidden).toList();
+    },
+    builder: (context, applications, _) {
+      if (applications.isEmpty) {
+        return _EmptyListPlaceholder(
+          AppLocalizations.of(context)!.noApplicationsFound,
+          autofocus: true,
+        );
+      }
+      return ListView(
+        children: applications
+            .asMap()
+            .entries
+            .map(
+              (entry) => EnsureVisible(
+                alignment: 0.5,
+                child: _AppListItem(
+                  entry.value,
+                  autofocus: entry.key == 0,
+                  isFirst: entry.key == 0,
+                ),
+              ),
+            )
+            .toList(),
+      );
+    },
+  );
 }
 
 class _HiddenTab extends StatelessWidget {
   @override
   Widget build(BuildContext context) => Selector<AppsService, List<App>>(
-        selector: (_, appsService) => appsService.applications.where((app) => app.hidden).toList(),
-        builder: (context, applications, _) {
-          if (applications.isEmpty) {
-            return const _EmptyListPlaceholder("No applications found", autofocus: true);
-          }
-          return ListView(
-            children: applications
-                .asMap()
-                .entries
-                .map((entry) => EnsureVisible(
-                      alignment: 0.5,
-                      child: _AppListItem(entry.value, autofocus: entry.key == 0, isFirst: entry.key == 0),
-                    ))
-                .toList(),
-          );
-        },
+    selector: (_, appsService) =>
+        appsService.applications.where((app) => app.hidden).toList(),
+    builder: (context, applications, _) {
+      if (applications.isEmpty) {
+        return _EmptyListPlaceholder(
+          AppLocalizations.of(context)!.noApplicationsFound,
+          autofocus: true,
+        );
+      }
+      return ListView(
+        children: applications
+            .asMap()
+            .entries
+            .map(
+              (entry) => EnsureVisible(
+                alignment: 0.5,
+                child: _AppListItem(
+                  entry.value,
+                  autofocus: entry.key == 0,
+                  isFirst: entry.key == 0,
+                ),
+              ),
+            )
+            .toList(),
       );
+    },
+  );
 }
 
 class _EmptyListPlaceholder extends StatefulWidget {
@@ -358,7 +406,6 @@ class _EmptyListPlaceholderState extends State<_EmptyListPlaceholder> {
     _focusNode = FocusNode();
     if (widget.autofocus) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
-
         _focusNode.requestFocus();
       });
     }
@@ -389,30 +436,36 @@ class _EmptyListPlaceholderState extends State<_EmptyListPlaceholder> {
   }
 }
 
-class _AppListItem extends StatefulWidget
-{
+class _AppListItem extends StatefulWidget {
   final App application;
   final bool autofocus;
   final bool isFirst;
 
-  const _AppListItem(this.application, {this.autofocus = false, this.isFirst = false});
+  const _AppListItem(
+    this.application, {
+    this.autofocus = false,
+    this.isFirst = false,
+  });
 
   @override
   State<StatefulWidget> createState() => _AppListItemState();
 }
 
-class _AppListItemState extends State<_AppListItem>
-{
+class _AppListItemState extends State<_AppListItem> {
   late Future<ImageProvider> _iconLoadFuture;
 
   @override
   void initState() {
     super.initState();
-    _iconLoadFuture = _loadAppIcon(Provider.of<AppsService>(context, listen: false));
+    _iconLoadFuture = _loadAppIcon(
+      Provider.of<AppsService>(context, listen: false),
+    );
   }
 
   void _openAppDetails() {
-    Navigator.of(context).pushNamed(AppDetailsPage.routeName, arguments: widget.application);
+    Navigator.of(
+      context,
+    ).pushNamed(AppDetailsPage.routeName, arguments: widget.application);
   }
 
   @override
@@ -420,7 +473,9 @@ class _AppListItemState extends State<_AppListItem>
     return Focus(
       canRequestFocus: false,
       onKeyEvent: (node, event) {
-        if (widget.isFirst && event is KeyDownEvent && event.logicalKey == LogicalKeyboardKey.arrowUp) {
+        if (widget.isFirst &&
+            event is KeyDownEvent &&
+            event.logicalKey == LogicalKeyboardKey.arrowUp) {
           Actions.invoke(context, const MoveFocusToTabIntent());
           return KeyEventResult.handled;
         }
@@ -451,7 +506,9 @@ class _AppListItemState extends State<_AppListItem>
               widget.application.name,
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
-              style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: Colors.white),
+              style: Theme.of(
+                context,
+              ).textTheme.bodyMedium?.copyWith(color: Colors.white),
             ),
             onPressed: _openAppDetails,
           );

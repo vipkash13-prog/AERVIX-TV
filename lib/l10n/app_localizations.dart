@@ -5,6 +5,7 @@ import 'package:flutter/widgets.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:intl/intl.dart' as intl;
 
+import 'app_localizations_ar.dart';
 import 'app_localizations_en.dart';
 import 'app_localizations_es.dart';
 import 'app_localizations_tr.dart';
@@ -97,6 +98,7 @@ abstract class AppLocalizations {
 
   /// A list of this localizations delegate's supported locales.
   static const List<Locale> supportedLocales = <Locale>[
+    Locale('ar'),
     Locale('en'),
     Locale('es'),
     Locale('tr'),
@@ -1513,6 +1515,30 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'10 PM - 6 AM'**
   String get brightnessSlotNight;
+
+  /// No description provided for @noApplicationsFound.
+  ///
+  /// In en, this message translates to:
+  /// **'No applications found'**
+  String get noApplicationsFound;
+
+  /// No description provided for @invalidDateTimeFormat.
+  ///
+  /// In en, this message translates to:
+  /// **'Invalid format'**
+  String get invalidDateTimeFormat;
+
+  /// No description provided for @selectFormatsBelow.
+  ///
+  /// In en, this message translates to:
+  /// **'Select formats below'**
+  String get selectFormatsBelow;
+
+  /// No description provided for @selectSectionName.
+  ///
+  /// In en, this message translates to:
+  /// **'Select a name'**
+  String get selectSectionName;
 }
 
 class _AppLocalizationsDelegate
@@ -1525,8 +1551,14 @@ class _AppLocalizationsDelegate
   }
 
   @override
-  bool isSupported(Locale locale) =>
-      <String>['en', 'es', 'tr', 'vi', 'zh'].contains(locale.languageCode);
+  bool isSupported(Locale locale) => <String>[
+    'ar',
+    'en',
+    'es',
+    'tr',
+    'vi',
+    'zh',
+  ].contains(locale.languageCode);
 
   @override
   bool shouldReload(_AppLocalizationsDelegate old) => false;
@@ -1535,6 +1567,8 @@ class _AppLocalizationsDelegate
 AppLocalizations lookupAppLocalizations(Locale locale) {
   // Lookup logic when only language code is specified.
   switch (locale.languageCode) {
+    case 'ar':
+      return AppLocalizationsAr();
     case 'en':
       return AppLocalizationsEn();
     case 'es':

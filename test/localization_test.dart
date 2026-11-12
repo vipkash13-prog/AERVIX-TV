@@ -19,7 +19,7 @@ void main() {
       r'\{(\w+)\}',
     ).allMatches(value).map((match) => match.group(1)!).toSet();
 
-    for (final locale in ['vi', 'zh']) {
+    for (final locale in ['ar', 'vi', 'zh']) {
       final translations =
           jsonDecode(File('lib/l10n/app_$locale.arb').readAsStringSync())
               as Map<String, dynamic>;

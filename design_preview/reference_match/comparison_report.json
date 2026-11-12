@@ -1,0 +1,86 @@
+{
+  "reference_size": [
+    1280,
+    720
+  ],
+  "tested_viewports": [
+    [
+      1280,
+      720
+    ],
+    [
+      1920,
+      1080
+    ],
+    [
+      3840,
+      2160
+    ]
+  ],
+  "geometry_assertion_tolerance_pixels": 0.1,
+  "anchors_in_reference_pixels": {
+    "sidebar": [
+      0,
+      0,
+      214,
+      720
+    ],
+    "weather": [
+      241,
+      46,
+      260,
+      113
+    ],
+    "prayer": [
+      521,
+      46,
+      324,
+      113
+    ],
+    "clock": [
+      1116,
+      20,
+      148,
+      73
+    ],
+    "movies": [
+      238,
+      388,
+      323,
+      162
+    ],
+    "series": [
+      570,
+      386,
+      327,
+      164
+    ],
+    "live": [
+      909,
+      386,
+      333,
+      162
+    ],
+    "dock": [
+      241,
+      567,
+      1009,
+      92
+    ]
+  },
+  "measurement_method": "WidgetTester.getRect on actual Positioned widget bounds; exact uniform scale comparison in test/widgets/reference_interface_test.dart",
+  "visual_identity_percentage": null,
+  "native_photographic_4k": false,
+  "hardware_mecool_tested": false,
+  "fixture_data_in_screenshots": true,
+  "live_provider_probe": {
+    "weather_http_status": 200,
+    "prayer_http_status": 200
+  },
+  "differences": [
+    "Background and category artwork visually reconstructed from flattened reference; not pixel-identical.",
+    "Arabic secondary labels replace English captions.",
+    "Dock uses only installed packages; screenshots inject a documented fixture and verified official static icons.",
+    "No fabricated notification badge; shown only for real available updates."
+  ]
+}

@@ -1,3 +1,4 @@
+import 'package:flauncher/l10n/section_labels.dart';
 /*
  * FLauncher
  * Copyright (C) 2021  Étienne Fesser
@@ -31,7 +32,8 @@ class LauncherSectionsPanelPage extends StatefulWidget {
   static const String routeName = "launcher_sections_panel";
 
   @override
-  State<LauncherSectionsPanelPage> createState() => _LauncherSectionsPanelPageState();
+  State<LauncherSectionsPanelPage> createState() =>
+      _LauncherSectionsPanelPageState();
 }
 
 class _LauncherSectionsPanelPageState extends State<LauncherSectionsPanelPage> {
@@ -69,7 +71,10 @@ class _LauncherSectionsPanelPageState extends State<LauncherSectionsPanelPage> {
         SizedBox(height: 4, width: 0),
         FocusableSettingsTile(
           leading: Icon(Icons.add),
-          title: Text(localizations.addSection, style: Theme.of(context).textTheme.bodyMedium),
+          title: Text(
+            localizations.addSection,
+            style: Theme.of(context).textTheme.bodyMedium,
+          ),
           onPressed: () {
             Navigator.pushNamed(context, LauncherSectionPanelPage.routeName);
           },
@@ -78,14 +83,19 @@ class _LauncherSectionsPanelPageState extends State<LauncherSectionsPanelPage> {
     );
   }
 
-  Widget _section(BuildContext context, LauncherSection section, int index, int totalCount) {
+  Widget _section(
+    BuildContext context,
+    LauncherSection section,
+    int index,
+    int totalCount,
+  ) {
     AppLocalizations localizations = AppLocalizations.of(context)!;
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
 
     String title = localizations.spacer;
     if (section is Category) {
-      title = section.name;
+      title = sectionLabel(context, section.name);
 
       if (title == localizations.spacer) {
         title = localizations.disambiguateCategoryTitle(title);
@@ -133,42 +143,53 @@ class _LauncherSectionsPanelPageState extends State<LauncherSectionsPanelPage> {
             } else if (event.logicalKey == LogicalKeyboardKey.select ||
                 event.logicalKey == LogicalKeyboardKey.enter ||
                 event.logicalKey == LogicalKeyboardKey.gameButtonA) {
-              Navigator.pushNamed(context, LauncherSectionPanelPage.routeName, arguments: index);
+              Navigator.pushNamed(
+                context,
+                LauncherSectionPanelPage.routeName,
+                arguments: index,
+              );
               return KeyEventResult.handled;
             }
           }
           return KeyEventResult.ignored;
         },
-        child: Builder(builder: (context) {
+        child: Builder(
+          builder: (context) {
             final bool focused = Focus.of(context).hasFocus;
-            
+
             // Determine colors based on state
             final Color backgroundColor = isMoving
                 ? colorScheme.primary.withValues(alpha: 0.22)
-                : (focused ? SettingsStyle.rowFocusFill : SettingsStyle.rowRestFill);
-            
+                : (focused
+                      ? SettingsStyle.rowFocusFill
+                      : SettingsStyle.rowRestFill);
+
             final Color textColor = isMoving || focused
                 ? Colors.white
                 : Colors.white.withValues(alpha: 0.82);
-            
+
             final Color iconColor = isMoving || focused
                 ? colorScheme.primary
                 : Colors.white.withValues(alpha: 0.38);
 
             return GestureDetector(
               onTap: () {
-                   if (isMoving) {
-                      _endMove();
-                   } else {
-                      Navigator.pushNamed(context, LauncherSectionPanelPage.routeName, arguments: index);
-                   }
+                if (isMoving) {
+                  _endMove();
+                } else {
+                  Navigator.pushNamed(
+                    context,
+                    LauncherSectionPanelPage.routeName,
+                    arguments: index,
+                  );
+                }
               },
               onLongPress: () {
-                   if (!isMoving) {
-                      setState(() {
-                        _movingIndex = index;
-                      });
-                   }
+                if (!isMoving) {
+                  setState(() {
+                    _movingIndex = index;
+                  });
+                }
               },
               child: AnimatedScale(
                 scale: focused ? 1.015 : 1.0,
@@ -177,7 +198,10 @@ class _LauncherSectionsPanelPageState extends State<LauncherSectionsPanelPage> {
                 child: AnimatedContainer(
                   duration: SettingsStyle.focusDurationFor(context),
                   curve: Curves.easeOutCubic,
-                  padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 14,
+                    vertical: 14,
+                  ),
                   decoration: BoxDecoration(
                     color: backgroundColor,
                     borderRadius: BorderRadius.circular(16),
@@ -204,29 +228,33 @@ class _LauncherSectionsPanelPageState extends State<LauncherSectionsPanelPage> {
                       Expanded(
                         child: Text(
                           title,
-                          style: theme.textTheme.titleMedium?.copyWith(color: textColor),
+                          style: theme.textTheme.titleMedium?.copyWith(
+                            color: textColor,
+                          ),
                         ),
                       ),
 
                       // Move Indicators
                       if (isMoving) ...[
-                         Icon(Icons.keyboard_arrow_up, color: textColor),
-                         const SizedBox(width: 4),
-                         Icon(Icons.keyboard_arrow_down, color: textColor),
+                        Icon(Icons.keyboard_arrow_up, color: textColor),
+                        const SizedBox(width: 4),
+                        Icon(Icons.keyboard_arrow_down, color: textColor),
                       ] else ...[
-                         Icon(Icons.chevron_right_rounded, color: Colors.white.withValues(alpha: 0.25)),
+                        Icon(
+                          Icons.chevron_right_rounded,
+                          color: Colors.white.withValues(alpha: 0.25),
+                        ),
                       ],
                     ],
                   ),
                 ),
               ),
             );
-          }
+          },
         ),
       ),
     );
   }
-
 
   void _move(int oldIndex, int newIndex) {
     context.read<AppsService>().moveSectionInMemory(oldIndex, newIndex);

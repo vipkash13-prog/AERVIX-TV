@@ -234,5 +234,9 @@
   "brightnessSlotDay": "9:00–15:00",
   "brightnessSlotAfternoon": "15:00–18:00",
   "brightnessSlotEvening": "18:00–22:00",
-  "brightnessSlotNight": "22:00–6:00"
+  "brightnessSlotNight": "22:00–6:00",
+  "noApplicationsFound": "No applications found",
+  "invalidDateTimeFormat": "Invalid format",
+  "selectFormatsBelow": "Select formats below",
+  "selectSectionName": "Select a name"
 }

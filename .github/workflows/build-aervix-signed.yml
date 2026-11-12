@@ -47,9 +47,9 @@ jobs:
       - name: Install dependencies
         run: flutter pub get
       - name: Analyze AERVIX interface and updater
-        run: flutter analyze --no-pub lib/widgets/aervix_home.dart lib/widgets/gold_focus_tile.dart lib/widgets/design_asset_icon.dart lib/widgets/aervix_update_button.dart lib/providers/update_service.dart test/widgets/aervix_home_test.dart test/widgets/aervix_update_button_test.dart test/providers/aervix_update_service_test.dart
+        run: flutter analyze --no-pub lib/widgets/aervix_home.dart lib/widgets/gold_focus_tile.dart lib/widgets/design_asset_icon.dart lib/widgets/reference_chrome.dart lib/widgets/reference_dock.dart lib/widgets/installed_app_icon.dart lib/widgets/aervix_update_button.dart lib/flauncher_app.dart lib/l10n/section_labels.dart lib/providers/update_service.dart test/widgets/aervix_home_test.dart test/widgets/aervix_update_button_test.dart test/providers/aervix_update_service_test.dart
       - name: Test remote navigation, application integration and update consent
-        run: flutter test --no-pub test/widgets/aervix_home_test.dart test/widgets/aervix_remote_scroll_check_test.dart test/widgets/aervix_update_button_test.dart test/providers/aervix_update_service_test.dart test/providers/update_service_test.dart test/flauncher_channel_test.dart test/providers/apps_service_test.dart
+        run: flutter test --no-pub test/app_game_metadata_test.dart test/localization_test.dart test/widgets/reference_interface_test.dart test/widgets/aervix_home_test.dart test/widgets/aervix_remote_scroll_check_test.dart test/widgets/aervix_update_button_test.dart test/providers/aervix_update_service_test.dart test/providers/update_service_test.dart test/flauncher_channel_test.dart test/providers/apps_service_test.dart
       - name: Prepare existing signing keystore
         env:
           KEYSTORE_B64: ${{ secrets.AERVIX_RELEASE_KEYSTORE_B64 }}
@@ -74,10 +74,6 @@ jobs:
       - name: Remove temporary keystore
         if: always()
         run: rm -f android/app/upload-keystore.jks
-      - name: Package verified design assets
-        run: |
-          python3 tool/package_design_assets.py
-          cp build/design/AERVIX-TV-DESIGN-ASSETS-*.zip dist/
       - uses: actions/upload-artifact@v4
         with:
           name: AERVIX-TV-signed-APK
@@ -89,5 +85,5 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          gh release create "$RELEASE_TAG" dist/*.apk dist/*.zip dist/release-manifest.json dist/SHA256SUMS.txt --repo "$GITHUB_REPOSITORY" --target "$GITHUB_SHA" --title "AERVIX TV $RELEASE_TAG" --notes-file docs/AERVIX-RELEASE-NOTES.md --draft
+          gh release create "$RELEASE_TAG" dist/*.apk dist/release-manifest.json dist/SHA256SUMS.txt --repo "$GITHUB_REPOSITORY" --target "$GITHUB_SHA" --title "AERVIX TV $RELEASE_TAG" --notes-file docs/AERVIX-RELEASE-NOTES.md --draft
           gh release edit "$RELEASE_TAG" --repo "$GITHUB_REPOSITORY" --draft=false --latest

@@ -318,6 +318,7 @@ class AppsService extends ChangeNotifier
         if (applicationFromSystem.containsKey('action')) {
           application.action = applicationFromSystem['action'];
         }
+        application.isGame = applicationFromSystem['isGame'] == true;
         if (applicationFromSystem.containsKey('sideloaded')) {
           application.sideloaded = applicationFromSystem['sideloaded'];
         }

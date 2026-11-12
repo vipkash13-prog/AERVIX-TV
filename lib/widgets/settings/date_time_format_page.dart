@@ -16,8 +16,6 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-import 'dart:io';
-
 import 'package:flauncher/providers/settings_service.dart';
 import 'package:flauncher/widgets/settings/focusable_settings_tile.dart';
 import 'package:flauncher/widgets/settings/settings_theme.dart';
@@ -55,7 +53,7 @@ class DateTimeFormatPage extends StatefulWidget {
 }
 
 class _DateTimeFormatPageState extends State<DateTimeFormatPage> {
-  // We read formatting directly from service, UI updates via Consumer if needed, 
+  // We read formatting directly from service, UI updates via Consumer if needed,
   // but since we push updates immediately, local state is redundant if using Consumer.
   // However, for immediate feedback while typing/selecting, local state is fine or just read from provider.
   // Let's use Consumer for the whole page.
@@ -63,7 +61,7 @@ class _DateTimeFormatPageState extends State<DateTimeFormatPage> {
   @override
   Widget build(BuildContext context) {
     AppLocalizations localizations = AppLocalizations.of(context)!;
-    
+
     return Consumer<SettingsService>(
       builder: (context, service, _) {
         return Column(
@@ -73,63 +71,104 @@ class _DateTimeFormatPageState extends State<DateTimeFormatPage> {
               child: ListView(
                 padding: const EdgeInsets.symmetric(horizontal: 16),
                 children: [
-                  _buildPreview(context, service.dateFormat, service.timeFormat),
+                  _buildPreview(
+                    context,
+                    service.dateFormat,
+                    service.timeFormat,
+                  ),
                   const SizedBox(height: 24),
                   const SettingsSectionDivider(),
-                  
+
                   // Date format section
                   Text(
                     localizations.date,
-                    style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
+                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
                   const SizedBox(height: 8),
-                  
+
                   ...dateFormatPresets.asMap().entries.map((entry) {
                     final isSelected = service.dateFormat == entry.value.$1;
                     return FocusableSettingsTile(
                       autofocus: entry.key == 0,
                       frameLeading: false,
                       leading: Icon(
-                        isSelected ? Icons.radio_button_checked : Icons.radio_button_unchecked,
-                        color: isSelected ? Theme.of(context).colorScheme.secondary : Colors.grey,
+                        isSelected
+                            ? Icons.radio_button_checked
+                            : Icons.radio_button_unchecked,
+                        color: isSelected
+                            ? Theme.of(context).colorScheme.secondary
+                            : Colors.grey,
                       ),
                       title: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(entry.value.$2),
-                          Text(entry.value.$1, style: const TextStyle(fontSize: 12, color: Colors.grey)),
+                          Text(
+                            entry.value.$1,
+                            style: const TextStyle(
+                              fontSize: 12,
+                              color: Colors.grey,
+                            ),
+                          ),
                         ],
                       ),
-                      onPressed: () => service.setDateTimeFormat(entry.value.$1, service.timeFormat),
+                      onPressed: () => service.setDateTimeFormat(
+                        entry.value.$1,
+                        service.timeFormat,
+                      ),
                     );
                   }),
-                  
+
                   const SizedBox(height: 16),
                   const SettingsSectionDivider(),
-                  
+
                   // Time format section
                   Text(
                     localizations.time,
-                    style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
+                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
                   const SizedBox(height: 8),
-                  
+
                   ...timeFormatPresets.map((preset) {
                     final isSelected = service.timeFormat == preset.$1;
                     return FocusableSettingsTile(
                       frameLeading: false,
                       leading: Icon(
-                        isSelected ? Icons.radio_button_checked : Icons.radio_button_unchecked,
-                        color: isSelected ? Theme.of(context).colorScheme.secondary : Colors.grey,
+                        isSelected
+                            ? Icons.radio_button_checked
+                            : Icons.radio_button_unchecked,
+                        color: isSelected
+                            ? Theme.of(context).colorScheme.secondary
+                            : Colors.grey,
                       ),
                       title: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text(preset.$2),
-                          Text(preset.$1, style: const TextStyle(fontSize: 12, color: Colors.grey)),
+                          Text(
+                            Localizations.localeOf(context).languageCode == 'ar'
+                                ? DateFormat(
+                                    preset.$1,
+                                    'ar',
+                                  ).format(DateTime(2026, 11, 11, 15, 45))
+                                : preset.$2,
+                          ),
+                          Text(
+                            preset.$1,
+                            style: const TextStyle(
+                              fontSize: 12,
+                              color: Colors.grey,
+                            ),
+                          ),
                         ],
                       ),
-                      onPressed: () => service.setDateTimeFormat(service.dateFormat, preset.$1),
+                      onPressed: () => service.setDateTimeFormat(
+                        service.dateFormat,
+                        preset.$1,
+                      ),
                     );
                   }),
                   const SizedBox(height: 24),
@@ -138,24 +177,34 @@ class _DateTimeFormatPageState extends State<DateTimeFormatPage> {
             ),
           ],
         );
-      }
+      },
     );
   }
 
-  Widget _buildPreview(BuildContext context, String dateFormat, String timeFormat) {
+  Widget _buildPreview(
+    BuildContext context,
+    String dateFormat,
+    String timeFormat,
+  ) {
     final now = DateTime.now();
     String preview = '';
 
     try {
       if (dateFormat.isNotEmpty) {
-        preview = DateFormat(dateFormat, Platform.localeName).format(now);
+        preview = DateFormat(
+          dateFormat,
+          Localizations.localeOf(context).toString(),
+        ).format(now);
       }
       if (timeFormat.isNotEmpty) {
         if (preview.isNotEmpty) preview += ' — ';
-        preview += DateFormat(timeFormat, Platform.localeName).format(now);
+        preview += DateFormat(
+          timeFormat,
+          Localizations.localeOf(context).toString(),
+        ).format(now);
       }
     } catch (e) {
-      preview = 'Invalid format';
+      preview = AppLocalizations.of(context)!.invalidDateTimeFormat;
     }
 
     return Container(
@@ -166,7 +215,9 @@ class _DateTimeFormatPageState extends State<DateTimeFormatPage> {
         border: Border.all(color: Colors.white.withValues(alpha: 0.06)),
       ),
       child: Text(
-        preview.isEmpty ? 'Select formats below' : preview,
+        preview.isEmpty
+            ? AppLocalizations.of(context)!.selectFormatsBelow
+            : preview,
         style: Theme.of(context).textTheme.titleLarge?.copyWith(
           fontWeight: FontWeight.w600,
           letterSpacing: 0.2,

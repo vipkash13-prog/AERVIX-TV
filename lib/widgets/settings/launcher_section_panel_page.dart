@@ -1,3 +1,4 @@
+import 'package:flauncher/l10n/section_labels.dart';
 /*
  * FLauncher
  * Copyright (C) 2024 Oscar Rojas 
@@ -29,7 +30,7 @@ import '../../models/category.dart';
 
 // Section name presets for TV remote-friendly selection
 const List<String> sectionNamePresets = [
-  'All Apps',            // Auto: all non-hidden apps
+  'All Apps', // Auto: all non-hidden apps
   'Movies & Shows',
   'Music',
   'Games',
@@ -42,8 +43,7 @@ const List<String> sectionNamePresets = [
   'Custom...',
 ];
 
-class _SettingsState extends ChangeNotifier
-{
+class _SettingsState extends ChangeNotifier {
   bool _changed;
   bool _creating;
   bool _deleted;
@@ -60,13 +60,12 @@ class _SettingsState extends ChangeNotifier
   LauncherSection? get launcherSection => _section;
   LauncherSectionType get sectionType => _sectionType;
 
-  _SettingsState(AppsService appsService, int? sectionIndex):
-      _changed = false,
+  _SettingsState(AppsService appsService, int? sectionIndex)
+    : _changed = false,
       _creating = false,
       _deleted = false,
       _valid = false,
-      _sectionType = LauncherSectionType.Category
-  {
+      _sectionType = LauncherSectionType.Category {
     LauncherSection? launcherSection;
     List<LauncherSection> sections = appsService.launcherSections;
     if (sectionIndex != null && sectionIndex < sections.length) {
@@ -80,8 +79,7 @@ class _SettingsState extends ChangeNotifier
     _deleted = true;
   }
 
-  void setFlags(bool valid, bool changed)
-  {
+  void setFlags(bool valid, bool changed) {
     if (_valid != valid || _changed != changed) {
       _valid = valid;
       _changed = changed;
@@ -90,8 +88,10 @@ class _SettingsState extends ChangeNotifier
     }
   }
 
-  void setLauncherSection(LauncherSection? section, {bool shouldNotifyListeners = true})
-  {
+  void setLauncherSection(
+    LauncherSection? section, {
+    bool shouldNotifyListeners = true,
+  }) {
     _section = section;
 
     _changed = false;
@@ -101,8 +101,7 @@ class _SettingsState extends ChangeNotifier
 
     if (section == null) {
       _creating = true;
-    }
-    else if (section is LauncherSpacer) {
+    } else if (section is LauncherSpacer) {
       _sectionType = LauncherSectionType.Spacer;
     }
 
@@ -114,8 +113,7 @@ class _SettingsState extends ChangeNotifier
     }
   }
 
-  void setSectionType(LauncherSectionType sectionType)
-  {
+  void setSectionType(LauncherSectionType sectionType) {
     assert(_creating);
 
     _changed = false;
@@ -134,13 +132,12 @@ class _SettingsState extends ChangeNotifier
   }
 }
 
-class LauncherSectionPanelPage extends StatelessWidget
-{
+class LauncherSectionPanelPage extends StatelessWidget {
   static const String routeName = "section_panel";
 
   final int? sectionIndex;
 
-  LauncherSectionPanelPage({Key? key, this.sectionIndex}): super(key: key);
+  LauncherSectionPanelPage({Key? key, this.sectionIndex}) : super(key: key);
 
   Widget build(BuildContext context) {
     AppLocalizations localizations = AppLocalizations.of(context)!;
@@ -152,7 +149,7 @@ class LauncherSectionPanelPage extends StatelessWidget
       },
       builder: (context, _) => Selector<_SettingsState, LauncherSectionType>(
         selector: (_, state) => state.sectionType,
-        builder: (_, sectionType, __)  {
+        builder: (_, sectionType, __) {
           _SettingsState state = context.read();
           LauncherSection? launcherSection = state.launcherSection;
 
@@ -167,10 +164,9 @@ class LauncherSectionPanelPage extends StatelessWidget
             sectionSpecificSettings = _CategorySettings(
               category: launcherSection as Category?,
             );
-          }
-          else {
+          } else {
             sectionSpecificSettings = _LauncherSpacerSettings(
-                spacer: launcherSection as LauncherSpacer?
+              spacer: launcherSection as LauncherSpacer?,
             );
           }
 
@@ -180,44 +176,90 @@ class LauncherSectionPanelPage extends StatelessWidget
           }
 
           return SingleChildScrollView(
-            padding: EdgeInsets.only(bottom: MediaQuery.of(context).viewInsets.bottom),
+            padding: EdgeInsets.only(
+              bottom: MediaQuery.of(context).viewInsets.bottom,
+            ),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                Text(title, style: Theme.of(context).textTheme.titleLarge, textAlign: TextAlign.center),
+                Text(
+                  title,
+                  style: Theme.of(context).textTheme.titleLarge,
+                  textAlign: TextAlign.center,
+                ),
                 const SettingsSectionDivider(),
                 sectionSpecificSettings,
                 const SettingsSectionDivider(),
-              Selector<_SettingsState, bool>(
-                selector: (context, state) => (state.valid && state.changed),
-                builder: (context, canSave, _) {
-                  void Function()? onSavePressed;
-                  if (canSave) {
-                    onSavePressed = () {
-                      if (state.onSave != null) {
-                        state.onSave!();
-                      }
-                    };
-                  }
+                Selector<_SettingsState, bool>(
+                  selector: (context, state) => (state.valid && state.changed),
+                  builder: (context, canSave, _) {
+                    void Function()? onSavePressed;
+                    if (canSave) {
+                      onSavePressed = () {
+                        if (state.onSave != null) {
+                          state.onSave!();
+                        }
+                      };
+                    }
 
-                  return Padding(
-                    padding: EdgeInsets.symmetric(horizontal: 16),
+                    return Padding(
+                      padding: EdgeInsets.symmetric(horizontal: 16),
+                      child: FilledButton(
+                        style: ButtonStyle(
+                          backgroundColor: WidgetStateProperty.resolveWith((
+                            states,
+                          ) {
+                            if (states.contains(WidgetState.disabled)) {
+                              return Colors.white10;
+                            }
+                            return Color(0xFF6366F1); // Indigo (Modern Primary)
+                          }),
+                          foregroundColor: WidgetStateProperty.resolveWith((
+                            states,
+                          ) {
+                            if (states.contains(WidgetState.disabled)) {
+                              return Colors.white38;
+                            }
+                            return Colors.white;
+                          }),
+                          shape: WidgetStatePropertyAll(
+                            RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                          ),
+                          side: WidgetStateProperty.resolveWith((states) {
+                            if (states.contains(WidgetState.focused)) {
+                              return BorderSide(color: Colors.white, width: 2);
+                            }
+                            return null;
+                          }),
+                          elevation: WidgetStatePropertyAll(0),
+                          padding: WidgetStatePropertyAll(
+                            EdgeInsets.symmetric(vertical: 12),
+                          ),
+                        ),
+                        onPressed: onSavePressed,
+                        child: Text(localizations.save),
+                      ),
+                    );
+                  },
+                ),
+
+                if (!creating)
+                  Padding(
+                    padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                     child: FilledButton(
                       style: ButtonStyle(
-                        backgroundColor: WidgetStateProperty.resolveWith((states) {
-                          if (states.contains(WidgetState.disabled)) {
-                            return Colors.white10;
-                          }
-                          return Color(0xFF6366F1); // Indigo (Modern Primary)
-                        }),
-                        foregroundColor: WidgetStateProperty.resolveWith((states) {
-                           if (states.contains(WidgetState.disabled)) {
-                             return Colors.white38;
-                           }
-                           return Colors.white;
-                        }),
+                        backgroundColor: WidgetStatePropertyAll(
+                          Color(0xFF27272A),
+                        ), // Zinc 800
+                        foregroundColor: WidgetStatePropertyAll(
+                          Color(0xFFEF4444),
+                        ), // Red 500
                         shape: WidgetStatePropertyAll(
-                          RoundedRectangleBorder(borderRadius: BorderRadius.circular(12))
+                          RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
                         ),
                         side: WidgetStateProperty.resolveWith((states) {
                           if (states.contains(WidgetState.focused)) {
@@ -226,69 +268,43 @@ class LauncherSectionPanelPage extends StatelessWidget
                           return null;
                         }),
                         elevation: WidgetStatePropertyAll(0),
-                        padding: WidgetStatePropertyAll(EdgeInsets.symmetric(vertical: 12))
+                        padding: WidgetStatePropertyAll(
+                          EdgeInsets.symmetric(vertical: 12),
+                        ),
                       ),
-                      onPressed: onSavePressed,
-                      child: Text(localizations.save),
-                    )
-                  );
-                }
-              ),
-
-              if (!creating)
-                Padding(
-                  padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                  child: FilledButton(
-                    style: ButtonStyle(
-                      backgroundColor: WidgetStatePropertyAll(Color(0xFF27272A)), // Zinc 800
-                      foregroundColor: WidgetStatePropertyAll(Color(0xFFEF4444)), // Red 500
-                      shape: WidgetStatePropertyAll(
-                          RoundedRectangleBorder(borderRadius: BorderRadius.circular(12))
-                      ),
-                      side: WidgetStateProperty.resolveWith((states) {
-                        if (states.contains(WidgetState.focused)) {
-                          return BorderSide(color: Colors.white, width: 2);
-                        }
-                        return null;
-                      }),
-                      elevation: WidgetStatePropertyAll(0),
-                      padding: WidgetStatePropertyAll(EdgeInsets.symmetric(vertical: 12))
+                      onPressed: () async {
+                        state.setDeleted();
+                        await context.read<AppsService>().deleteSection(
+                          sectionIndex!,
+                        );
+                        Navigator.of(context).pop();
+                      },
+                      child: Text(localizations.delete),
                     ),
-                    onPressed: () async {
-                      state.setDeleted();
-                      await context.read<AppsService>().deleteSection(sectionIndex!);
-                      Navigator.of(context).pop();
-                    },
-                    child: Text(localizations.delete),
-                  )
-                )
-              ]
+                  ),
+              ],
             ),
           );
-        }
-      )
+        },
+      ),
     );
   }
 }
 
-class _CategorySettings extends StatefulWidget
-{
+class _CategorySettings extends StatefulWidget {
   final Category? category;
 
-  const _CategorySettings({
-    this.category
-  });
+  const _CategorySettings({this.category});
 
   @override
   State<StatefulWidget> createState() => _CategorySettingsState();
 }
 
-class _CategorySettingsState extends State<_CategorySettings>
-{
+class _CategorySettingsState extends State<_CategorySettings> {
   final FocusNode _textFieldFocusNode;
-  
+
   late final TextEditingController _nameController;
-  
+
   bool _ignoreTextFieldKeyEvent;
   CategorySort _categorySort;
   CategoryType _categoryType;
@@ -300,14 +316,14 @@ class _CategorySettingsState extends State<_CategorySettings>
 
   late bool _creating;
 
-  _CategorySettingsState():
-        _ignoreTextFieldKeyEvent = false,
-        _categorySort = Category.Sort,
-        _categoryType = Category.Type,
-        _columnsCount = Category.ColumnsCount,
-        _rowHeight = Category.RowHeight,
-        _name = "",
-        _textFieldFocusNode = FocusNode();
+  _CategorySettingsState()
+    : _ignoreTextFieldKeyEvent = false,
+      _categorySort = Category.Sort,
+      _categoryType = Category.Type,
+      _columnsCount = Category.ColumnsCount,
+      _rowHeight = Category.RowHeight,
+      _name = "",
+      _textFieldFocusNode = FocusNode();
 
   @override
   void dispose() {
@@ -347,7 +363,9 @@ class _CategorySettingsState extends State<_CategorySettings>
 
     final FocusScopeNode focusScopeNode = FocusScope.of(context);
     focusScopeNode.onKeyEvent = (node, keyEvent) {
-      if (_textFieldFocusNode.hasFocus && (keyEvent.logicalKey == LogicalKeyboardKey.arrowUp || keyEvent.logicalKey == LogicalKeyboardKey.arrowDown)) {
+      if (_textFieldFocusNode.hasFocus &&
+          (keyEvent.logicalKey == LogicalKeyboardKey.arrowUp ||
+              keyEvent.logicalKey == LogicalKeyboardKey.arrowDown)) {
         if (!_ignoreTextFieldKeyEvent) {
           if (keyEvent.logicalKey == LogicalKeyboardKey.arrowUp) {
             _textFieldFocusNode.previousFocus();
@@ -358,8 +376,7 @@ class _CategorySettingsState extends State<_CategorySettings>
         }
 
         _ignoreTextFieldKeyEvent = false;
-      }
-      else {
+      } else {
         _ignoreTextFieldKeyEvent = true;
       }
 
@@ -370,7 +387,7 @@ class _CategorySettingsState extends State<_CategorySettings>
   @override
   Widget build(BuildContext context) {
     AppLocalizations localizations = AppLocalizations.of(context)!;
-    
+
     return Column(
       children: [
         _listTile(
@@ -380,15 +397,27 @@ class _CategorySettingsState extends State<_CategorySettings>
             padding: EdgeInsets.only(top: 4),
             child: DropdownButtonFormField<String>(
               decoration: InputDecoration(
-                  border: OutlineInputBorder(),
-                  focusedBorder: OutlineInputBorder(borderSide: BorderSide(color: Colors.white, width: 2)),
-                  contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                border: OutlineInputBorder(),
+                focusedBorder: OutlineInputBorder(
+                  borderSide: BorderSide(color: Colors.white, width: 2),
+                ),
+                contentPadding: EdgeInsets.symmetric(
+                  horizontal: 12,
+                  vertical: 8,
+                ),
               ),
               autofocus: _creating,
               isDense: true,
               isExpanded: true,
-              initialValue: sectionNamePresets.contains(_name) ? _name : 'Custom...',
-              hint: Text(_name.isEmpty ? 'Select a name' : _name, style: Theme.of(context).textTheme.bodySmall),
+              initialValue: sectionNamePresets.contains(_name)
+                  ? _name
+                  : 'Custom...',
+              hint: Text(
+                _name.isEmpty
+                    ? localizations.selectSectionName
+                    : sectionLabel(context, _name),
+                style: Theme.of(context).textTheme.bodySmall,
+              ),
               onChanged: (value) {
                 setState(() {
                   if (value == 'Custom...') {
@@ -401,12 +430,19 @@ class _CategorySettingsState extends State<_CategorySettings>
                 });
                 _notifyChange();
               },
-              items: sectionNamePresets.map((name) => DropdownMenuItem(
-                value: name,
-                child: Text(name, style: Theme.of(context).textTheme.bodySmall),
-              )).toList(),
-            )
-          )
+              items: sectionNamePresets
+                  .map(
+                    (name) => DropdownMenuItem(
+                      value: name,
+                      child: Text(
+                        sectionLabel(context, name),
+                        style: Theme.of(context).textTheme.bodySmall,
+                      ),
+                    ),
+                  )
+                  .toList(),
+            ),
+          ),
         ),
         if (!sectionNamePresets.contains(_name) || _name.isEmpty)
           _listTile(
@@ -419,15 +455,20 @@ class _CategorySettingsState extends State<_CategorySettings>
                 focusNode: _textFieldFocusNode,
                 decoration: InputDecoration(
                   border: OutlineInputBorder(),
-                  focusedBorder: OutlineInputBorder(borderSide: BorderSide(color: Colors.white, width: 2)),
-                  contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                  focusedBorder: OutlineInputBorder(
+                    borderSide: BorderSide(color: Colors.white, width: 2),
+                  ),
+                  contentPadding: EdgeInsets.symmetric(
+                    horizontal: 12,
+                    vertical: 8,
+                  ),
                 ),
                 onChanged: (value) {
                   _name = value;
                   _notifyChange();
                 },
-              )
-            )
+              ),
+            ),
           ),
         _listTile(
           context,
@@ -437,8 +478,13 @@ class _CategorySettingsState extends State<_CategorySettings>
             child: DropdownButtonFormField<CategorySort>(
               decoration: InputDecoration(
                 border: OutlineInputBorder(),
-                focusedBorder: OutlineInputBorder(borderSide: BorderSide(color: Colors.white, width: 2)),
-                contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                focusedBorder: OutlineInputBorder(
+                  borderSide: BorderSide(color: Colors.white, width: 2),
+                ),
+                contentPadding: EdgeInsets.symmetric(
+                  horizontal: 12,
+                  vertical: 8,
+                ),
               ),
               isDense: true,
               isExpanded: true,
@@ -452,19 +498,28 @@ class _CategorySettingsState extends State<_CategorySettings>
               items: [
                 DropdownMenuItem(
                   value: CategorySort.alphabetical,
-                  child: Text(localizations.alphabetical, style: Theme.of(context).textTheme.bodySmall),
+                  child: Text(
+                    localizations.alphabetical,
+                    style: Theme.of(context).textTheme.bodySmall,
+                  ),
                 ),
                 DropdownMenuItem(
                   value: CategorySort.manual,
-                  child: Text(localizations.manual, style: Theme.of(context).textTheme.bodySmall),
+                  child: Text(
+                    localizations.manual,
+                    style: Theme.of(context).textTheme.bodySmall,
+                  ),
                 ),
                 DropdownMenuItem(
                   value: CategorySort.lastUsed,
-                  child: Text(localizations.lastUsed, style: Theme.of(context).textTheme.bodySmall),
-                )
-              ]
-            )
-          )
+                  child: Text(
+                    localizations.lastUsed,
+                    style: Theme.of(context).textTheme.bodySmall,
+                  ),
+                ),
+              ],
+            ),
+          ),
         ),
         _listTile(
           context,
@@ -474,8 +529,13 @@ class _CategorySettingsState extends State<_CategorySettings>
             child: DropdownButtonFormField<CategoryType>(
               decoration: InputDecoration(
                 border: OutlineInputBorder(),
-                focusedBorder: OutlineInputBorder(borderSide: BorderSide(color: Colors.white, width: 2)),
-                contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                focusedBorder: OutlineInputBorder(
+                  borderSide: BorderSide(color: Colors.white, width: 2),
+                ),
+                contentPadding: EdgeInsets.symmetric(
+                  horizontal: 12,
+                  vertical: 8,
+                ),
               ),
               initialValue: _categoryType,
               onChanged: (value) {
@@ -489,15 +549,21 @@ class _CategorySettingsState extends State<_CategorySettings>
               items: [
                 DropdownMenuItem(
                   value: CategoryType.row,
-                  child: Text(localizations.row, style: Theme.of(context).textTheme.bodySmall)
+                  child: Text(
+                    localizations.row,
+                    style: Theme.of(context).textTheme.bodySmall,
+                  ),
                 ),
                 DropdownMenuItem(
                   value: CategoryType.grid,
-                  child: Text(localizations.grid, style: Theme.of(context).textTheme.bodySmall)
-                )
-              ]
-            )
-          )
+                  child: Text(
+                    localizations.grid,
+                    style: Theme.of(context).textTheme.bodySmall,
+                  ),
+                ),
+              ],
+            ),
+          ),
         ),
         if (_categoryType == CategoryType.grid)
           _listTile(
@@ -508,8 +574,13 @@ class _CategorySettingsState extends State<_CategorySettings>
               child: DropdownButtonFormField<int>(
                 decoration: InputDecoration(
                   border: OutlineInputBorder(),
-                  focusedBorder: OutlineInputBorder(borderSide: BorderSide(color: Colors.white, width: 2)),
-                  contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                  focusedBorder: OutlineInputBorder(
+                    borderSide: BorderSide(color: Colors.white, width: 2),
+                  ),
+                  contentPadding: EdgeInsets.symmetric(
+                    horizontal: 12,
+                    vertical: 8,
+                  ),
                 ),
                 initialValue: _columnsCount,
                 isDense: true,
@@ -517,18 +588,22 @@ class _CategorySettingsState extends State<_CategorySettings>
                 items: [for (int i = 5; i <= 10; i++) i]
                     .map(
                       (value) => DropdownMenuItem(
-                    value: value,
-                    child: Text(value.toString(), style: Theme.of(context).textTheme.bodySmall),
-                  ),
-                ).toList(),
+                        value: value,
+                        child: Text(
+                          value.toString(),
+                          style: Theme.of(context).textTheme.bodySmall,
+                        ),
+                      ),
+                    )
+                    .toList(),
                 onChanged: (value) {
                   setState(() {
                     _columnsCount = value!;
                   });
                   _notifyChange();
-                }
-              )
-            )
+                },
+              ),
+            ),
           ),
         if (_categoryType == CategoryType.row)
           _listTile(
@@ -539,8 +614,13 @@ class _CategorySettingsState extends State<_CategorySettings>
               child: DropdownButtonFormField<int>(
                 decoration: InputDecoration(
                   border: OutlineInputBorder(),
-                  focusedBorder: OutlineInputBorder(borderSide: BorderSide(color: Colors.white, width: 2)),
-                  contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                  focusedBorder: OutlineInputBorder(
+                    borderSide: BorderSide(color: Colors.white, width: 2),
+                  ),
+                  contentPadding: EdgeInsets.symmetric(
+                    horizontal: 12,
+                    vertical: 8,
+                  ),
                 ),
                 initialValue: _rowHeight,
                 isDense: true,
@@ -548,26 +628,28 @@ class _CategorySettingsState extends State<_CategorySettings>
                 items: [for (int i = 80; i <= 150; i += 10) i]
                     .map(
                       (value) => DropdownMenuItem(
-                    value: value,
-                    child: Text(value.toString(), style: Theme.of(context).textTheme.bodySmall),
-                  ),
-                ).toList(),
+                        value: value,
+                        child: Text(
+                          value.toString(),
+                          style: Theme.of(context).textTheme.bodySmall,
+                        ),
+                      ),
+                    )
+                    .toList(),
                 onChanged: (value) {
                   setState(() {
                     _rowHeight = value!;
                   });
                   _notifyChange();
-                }
-              )
-            )
-          )
-      ]
+                },
+              ),
+            ),
+          ),
+      ],
     );
   }
 
-  void _notifyChange()
-  {
-
+  void _notifyChange() {
     String initialName = "";
     CategorySort initialSort = Category.Sort;
     CategoryType initialType = Category.Type;
@@ -581,27 +663,35 @@ class _CategorySettingsState extends State<_CategorySettings>
       initialRowHeight = _category!.rowHeight;
     }
 
-    bool dirty = initialSort != _categorySort || initialType != _categoryType
-        || initialColumnsCount != _columnsCount
-        || initialRowHeight != _rowHeight || initialName != _name ;
+    bool dirty =
+        initialSort != _categorySort ||
+        initialType != _categoryType ||
+        initialColumnsCount != _columnsCount ||
+        initialRowHeight != _rowHeight ||
+        initialName != _name;
 
     _SettingsState state = context.read();
     state.setFlags(_name.isNotEmpty, dirty);
   }
 
-  Future<void> _save() async
-  {
+  Future<void> _save() async {
     final AppsService service = context.read();
     if (_creating) {
-      int categoryId = await service.addCategory(_name, sort: _categorySort, type: _categoryType,
-          columnsCount: _columnsCount, rowHeight: _rowHeight
+      int categoryId = await service.addCategory(
+        _name,
+        sort: _categorySort,
+        type: _categoryType,
+        columnsCount: _columnsCount,
+        rowHeight: _rowHeight,
       );
 
       // Auto-populate special categories
       if (_name == 'All Apps') {
         try {
           // Find the actual category object using the ID we just got
-          final createdCategory = service.categories.firstWhere((c) => c.id == categoryId);
+          final createdCategory = service.categories.firstWhere(
+            (c) => c.id == categoryId,
+          );
           await service.autoPopulateCategory(createdCategory);
         } catch (e) {
           // Ignore error if category not found immediately
@@ -610,17 +700,23 @@ class _CategorySettingsState extends State<_CategorySettings>
 
       _SettingsState state = context.read();
       try {
-         // Try to find the section we just created to set it as active
-         final createdSection = service.launcherSections.firstWhere((s) => s is Category && s.id == categoryId);
-         state.setLauncherSection(createdSection);
+        // Try to find the section we just created to set it as active
+        final createdSection = service.launcherSections.firstWhere(
+          (s) => s is Category && s.id == categoryId,
+        );
+        state.setLauncherSection(createdSection);
       } catch (e) {
-         // Fallback to first section
-         state.setLauncherSection(service.launcherSections[0]);
+        // Fallback to first section
+        state.setLauncherSection(service.launcherSections[0]);
       }
-    }
-    else {
-      await service.updateCategory(_category!.id, _name, _categorySort,
-          _categoryType, _columnsCount, _rowHeight
+    } else {
+      await service.updateCategory(
+        _category!.id,
+        _name,
+        _categorySort,
+        _categoryType,
+        _columnsCount,
+        _rowHeight,
       );
 
       _notifyChange();
@@ -628,8 +724,7 @@ class _CategorySettingsState extends State<_CategorySettings>
   }
 }
 
-class _LauncherSpacerSettings extends StatefulWidget
-{
+class _LauncherSpacerSettings extends StatefulWidget {
   final LauncherSpacer? spacer;
 
   const _LauncherSpacerSettings({this.spacer});
@@ -638,18 +733,16 @@ class _LauncherSpacerSettings extends StatefulWidget
   State<StatefulWidget> createState() => _LauncherSpacerSettingsState();
 }
 
-class _LauncherSpacerSettingsState extends State<_LauncherSpacerSettings>
-{
+class _LauncherSpacerSettingsState extends State<_LauncherSpacerSettings> {
   int _numberValue;
   LauncherSpacer? _spacer;
 
   late bool _creating;
-  
+
   // Need preset values for the dropdown
   final List<int> _spacerHeightPresets = [10, 20, 30, 40, 50, 75, 100, 150];
 
-  _LauncherSpacerSettingsState():
-    _numberValue = 10;
+  _LauncherSpacerSettingsState() : _numberValue = 10;
 
   @override
   void initState() {
@@ -664,13 +757,13 @@ class _LauncherSpacerSettingsState extends State<_LauncherSpacerSettings>
     }
 
     _numberValue = height;
-    
+
     // Ensure the current value is in our presets, if not add it
     if (!_spacerHeightPresets.contains(_numberValue)) {
       _spacerHeightPresets.add(_numberValue);
       _spacerHeightPresets.sort();
     }
-    
+
     context.read<_SettingsState>().onSave = _save;
   }
 
@@ -686,7 +779,9 @@ class _LauncherSpacerSettingsState extends State<_LauncherSpacerSettings>
         child: DropdownButtonFormField<int>(
           decoration: InputDecoration(
             border: OutlineInputBorder(),
-            focusedBorder: OutlineInputBorder(borderSide: BorderSide(color: Colors.white, width: 2)),
+            focusedBorder: OutlineInputBorder(
+              borderSide: BorderSide(color: Colors.white, width: 2),
+            ),
             contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
           ),
           isDense: true,
@@ -701,21 +796,25 @@ class _LauncherSpacerSettingsState extends State<_LauncherSpacerSettings>
           items: _spacerHeightPresets.map((height) {
             return DropdownMenuItem<int>(
               value: height,
-              child: Text(height.toString(), style: Theme.of(context).textTheme.bodySmall),
+              child: Text(
+                height.toString(),
+                style: Theme.of(context).textTheme.bodySmall,
+              ),
             );
           }).toList(),
-        )
-      )
+        ),
+      ),
     );
   }
 
-  void _notifyChange()
-  {
-    context.read<_SettingsState>().setFlags(true, _numberValue != _spacer?.height);
+  void _notifyChange() {
+    context.read<_SettingsState>().setFlags(
+      true,
+      _numberValue != _spacer?.height,
+    );
   }
 
-  Future<void> _save() async
-  {
+  Future<void> _save() async {
     AppsService service = context.read();
     if (_creating) {
       await service.addSpacer(_numberValue);
@@ -723,8 +822,7 @@ class _LauncherSpacerSettingsState extends State<_LauncherSpacerSettings>
       _SettingsState state = context.read();
       int index = service.launcherSections.length - 1;
       state.setLauncherSection(service.launcherSections[index]);
-    }
-    else {
+    } else {
       assert(_spacer != null);
       await service.updateSpacerHeight(_spacer!, _numberValue);
 
@@ -733,13 +831,18 @@ class _LauncherSpacerSettingsState extends State<_LauncherSpacerSettings>
   }
 }
 
-Widget _listTile(BuildContext context, Widget title, Widget subtitle, {Widget? trailing}) => Material(
-    type: MaterialType.transparency,
-    child: ListTile(
-      dense: true,
-      minVerticalPadding: 8,
-      title: title,
-      subtitle: subtitle,
-      trailing: trailing,
-    )
+Widget _listTile(
+  BuildContext context,
+  Widget title,
+  Widget subtitle, {
+  Widget? trailing,
+}) => Material(
+  type: MaterialType.transparency,
+  child: ListTile(
+    dense: true,
+    minVerticalPadding: 8,
+    title: title,
+    subtitle: subtitle,
+    trailing: trailing,
+  ),
 );
