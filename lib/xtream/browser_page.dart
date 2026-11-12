@@ -5,6 +5,7 @@ import 'models.dart';
 import 'account_dialog.dart';
 import 'player_page.dart';
 import 'xtream_service.dart';
+import 'remote_search_field.dart';
 
 class XtreamBrowserPage extends StatefulWidget {
   final XtreamService service;
@@ -24,6 +25,87 @@ class _XtreamBrowserPageState extends State<XtreamBrowserPage> {
   bool _favourites = false, _opening = false;
   Timer? _search;
   final _searchText = TextEditingController();
+  final _searchFocus = FocusNode(debugLabel: 'xtream-search');
+  final _accountFocus = FocusNode(debugLabel: 'xtream-account');
+  final _allCategoriesFocus = FocusNode(debugLabel: 'xtream-category-all');
+  final _favouritesFocus = FocusNode(debugLabel: 'xtream-favourites');
+  final _clearFocus = FocusNode(debugLabel: 'xtream-search-clear');
+  final _resultNodes = <String, FocusNode>{};
+  final _categoryNodes = <String, FocusNode>{};
+  final _resultsScroll = ScrollController(),
+      _categoriesScroll = ScrollController();
+  double _categoryExtent = 56;
+  List<MediaEntry> get _entries => service.items(
+    widget.kind,
+    category: _category,
+    query: _query,
+    favourites: _favourites,
+  );
+  FocusNode _resultNode(MediaEntry entry) => _resultNodes.putIfAbsent(
+    entry.key,
+    () => FocusNode(debugLabel: 'xtream-result-${entry.key}'),
+  );
+  FocusNode _categoryNode(String id) => _categoryNodes.putIfAbsent(
+    id,
+    () => FocusNode(debugLabel: 'xtream-category-$id'),
+  );
+  void _focusCategory([int? index]) {
+    final categories = service.categories(widget.kind);
+    final selected =
+        index ??
+        (_category == null
+            ? -1
+            : categories.indexWhere((c) => c.id == _category));
+    final target = selected.clamp(-1, categories.length - 1);
+    if (_categoriesScroll.hasClients) {
+      _categoriesScroll.jumpTo(
+        ((target + 1) * _categoryExtent).clamp(
+          0.0,
+          _categoriesScroll.position.maxScrollExtent,
+        ),
+      );
+    }
+    (target < 0 ? _allCategoriesFocus : _categoryNode(categories[target].id))
+        .requestFocus();
+  }
+
+  void _focusResults() {
+    if (_entries.isEmpty) {
+      _focusCategory();
+      return;
+    }
+    if (_resultsScroll.hasClients) _resultsScroll.jumpTo(0);
+    _resultNode(_entries.first).requestFocus();
+  }
+
+  void _submitSearch(String value) {
+    _search?.cancel();
+    setState(() => _query = value);
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) _focusResults();
+    });
+  }
+
+  Widget _categoryRow(String? id, String title, int index, int count) =>
+      CallbackShortcuts(
+        bindings: {
+          const SingleActivator(LogicalKeyboardKey.arrowLeft): _focusResults,
+          const SingleActivator(LogicalKeyboardKey.arrowRight): () {},
+          const SingleActivator(LogicalKeyboardKey.arrowUp): () => index < 0
+              ? _searchFocus.requestFocus()
+              : _focusCategory(index - 1),
+          const SingleActivator(LogicalKeyboardKey.arrowDown): () =>
+              _focusCategory((index + 1).clamp(-1, count - 1)),
+        },
+        child: ListTile(
+          key: ValueKey('xtream-category-${id ?? 'all'}'),
+          focusNode: id == null ? _allCategoriesFocus : _categoryNode(id),
+          selected: _category == id,
+          title: Text(title, maxLines: 2, overflow: TextOverflow.ellipsis),
+          onTap: () => setState(() => _category = id),
+        ),
+      );
+
   XtreamService get service => widget.service;
   @override
   void initState() {
@@ -51,6 +133,19 @@ class _XtreamBrowserPageState extends State<XtreamBrowserPage> {
     service.removeListener(_updated);
     _search?.cancel();
     _searchText.dispose();
+    for (final node in [
+      _searchFocus,
+      _accountFocus,
+      _allCategoriesFocus,
+      _favouritesFocus,
+      _clearFocus,
+      ..._resultNodes.values,
+      ..._categoryNodes.values,
+    ]) {
+      node.dispose();
+    }
+    _resultsScroll.dispose();
+    _categoriesScroll.dispose();
     super.dispose();
   }
 
@@ -202,12 +297,9 @@ class _XtreamBrowserPageState extends State<XtreamBrowserPage> {
   @override
   Widget build(BuildContext context) {
     final categories = service.categories(widget.kind);
-    final entries = service.items(
-      widget.kind,
-      category: _category,
-      query: _query,
-      favourites: _favourites,
-    );
+    final entries = _entries;
+    _categoryExtent = (MediaQuery.textScalerOf(context).scale(16) / 16 * 56)
+        .clamp(56.0, double.infinity);
     return Directionality(
       textDirection: TextDirection.rtl,
       child: Scaffold(
@@ -224,6 +316,7 @@ class _XtreamBrowserPageState extends State<XtreamBrowserPage> {
             ),
             IconButton(
               tooltip: 'بيانات الاشتراك',
+              focusNode: _accountFocus,
               onPressed: () async {
                 if (await showXtreamAccount(context, service))
                   await service.refresh(widget.kind);
@@ -244,12 +337,15 @@ class _XtreamBrowserPageState extends State<XtreamBrowserPage> {
               child: Row(
                 children: [
                   Expanded(
-                    child: TextField(
+                    child: RemoteSearchField(
                       controller: _searchText,
-                      decoration: const InputDecoration(
-                        labelText: 'بحث في المحتوى المتاح',
-                        prefixIcon: Icon(Icons.search),
-                      ),
+                      focusNode: _searchFocus,
+                      onSubmit: _submitSearch,
+                      onUp: _accountFocus.requestFocus,
+                      onLeft: () => _query.isEmpty
+                          ? _favouritesFocus.requestFocus()
+                          : _clearFocus.requestFocus(),
+                      onRight: _focusCategory,
                       onChanged: (value) {
                         _search?.cancel();
                         _search = Timer(const Duration(milliseconds: 220), () {
@@ -258,9 +354,23 @@ class _XtreamBrowserPageState extends State<XtreamBrowserPage> {
                       },
                     ),
                   ),
+                  IconButton(
+                    tooltip: 'مسح البحث',
+                    focusNode: _clearFocus,
+                    onPressed: _searchText.text.isEmpty
+                        ? null
+                        : () {
+                            _searchText.clear();
+                            _search?.cancel();
+                            setState(() => _query = '');
+                            _searchFocus.requestFocus();
+                          },
+                    icon: const Icon(Icons.clear),
+                  ),
                   const SizedBox(width: 16),
                   FilterChip(
                     label: const Text('المفضلة'),
+                    focusNode: _favouritesFocus,
                     selected: _favourites,
                     onSelected: (value) => setState(() => _favourites = value),
                   ),
@@ -287,22 +397,23 @@ class _XtreamBrowserPageState extends State<XtreamBrowserPage> {
                 children: [
                   SizedBox(
                     width: 240,
-                    child: ListView(
-                      children: [
-                        ListTile(
-                          selected: _category == null,
-                          title: const Text('جميع التصنيفات'),
-                          onTap: () => setState(() => _category = null),
-                        ),
-                        for (final category in categories)
-                          ListTile(
-                            key: ValueKey('xtream-category-${category.id}'),
-                            selected: _category == category.id,
-                            title: Text(category.name),
-                            onTap: () =>
-                                setState(() => _category = category.id),
-                          ),
-                      ],
+                    child: ListView.builder(
+                      controller: _categoriesScroll,
+                      itemExtent: _categoryExtent,
+                      itemCount: categories.length + 1,
+                      itemBuilder: (context, index) => index == 0
+                          ? _categoryRow(
+                              null,
+                              'جميع التصنيفات',
+                              -1,
+                              categories.length,
+                            )
+                          : _categoryRow(
+                              categories[index - 1].id,
+                              categories[index - 1].name,
+                              index - 1,
+                              categories.length,
+                            ),
                     ),
                   ),
                   const VerticalDivider(width: 1),
@@ -316,6 +427,7 @@ class _XtreamBrowserPageState extends State<XtreamBrowserPage> {
                             ),
                           )
                         : ListView.builder(
+                            controller: _resultsScroll,
                             key: ValueKey(
                               'xtream-items-${widget.kind.name}-${_category ?? 'all'}-$_favourites-$_query',
                             ),
@@ -324,7 +436,25 @@ class _XtreamBrowserPageState extends State<XtreamBrowserPage> {
                               final item = entries[index];
                               return _RemoteMediaRow(
                                 key: ValueKey('xtream-item-${item.key}'),
-                                autofocus: index == 0,
+                                focusNode: _resultNode(item),
+                                onKey: (event) {
+                                  if (event is KeyDownEvent ||
+                                      event is KeyRepeatEvent) {
+                                    if (event.logicalKey ==
+                                            LogicalKeyboardKey.arrowUp &&
+                                        index == 0) {
+                                      _searchFocus.requestFocus();
+                                      return KeyEventResult.handled;
+                                    }
+                                    if (event.logicalKey ==
+                                        LogicalKeyboardKey.arrowRight) {
+                                      _focusCategory();
+                                      return KeyEventResult.handled;
+                                    }
+                                  }
+                                  return KeyEventResult.ignored;
+                                },
+                                autofocus: index == 0 && !_searchFocus.hasFocus,
                                 title:
                                     '${widget.kind == MediaKind.live ? '${index + 1} · ' : ''}${item.name}',
                                 onOpen: () => _open(item),
@@ -351,6 +481,7 @@ class _RemoteMediaRow extends StatefulWidget {
   final VoidCallback? onOptions;
   final FocusNode? focusNode;
   final ValueChanged<bool>? onFocused;
+  final KeyEventResult Function(KeyEvent)? onKey;
   const _RemoteMediaRow({
     super.key,
     required this.title,
@@ -358,6 +489,7 @@ class _RemoteMediaRow extends StatefulWidget {
     this.onOptions,
     this.focusNode,
     this.onFocused,
+    this.onKey,
     this.autofocus = false,
     this.favourite = false,
   });
@@ -370,6 +502,8 @@ class _RemoteMediaRowState extends State<_RemoteMediaRow> {
   @override
   Widget build(BuildContext context) => Focus(
     onKeyEvent: (_, event) {
+      final result = widget.onKey?.call(event);
+      if (result != null && result != KeyEventResult.ignored) return result;
       if (event is KeyDownEvent &&
           [
             LogicalKeyboardKey.contextMenu,

@@ -71,11 +71,16 @@ class _ReferenceFocusableState extends State<ReferenceFocusable> {
       focusNode: widget.focusNode,
       autofocus: widget.autofocus,
       shortcuts: const {
-        SingleActivator(LogicalKeyboardKey.enter): ActivateIntent(),
-        SingleActivator(LogicalKeyboardKey.numpadEnter): ActivateIntent(),
-        SingleActivator(LogicalKeyboardKey.select): ActivateIntent(),
-        SingleActivator(LogicalKeyboardKey.gameButtonA): ActivateIntent(),
-        SingleActivator(LogicalKeyboardKey.space): ActivateIntent(),
+        SingleActivator(LogicalKeyboardKey.enter, includeRepeats: false):
+            ActivateIntent(),
+        SingleActivator(LogicalKeyboardKey.numpadEnter, includeRepeats: false):
+            ActivateIntent(),
+        SingleActivator(LogicalKeyboardKey.select, includeRepeats: false):
+            ActivateIntent(),
+        SingleActivator(LogicalKeyboardKey.gameButtonA, includeRepeats: false):
+            ActivateIntent(),
+        SingleActivator(LogicalKeyboardKey.space, includeRepeats: false):
+            ActivateIntent(),
       },
       actions: {
         ActivateIntent: CallbackAction<ActivateIntent>(
@@ -98,12 +103,22 @@ class _ReferenceFocusableState extends State<ReferenceFocusable> {
         ),
       ),
     );
-    if (widget.onKey != null)
-      result = Focus(
-        canRequestFocus: false,
-        onKeyEvent: (_, event) => widget.onKey!(event),
-        child: result,
-      );
+    result = Focus(
+      canRequestFocus: false,
+      onKeyEvent: (_, event) {
+        if (event is KeyRepeatEvent &&
+            const [
+              LogicalKeyboardKey.enter,
+              LogicalKeyboardKey.numpadEnter,
+              LogicalKeyboardKey.select,
+              LogicalKeyboardKey.gameButtonA,
+              LogicalKeyboardKey.space,
+            ].contains(event.logicalKey))
+          return KeyEventResult.handled;
+        return widget.onKey?.call(event) ?? KeyEventResult.ignored;
+      },
+      child: result,
+    );
     return result;
   }
 }
