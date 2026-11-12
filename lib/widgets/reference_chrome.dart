@@ -8,17 +8,17 @@ const referenceGold = Color(0xFFFFD68A);
 abstract final class ReferenceLayout {
   static const Size canvas = Size(1280, 720);
   static const sidebar = Rect.fromLTWH(0, 0, 214, 720);
-  static const weather = Rect.fromLTWH(241, 46, 260, 113);
-  static const prayer = Rect.fromLTWH(521, 46, 324, 113);
-  static const clock = Rect.fromLTWH(1116, 20, 148, 73);
-  static const movies = Rect.fromLTWH(238, 388, 323, 162);
-  static const series = Rect.fromLTWH(570, 386, 327, 164);
-  static const live = Rect.fromLTWH(909, 386, 333, 162);
-  static const dock = Rect.fromLTWH(241, 567, 1009, 92);
+  static const weather = Rect.fromLTWH(35, 120, 350, 130);
+  static const prayer = Rect.fromLTWH(410, 120, 465, 130);
+  static const date = Rect.fromLTWH(900, 120, 340, 130);
+  static const clock = Rect.fromLTWH(1090, 25, 150, 55);
+  static const movies = Rect.fromLTWH(510, 310, 280, 160);
+  static const series = Rect.fromLTWH(805, 310, 260, 160);
+  static const live = Rect.fromLTWH(235, 310, 260, 160);
+  static const dock = Rect.fromLTWH(38, 540, 1080, 108);
   static const navigationY = [167.0, 229.0, 287.0, 342.0, 398.0];
-  static String wallpaper(double physicalWidth) => physicalWidth >= 3000
-      ? 'assets/reference_ui/jeddah_reference_uhd.png'
-      : 'assets/reference_ui/jeddah_reference_fhd.png';
+  static String wallpaper(double physicalWidth) =>
+      'assets/premium_home/jeddah_night.jpg';
 }
 
 KeyEventResult referenceDirections(

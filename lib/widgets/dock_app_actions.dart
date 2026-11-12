@@ -10,6 +10,9 @@ Future<void> editDockApp(
   DockFavourites store,
   AppsService service,
 ) async {
+  final isFavourite = store
+      .visible(service.applications)
+      .any((a) => a.packageName == app.packageName);
   final action = await showDialog<String>(
     context: context,
     builder: (context) => Directionality(
@@ -17,16 +20,17 @@ Future<void> editDockApp(
       child: SimpleDialog(
         title: Text('تعديل ${app.name}'),
         children: [
-          for (final entry in const {
-            'move': 'نقل التطبيق',
+          for (final entry in {
+            if (isFavourite) 'move': 'نقل التطبيق',
+            if (!isFavourite) 'add': 'إضافة إلى المفضلة',
             'hide': 'إخفاء التطبيق',
-            'remove': 'إزالة من المفضلة',
+            if (isFavourite) 'remove': 'إزالة من المفضلة',
             'manage': 'تعديل المفضلة وإضافة تطبيق',
             'uninstall': 'إلغاء التثبيت',
             'cancel': 'رجوع',
           }.entries)
             TextButton(
-              autofocus: entry.key == 'move',
+              autofocus: entry.key == (isFavourite ? 'move' : 'add'),
               onPressed: () => Navigator.pop(context, entry.key),
               child: Padding(
                 padding: const EdgeInsets.all(8),
@@ -41,7 +45,12 @@ Future<void> editDockApp(
   try {
     final available = service.applications.toList();
     final selected = store.visible(available);
-    if (action == 'manage') {
+    if (action == 'add' && selected.length < DockFavourites.limit) {
+      await store.save([
+        ...selected.map((a) => a.packageName),
+        app.packageName,
+      ]);
+    } else if (action == 'manage' || action == 'add') {
       await editDockFavourites(context, store, available);
     } else if (action == 'move') {
       final target = await showDialog<int>(
