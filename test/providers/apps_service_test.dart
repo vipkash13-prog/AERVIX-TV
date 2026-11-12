@@ -16,6 +16,8 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+import 'dart:async';
+import 'package:flutter/services.dart';
 import 'package:drift/drift.dart';
 import 'package:flauncher/database.dart';
 import 'package:flauncher/providers/apps_service.dart';
@@ -26,6 +28,21 @@ import '../mocks.dart';
 import '../mocks.mocks.dart';
 
 void main() {
+  test('installed icons share pending loads and cache completed native bytes', () async {
+    final channel = MockFLauncherChannel();
+    final service = await _buildInitialisedAppsService(channel, MockFLauncherDatabase(), []);
+    final pending = Completer<Uint8List>();
+    when(channel.getApplicationIcon('installed.app')).thenAnswer((_) => pending.future);
+    final first = service.getAppIcon('installed.app');
+    final second = service.getAppIcon('installed.app');
+    expect(identical(first, second), isTrue);
+    final bytes = Uint8List.fromList([1,2,3]);
+    pending.complete(bytes);
+    expect(await first, same(bytes));
+    expect(await service.getAppIcon('installed.app'), same(bytes));
+    verify(channel.getApplicationIcon('installed.app')).called(1);
+  });
+
   group("AppsService initialised correctly", () {
     test("with empty database", () async {
       final channel = MockFLauncherChannel();

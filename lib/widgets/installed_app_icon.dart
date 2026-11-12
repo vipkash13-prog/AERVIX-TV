@@ -14,10 +14,15 @@ class InstalledAppIcon extends StatefulWidget {
 
 class _InstalledAppIconState extends State<InstalledAppIcon> {
   late Future<Uint8List> _icon;
+  AppsService? _service;
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-    _icon = context.read<AppsService>().getAppIcon(widget.app.packageName);
+    final service = context.read<AppsService>();
+    if (!identical(_service, service)) {
+      _service = service;
+      _icon = service.getAppIcon(widget.app.packageName);
+    }
   }
 
   @override
@@ -35,14 +40,17 @@ class _InstalledAppIconState extends State<InstalledAppIcon> {
       if (bytes == null || bytes.isEmpty)
         return const Icon(Icons.apps, size: 52);
       // The platform returns the actual installed package icon, cached by AppsService.
-      return Image.memory(
-        bytes,
-        width: widget.size,
-        height: widget.size,
-        fit: BoxFit.contain,
-        cacheWidth: 256,
-        excludeFromSemantics: true,
-        errorBuilder: (_, error, stack) => const Icon(Icons.apps, size: 52),
+      return SizedBox.square(
+        dimension: widget.size,
+        child: Image.memory(
+          bytes,
+          width: widget.size,
+          height: widget.size,
+          fit: BoxFit.contain,
+          cacheWidth: 256,
+          excludeFromSemantics: true,
+          errorBuilder: (_, error, stack) => const Icon(Icons.apps, size: 52),
+        ),
       );
     },
   );
