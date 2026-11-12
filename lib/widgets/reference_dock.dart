@@ -4,6 +4,7 @@ import '../models/app.dart';
 import 'installed_app_icon.dart';
 import 'reference_chrome.dart';
 import 'original_app_frame.dart';
+import 'premium_glass.dart';
 
 class ReferenceDock extends StatefulWidget {
   final List<App> apps;
@@ -11,6 +12,8 @@ class ReferenceDock extends StatefulWidget {
   final VoidCallback onEdit, onLeftBoundary;
   final ValueChanged<double> onUp;
   final FocusNode firstFocus;
+  final bool compactIcons;
+  final VoidCallback? onRightBoundary;
   final ValueChanged<App>? onAppOptions;
   final ValueChanged<FocusNode>? onAppFocused;
   const ReferenceDock({
@@ -22,6 +25,8 @@ class ReferenceDock extends StatefulWidget {
     required this.onUp,
     required this.firstFocus,
     this.onAppOptions,
+    this.compactIcons = false,
+    this.onRightBoundary,
     this.onAppFocused,
   });
   @override
@@ -42,10 +47,18 @@ class _ReferenceDockState extends State<ReferenceDock> {
     super.dispose();
   }
 
+  Widget _frame(Widget child) =>
+      widget.compactIcons ? child : ReferenceGlass(radius: 22, child: child);
+  Widget _artFrame(bool focused, Widget child) => widget.compactIcons
+      ? PremiumGlass(
+          focused: focused,
+          radius: 23,
+          child: Center(child: child),
+        )
+      : OriginalAppFrame(focused: focused, child: child);
   @override
-  Widget build(BuildContext context) => ReferenceGlass(
-    radius: 22,
-    child: Padding(
+  Widget build(BuildContext context) => _frame(
+    Padding(
       padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 11),
       child: Directionality(
         textDirection: TextDirection.ltr,
@@ -93,8 +106,9 @@ class _ReferenceDockState extends State<ReferenceDock> {
                           left: () => i == 0
                               ? widget.onLeftBoundary()
                               : _node(i - 1).requestFocus(),
-                          right: () =>
-                              i < 6 ? _node(i + 1).requestFocus() : null,
+                          right: () => i < 6
+                              ? _node(i + 1).requestFocus()
+                              : widget.onRightBoundary?.call(),
                           up: () =>
                               widget.onUp(255 + i * (width + 12) + width / 2),
                           down: () {},
@@ -104,9 +118,9 @@ class _ReferenceDockState extends State<ReferenceDock> {
                         onLongPress: app == null
                             ? widget.onEdit
                             : () => widget.onAppOptions?.call(app),
-                        child: OriginalAppFrame(
-                          focused: focused,
-                          child: app == null
+                        child: _artFrame(
+                          focused,
+                          app == null
                               ? const Center(
                                   child: Icon(
                                     Icons.add,
@@ -119,7 +133,8 @@ class _ReferenceDockState extends State<ReferenceDock> {
                                     '${app.packageName}-${app.version}',
                                   ),
                                   app: app,
-                                  preferTvBanner: true,
+                                  preferTvBanner: !widget.compactIcons,
+                                  size: widget.compactIcons ? 62 : 72,
                                 ),
                         ),
                       ),

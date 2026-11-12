@@ -109,6 +109,16 @@ void main() {
                   }
                 : {
                     'data': {
+                      'date': {
+                        'hijri': {
+                          'day': '1',
+                          'month': {
+                            'ar': 'جمادى الآخرة',
+                            'en': 'Jumada al-Akhirah',
+                          },
+                          'year': '1448',
+                        },
+                      },
                       'timings': {
                         'Fajr': '05:11',
                         'Sunrise': '06:30',
@@ -121,6 +131,7 @@ void main() {
                   },
           ),
           200,
+          headers: {'content-type': 'application/json; charset=utf-8'},
         ),
       );
       await tester.pumpWidget(
@@ -153,7 +164,10 @@ void main() {
       );
       await tester.pumpAndSettle();
       final expected = <String, Rect>{
-        'sidebar': ReferenceLayout.sidebar,
+        'date': ReferenceLayout.date,
+        'movies': ReferenceLayout.movies,
+        'series': ReferenceLayout.series,
+        'live': ReferenceLayout.live,
         'weather': ReferenceLayout.weather,
         'prayer': ReferenceLayout.prayer,
         'clock': ReferenceLayout.clock,
@@ -187,15 +201,16 @@ void main() {
         );
       }
       for (final id in ['movies', 'series', 'live'])
-        expect(find.byKey(ValueKey('reference-$id')), findsNothing);
+        expect(find.byKey(ValueKey('reference-$id')), findsOneWidget);
       expect(find.text('الألعاب'), findsNothing);
-      expect(find.text('التطبيقات'), findsNothing);
+      expect(find.byKey(const ValueKey('reference-sidebar')), findsNothing);
+      expect(find.text('AERVIX TV'), findsNothing);
       expect(find.byType(ReferenceDock), findsOneWidget);
       expect(find.text('26.7°C'), findsOneWidget);
       expect(find.text('05:11'), findsOneWidget);
       expect(find.text('07:36'), findsOneWidget);
       expect(
-        Directionality.of(tester.element(find.text('مواقيت الصلاة'))),
+        Directionality.of(tester.element(find.text('مواقيت الصلاة - جدة'))),
         TextDirection.rtl,
       );
       expect(tester.takeException(), isNull);
@@ -206,7 +221,7 @@ void main() {
             ResizeImage.resizeIfNeeded(
               width >= 3000 ? 3840 : 1920,
               null,
-              AssetImage(ReferenceLayout.wallpaper(width.toDouble())),
+              const AssetImage('assets/premium_home/jeddah_night.jpg'),
             ),
             for (final name in ['movies', 'series', 'live'])
               ResizeImage.resizeIfNeeded(
@@ -235,7 +250,7 @@ void main() {
         await expectLater(
           find.byType(AervixHome),
           matchesGoldenFile(
-            '../../design_preview/clean_home/interface_$width.png',
+            '../../design_preview/premium_home/interface_$width.png',
           ),
         );
       }
@@ -245,45 +260,34 @@ void main() {
           await tester.pumpAndSettle();
         }
 
-        await key(LogicalKeyboardKey.arrowRight);
-        expect(FocusManager.instance.primaryFocus?.debugLabel, 'header-0');
-        for (var i = 0; i < 7; i++) {
-          expect(FocusManager.instance.primaryFocus?.debugLabel, 'header-$i');
-          if (i < 6) await key(LogicalKeyboardKey.arrowRight);
-        }
+        expect(FocusManager.instance.primaryFocus?.debugLabel, 'navigation-2');
         await key(LogicalKeyboardKey.arrowDown);
         expect(FocusManager.instance.primaryFocus?.debugLabel, 'dock-first');
-        await key(LogicalKeyboardKey.arrowLeft);
-        expect(FocusManager.instance.primaryFocus?.debugLabel, 'navigation-0');
-        for (var i = 1; i <= 3; i++) {
-          await key(LogicalKeyboardKey.arrowDown);
-          expect(
-            FocusManager.instance.primaryFocus?.debugLabel,
-            'navigation-$i',
-          );
-          await key(LogicalKeyboardKey.select);
-          expect(find.byType(AlertDialog), findsOneWidget);
-          await tester.binding.handlePopRoute();
-          await tester.pumpAndSettle();
-        }
-        await key(LogicalKeyboardKey.arrowDown);
+        for (var i = 0; i < 7; i++) await key(LogicalKeyboardKey.arrowRight);
+        expect(FocusManager.instance.primaryFocus?.debugLabel, 'all-apps');
         await key(LogicalKeyboardKey.select);
-        expect(find.text('حول AERVIX TV'), findsOneWidget);
-        expect(find.text('إعدادات الجهاز'), findsOneWidget);
-        expect(find.text('Applications'), findsNothing);
-        if (Platform.environment['AERVIX_CAPTURE'] == '1') {
-          await expectLater(
-            find.byType(MaterialApp),
-            matchesGoldenFile(
-              '../../design_preview/clean_home/settings_ar.png',
-            ),
-          );
-        }
+        expect(find.text('جميع التطبيقات'), findsOneWidget);
+        await tester.tap(find.text('MX Player'));
+        await tester.pumpAndSettle();
+        verify(service.launchApp(apps.last)).called(1);
         await tester.binding.handlePopRoute();
         await tester.pumpAndSettle();
+        await key(LogicalKeyboardKey.arrowUp);
+        expect(FocusManager.instance.primaryFocus?.debugLabel, 'navigation-3');
+        await key(LogicalKeyboardKey.arrowLeft);
+        await key(LogicalKeyboardKey.arrowUp);
+        expect(FocusManager.instance.primaryFocus?.debugLabel, 'header-1');
+        for (var i = 0; i < 7; i++) await key(LogicalKeyboardKey.arrowRight);
+        expect(FocusManager.instance.primaryFocus?.debugLabel, 'header-1');
         await tester.tap(find.byKey(const ValueKey('reference-weather')));
         await tester.pumpAndSettle();
-        expect(find.text('غائم جزئيًا'), findsOneWidget);
+        expect(
+          find.descendant(
+            of: find.byType(AlertDialog),
+            matching: find.text('غائم جزئيًا'),
+          ),
+          findsOneWidget,
+        );
         await tester.binding.handlePopRoute();
         await tester.pumpAndSettle();
         await tester.tap(find.byKey(const ValueKey('reference-prayer')));
@@ -306,8 +310,7 @@ void main() {
             null,
           ),
         );
-        // Each system control activates its native intent through OK.
-        for (final index in [2, 3, 4, 5, 6]) {
+        for (final index in [3, 4, 6]) {
           final node = tester
               .widgetList<Focus>(find.byType(Focus))
               .map((f) => f.focusNode)
@@ -318,23 +321,18 @@ void main() {
           await key(LogicalKeyboardKey.enter);
         }
         expect(calls.map((c) => c.method), contains('openWifiSettings'));
-        expect(calls.map((c) => c.method), contains('openSettings'));
         expect(
           calls
               .where((c) => c.method == 'launchActivityFromAction')
               .map((c) => c.arguments),
           containsAll([
             'android.settings.BLUETOOTH_SETTINGS',
-            'android.settings.NOTIFICATION_SETTINGS',
             'android.settings.DATE_SETTINGS',
           ]),
         );
         await key(LogicalKeyboardKey.escape);
-        expect(FocusManager.instance.primaryFocus?.debugLabel, 'navigation-0');
+        expect(FocusManager.instance.primaryFocus?.debugLabel, 'navigation-2');
       }
-      await tester.tap(find.byKey(const ValueKey('dock-fixture.apple_tv')));
-      await tester.pumpAndSettle();
-      verify(service.launchApp(apps.first)).called(1);
       await tester.pumpWidget(const SizedBox());
     });
   }

@@ -1,0 +1,16 @@
+{
+  "source": "User supplied background, 2026-11-12",
+  "native_4k": false,
+  "files": [
+    {
+      "file": "assets/premium_home/jeddah_night.jpg",
+      "size": [
+        1280,
+        720
+      ],
+      "sha256": "690bb0ea22fc4bf94d5d33b97c1c716825f151eb0d513f569dbb46cddb015c8a",
+      "native_4k": false,
+      "provenance": "original uploaded JPEG, unchanged; display scales at runtime"
+    }
+  ]
+}

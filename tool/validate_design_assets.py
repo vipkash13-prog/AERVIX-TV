@@ -49,7 +49,20 @@ if reference_file.exists():
                 assert item['native_4k'] is False, 'resampled wallpaper must be disclosed'
         except Exception as error:
             errors.append({'file': item['file'], 'error': str(error)})
-report={'checked_files':len(m['files']), 'reference_exports_checked':reference_count,'errors':errors,'unavailable_logos':m['unavailable_official_logos'],'native_4k':False,'technical_validation_passed':not errors,'complete_static_logo_set':not m['unavailable_official_logos']}
+premium_file=root/'assets/premium_home/assets_manifest.json'
+premium_count=0
+if premium_file.exists():
+    premium=json.loads(premium_file.read_text())
+    for item in premium['files']:
+        premium_count+=1
+        path=root/item['file']
+        try:
+            with Image.open(path) as im:
+                assert list(im.size)==item['size'],'premium background dimensions changed'
+            assert hashlib.sha256(path.read_bytes()).hexdigest()==item['sha256'],'premium source checksum mismatch'
+            assert item['native_4k'] is False,'native resolution provenance missing'
+        except Exception as error: errors.append({'file':item['file'],'error':str(error)})
+report={'checked_files':len(m['files']), 'reference_exports_checked':reference_count,'premium_exports_checked':premium_count,'errors':errors,'unavailable_logos':m['unavailable_official_logos'],'native_4k':False,'technical_validation_passed':not errors,'complete_static_logo_set':not m['unavailable_official_logos']}
 (root/'design_preview').mkdir(exist_ok=True)
 (root/'design_preview/validation_report.json').write_text(json.dumps(report,ensure_ascii=False,indent=2)+'\n')
 print(json.dumps(report,ensure_ascii=False,indent=2))

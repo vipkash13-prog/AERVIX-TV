@@ -40,37 +40,38 @@ void main() {
     await tester.pumpAndSettle();
   }
 
-  testWidgets(
-    'sidebar media items open internal catalogues without duplicated home cards',
-    (tester) async {
-      final f = CatalogueFixture();
-      await f.init();
-      addTearDown(f.service.dispose);
-      await home(tester, f);
-      for (final name in [2, 3, 1]) {
-        await tester.tap(find.byKey(ValueKey('navigation-$name')));
-        await tester.pumpAndSettle();
-        expect(find.byType(XtreamBrowserPage), findsOneWidget);
-        expect(find.text('Adult XXX'), findsNothing);
-        await tester.binding.handlePopRoute();
-        await tester.pumpAndSettle();
-      }
-      expect(
-        f.actions,
-        containsAll([
-          'get_vod_categories',
-          'get_vod_streams',
-          'get_series_categories',
-          'get_series',
-          'get_live_categories',
-          'get_live_streams',
-        ]),
-      );
-      expect(find.byKey(const ValueKey('reference-sidebar')), findsOneWidget);
-      await tester.pumpWidget(const SizedBox());
-    },
-  );
-  testWidgets('without an account, sidebar media opens setup', (tester) async {
+  testWidgets('three premium media cards open internal catalogues', (
+    tester,
+  ) async {
+    final f = CatalogueFixture();
+    await f.init();
+    addTearDown(f.service.dispose);
+    await home(tester, f);
+    for (final name in [2, 3, 1]) {
+      await tester.tap(find.byKey(ValueKey('navigation-$name')));
+      await tester.pumpAndSettle();
+      expect(find.byType(XtreamBrowserPage), findsOneWidget);
+      expect(find.text('Adult XXX'), findsNothing);
+      await tester.binding.handlePopRoute();
+      await tester.pumpAndSettle();
+    }
+    expect(
+      f.actions,
+      containsAll([
+        'get_vod_categories',
+        'get_vod_streams',
+        'get_series_categories',
+        'get_series',
+        'get_live_categories',
+        'get_live_streams',
+      ]),
+    );
+    expect(find.byKey(const ValueKey('reference-sidebar')), findsNothing);
+    for (final id in ['live', 'movies', 'series'])
+      expect(find.byKey(ValueKey('reference-$id')), findsOneWidget);
+    await tester.pumpWidget(const SizedBox());
+  });
+  testWidgets('without an account, media card opens setup', (tester) async {
     final f = CatalogueFixture();
     await f.init(emptyAccount: true);
     addTearDown(f.service.dispose);

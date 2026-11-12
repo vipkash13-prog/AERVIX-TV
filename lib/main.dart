@@ -36,6 +36,7 @@ import 'flauncher_app.dart';
 import 'xtream/account_store.dart';
 import 'xtream/xtream_service.dart';
 import 'providers/dock_favourites.dart';
+import 'providers/home_preferences.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -48,6 +49,9 @@ Future<void> main() async {
   runApp(
     MultiProvider(
       providers: [
+        ChangeNotifierProvider(
+          create: (_) => HomePreferences(sharedPreferences),
+        ),
         ChangeNotifierProvider(
           create: (_) => DockFavourites(sharedPreferences),
         ),

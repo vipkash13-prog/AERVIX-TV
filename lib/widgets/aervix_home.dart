@@ -6,6 +6,8 @@ import 'package:http/http.dart' as http;
 import 'package:intl/intl.dart' show DateFormat;
 import 'settings/settings_panel.dart';
 import 'design_asset_icon.dart';
+import 'premium_glass.dart';
+import 'installed_app_icon.dart';
 import 'aervix_update_button.dart';
 import 'reference_chrome.dart';
 import 'reference_dock.dart';
@@ -21,6 +23,8 @@ import 'package:provider/provider.dart';
 import '../flauncher_channel.dart';
 import '../models/app.dart';
 import '../providers/apps_service.dart';
+import '../providers/network_service.dart';
+import '../providers/home_preferences.dart';
 
 export 'gold_focus_tile.dart';
 
@@ -40,6 +44,11 @@ class _AervixHomeState extends State<AervixHome> with WidgetsBindingObserver {
   DateTime _now = DateTime.now();
   Map<String, dynamic>? _weather;
   Map<String, dynamic>? _prayers;
+  String _hijriLabel = 'التاريخ الهجري —';
+  String _hijriEnglishLabel = 'Hijri date —';
+  String? _hijriDate;
+  VoidCallback? _updateAction;
+  final _allAppsFocus = FocusNode(debugLabel: 'all-apps');
   String? _prayerDate;
   bool _weatherFailed = false;
   bool _prayersFailed = false;
@@ -54,6 +63,13 @@ class _AervixHomeState extends State<AervixHome> with WidgetsBindingObserver {
   );
   final _dockFocus = FocusNode(debugLabel: 'dock-first');
   FocusNode? _lastDockFocus;
+  HomePreferences? _homePreferences;
+  bool _pendingRefresh = false;
+  int _locationGeneration = 0;
+  String _cityId = 'jeddah';
+  HomeCity get _city => _homePreferences?.city ?? HomePreferences.cities.first;
+  bool get _english => _homePreferences?.language == 'en';
+  String _l(String ar, String en) => _english ? en : ar;
   DateTime get _riyadhNow => _now.toUtc().add(const Duration(hours: 3));
 
   @override
@@ -62,6 +78,9 @@ class _AervixHomeState extends State<AervixHome> with WidgetsBindingObserver {
     _now = widget.clock?.call() ?? DateTime.now();
     _client = widget.client ?? http.Client();
     WidgetsBinding.instance.addObserver(this);
+    _homePreferences = context.read<HomePreferences?>();
+    _cityId = _city.id;
+    _homePreferences?.addListener(_preferencesChanged);
     _refresh();
     _clockTimer = Timer.periodic(const Duration(seconds: 30), (_) {
       if (!mounted) return;
@@ -78,10 +97,31 @@ class _AervixHomeState extends State<AervixHome> with WidgetsBindingObserver {
     'dd-MM-yyyy',
   ).format(_now.toUtc().add(const Duration(hours: 3)));
 
+  void _preferencesChanged() {
+    if (!mounted) return;
+    if (_cityId != _city.id) {
+      _cityId = _city.id;
+      _locationGeneration++;
+      _weather = null;
+      _prayers = null;
+      _prayerDate = null;
+      _hijriDate = null;
+      _weatherFailed = false;
+      _prayersFailed = false;
+      unawaited(_refresh());
+    }
+    setState(() {});
+  }
+
   Future<void> _refresh() async {
-    if (_fetching) return;
+    if (_fetching) {
+      _pendingRefresh = true;
+      return;
+    }
     _fetching = true;
     final date = _date;
+    final generation = _locationGeneration;
+    final city = _city;
     try {
       await Future.wait([
         () async {
@@ -89,8 +129,8 @@ class _AervixHomeState extends State<AervixHome> with WidgetsBindingObserver {
             final response = await _client
                 .get(
                   Uri.https('api.open-meteo.com', '/v1/forecast', {
-                    'latitude': '21.4858',
-                    'longitude': '39.1925',
+                    'latitude': city.latitude,
+                    'longitude': city.longitude,
                     'current':
                         'temperature_2m,relative_humidity_2m,weather_code,wind_speed_10m,is_day',
                     'daily': 'temperature_2m_max,temperature_2m_min',
@@ -113,13 +153,14 @@ class _AervixHomeState extends State<AervixHome> with WidgetsBindingObserver {
                   current[key] = values.first;
               }
             }
-            if (mounted)
+            if (mounted && generation == _locationGeneration)
               setState(() {
                 _weather = current;
                 _weatherFailed = false;
               });
           } catch (_) {
-            if (mounted) setState(() => _weatherFailed = true);
+            if (mounted && generation == _locationGeneration)
+              setState(() => _weatherFailed = true);
           }
         }(),
         () async {
@@ -128,8 +169,8 @@ class _AervixHomeState extends State<AervixHome> with WidgetsBindingObserver {
             final response = await _client
                 .get(
                   Uri.https('api.aladhan.com', '/v1/timings/$date', {
-                    'latitude': '21.4858',
-                    'longitude': '39.1925',
+                    'latitude': city.latitude,
+                    'longitude': city.longitude,
                     'method': '4',
                     'timezonestring': 'Asia/Riyadh',
                   }),
@@ -139,19 +180,32 @@ class _AervixHomeState extends State<AervixHome> with WidgetsBindingObserver {
               throw const FormatException('prayers');
             final data = jsonDecode(response.body)['data'];
             final timings = Map<String, dynamic>.from(data['timings'] as Map);
-            if (mounted)
+            if (mounted && generation == _locationGeneration)
               setState(() {
                 _prayers = timings;
+                final hijri = data['date']?['hijri'];
+                _hijriLabel = hijri is Map
+                    ? '${hijri['day']} ${hijri['month']?['ar'] ?? ''} ${hijri['year']} هـ'
+                    : 'التاريخ الهجري —';
+                _hijriEnglishLabel = hijri is Map
+                    ? '${hijri['day']} ${hijri['month']?['en'] ?? hijri['month']?['number'] ?? ''} ${hijri['year']} AH'
+                    : 'Hijri date —';
+                _hijriDate = date;
                 _prayerDate = date;
                 _prayersFailed = false;
               });
           } catch (_) {
-            if (mounted) setState(() => _prayersFailed = true);
+            if (mounted && generation == _locationGeneration)
+              setState(() => _prayersFailed = true);
           }
         }(),
       ]);
     } finally {
       _fetching = false;
+      if (_pendingRefresh && mounted) {
+        _pendingRefresh = false;
+        unawaited(_refresh());
+      }
     }
   }
 
@@ -169,7 +223,13 @@ class _AervixHomeState extends State<AervixHome> with WidgetsBindingObserver {
     _clockTimer?.cancel();
     _weatherTimer?.cancel();
     _client.close();
-    for (final node in [..._navFocus, ..._headerFocus, _dockFocus]) {
+    _homePreferences?.removeListener(_preferencesChanged);
+    for (final node in [
+      ..._navFocus,
+      ..._headerFocus,
+      _dockFocus,
+      _allAppsFocus,
+    ]) {
       node.dispose();
     }
     super.dispose();
@@ -208,13 +268,17 @@ class _AervixHomeState extends State<AervixHome> with WidgetsBindingObserver {
     final store = context.read<DockFavourites?>();
     if (store == null) return;
     final service = context.read<AppsService>();
+    final returnFocus = FocusManager.instance.primaryFocus;
     _editingDock = true;
     try {
       await editDockApp(context, app, store, service);
     } finally {
       _editingDock = false;
     }
-    if (mounted) _dockFocus.requestFocus();
+    if (mounted && returnFocus?.context != null)
+      returnFocus!.requestFocus();
+    else if (mounted && ModalRoute.of(context)?.isCurrent == true)
+      _dockFocus.requestFocus();
   }
 
   List<App> _orderedDock(List<App> apps) {
@@ -287,8 +351,106 @@ class _AervixHomeState extends State<AervixHome> with WidgetsBindingObserver {
     }
   }
 
-  void _settings() =>
-      showDialog<void>(context: context, builder: (_) => const SettingsPanel());
+  void _settings() => showDialog<void>(
+    context: context,
+    builder: (dialogContext) => AlertDialog(
+      title: Text(_l('الإعدادات', 'Settings')),
+      content: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          if (_homePreferences != null) ...[
+            TextButton(
+              onPressed: () {
+                Navigator.pop(dialogContext);
+                _chooseLanguage();
+              },
+              child: Text(_l('لغة الواجهة', 'Interface language')),
+            ),
+            TextButton(
+              onPressed: () {
+                Navigator.pop(dialogContext);
+                _chooseCity();
+              },
+              child: Text(
+                _l('المدينة للطقس والصلاة', 'Weather and prayer city'),
+              ),
+            ),
+          ],
+          TextButton(
+            autofocus: true,
+            onPressed: () {
+              Navigator.pop(dialogContext);
+              showDialog<void>(
+                context: context,
+                builder: (_) => const SettingsPanel(),
+              );
+            },
+            child: Text(
+              _l('إعدادات الواجهة والجهاز', 'Interface and device settings'),
+            ),
+          ),
+          TextButton(
+            onPressed: () async {
+              Navigator.pop(dialogContext);
+              final service = context.read<XtreamService?>();
+              if (service != null) await showXtreamAccount(context, service);
+            },
+            child: Text(
+              _l('تعديل اشتراك Xtream Codes', 'Xtream Codes account'),
+            ),
+          ),
+          if (_updateAction != null)
+            TextButton(
+              onPressed: () {
+                Navigator.pop(dialogContext);
+                _updateAction!();
+              },
+              child: Text(_l('تحديث التطبيق', 'App update')),
+            ),
+          TextButton(
+            onPressed: () => Navigator.pop(dialogContext),
+            child: const Text('رجوع'),
+          ),
+        ],
+      ),
+    ),
+  );
+  Future<void> _chooseLanguage() async {
+    final language = await showDialog<String>(
+      context: context,
+      builder: (context) => SimpleDialog(
+        title: const Text('اللغة / Language'),
+        children: [
+          for (final code in ['ar', 'en'])
+            TextButton(
+              autofocus: code == (_homePreferences?.language ?? 'ar'),
+              onPressed: () => Navigator.pop(context, code),
+              child: Text(code == 'ar' ? 'العربية' : 'English'),
+            ),
+        ],
+      ),
+    );
+    if (language != null) await _homePreferences?.setLanguage(language);
+  }
+
+  Future<void> _chooseCity() async {
+    final city = await showDialog<String>(
+      context: context,
+      builder: (context) => SimpleDialog(
+        title: Text(_l('المدينة', 'City')),
+        children: [
+          for (final city in HomePreferences.cities)
+            TextButton(
+              autofocus: city.id == _city.id,
+              onPressed: () => Navigator.pop(context, city.id),
+              child: Text(_english ? city.en : city.ar),
+            ),
+        ],
+      ),
+    );
+    if (city != null) await _homePreferences?.setCity(city);
+  }
+
   String _number(dynamic value, {int decimals = 0}) =>
       value is num ? value.toStringAsFixed(decimals) : '—';
   String _temperature(dynamic value) => value is num
@@ -308,7 +470,9 @@ class _AervixHomeState extends State<AervixHome> with WidgetsBindingObserver {
       context: context,
       builder: (dialogContext) => StatefulBuilder(
         builder: (context, update) => AlertDialog(
-          title: const Text('طقس جدة'),
+          title: Text(
+            '${_l('طقس', 'Weather')} ${_english ? _city.en : _city.ar}',
+          ),
           content: Column(
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -356,7 +520,9 @@ class _AervixHomeState extends State<AervixHome> with WidgetsBindingObserver {
   void _prayerDetails() => showDialog<void>(
     context: context,
     builder: (context) => AlertDialog(
-      title: const Text('مواقيت الصلاة في جدة'),
+      title: Text(
+        '${_l('مواقيت الصلاة في', 'Prayer times in')} ${_english ? _city.en : _city.ar}',
+      ),
       content: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
@@ -397,16 +563,6 @@ class _AervixHomeState extends State<AervixHome> with WidgetsBindingObserver {
     ),
   );
 
-  KeyEventResult _headerKeys(KeyEvent event, int index) => referenceDirections(
-    event,
-    left: () => index == 0
-        ? _navFocus[0].requestFocus()
-        : _headerFocus[index - 1].requestFocus(),
-    right: () => index < 6 ? _headerFocus[index + 1].requestFocus() : null,
-    up: () {},
-    down: () => _dockFocus.requestFocus(),
-  );
-
   Widget _place(Rect rect, Widget child, {Key? key}) => Positioned(
     key: key,
     left: rect.left,
@@ -415,7 +571,6 @@ class _AervixHomeState extends State<AervixHome> with WidgetsBindingObserver {
     height: rect.height,
     child: child,
   );
-
   TextStyle _text(
     double size, {
     FontWeight weight = FontWeight.w700,
@@ -423,454 +578,444 @@ class _AervixHomeState extends State<AervixHome> with WidgetsBindingObserver {
   }) => TextStyle(
     fontFamily: 'Cairo',
     fontSize: size,
-    height: 1.12,
+    height: 1.18,
     fontWeight: weight,
     color: color,
   );
+  String _westernDigits(String text) => String.fromCharCodes(
+    text.runes.map(
+      (r) => r >= 0x660 && r <= 0x669
+          ? r - 0x660 + 48
+          : r >= 0x6F0 && r <= 0x6F9
+          ? r - 0x6F0 + 48
+          : r,
+    ),
+  );
+  String _translate(String text) {
+    if (!_english) return text;
+    final labels = {
+      'البث المباشر': 'Live TV',
+      'الأفلام': 'Movies',
+      'المسلسلات': 'TV Series',
+      'جميع التطبيقات': 'All apps',
+      'الفجر': 'Fajr',
+      'الظهر': 'Dhuhr',
+      'العصر': 'Asr',
+      'المغرب': 'Maghrib',
+      'العشاء': 'Isha',
+      'تعذر التحديث': 'Update unavailable',
+      'جارٍ التحديث': 'Updating…',
+      'سماء صافية': 'Clear sky',
+      'غائم جزئيًا': 'Partly cloudy',
+      'ضباب': 'Fog',
+      'أمطار': 'Rain',
+      'عواصف رعدية': 'Thunderstorms',
+      'طقس متغير': 'Variable weather',
+      'التاريخ الهجري —': 'Hijri date —',
+      'مواقيت الصلاة - ${_city.ar}': 'Prayer Times - ${_city.en}',
+      _city.ar: _city.en,
+    };
+    return labels[text] ??
+        text
+            .replaceFirst('الرطوبة', 'Humidity')
+            .replaceFirst('الرياح', 'Wind')
+            .replaceFirst('كم/س', 'km/h');
+  }
 
-  Widget _weatherPanel() => ReferenceFocusable(
-    focusNode: _headerFocus[0],
-    label: 'طقس جدة وتحديث البيانات',
-    onPressed: _weatherDetails,
-    onKey: (event) => _headerKeys(event, 0),
-    builder: (context, focused) => ReferenceGlass(
-      radius: 25,
-      focused: focused,
-      child: Stack(
+  Widget _fit(String text, double size, {Color color = Colors.white}) =>
+      FittedBox(
+        fit: BoxFit.scaleDown,
+        child: Text(
+          _westernDigits(_translate(text)),
+          textDirection: _english ? TextDirection.ltr : TextDirection.rtl,
+          style: _text(size, color: color),
+        ),
+      );
+  KeyEventResult _headerKeys(KeyEvent event, int index) => referenceDirections(
+    event,
+    left: () => _headerFocus[index == 0 ? 6 : index - 1].requestFocus(),
+    right: () => _headerFocus[index == 6 ? 0 : index + 1].requestFocus(),
+    down: () =>
+        _navFocus[index == 0
+                ? 1
+                : index == 1
+                ? 2
+                : 3]
+            .requestFocus(),
+    up: () => _headerFocus[index < 3 ? index + 3 : index].requestFocus(),
+  );
+
+  Widget _plainPanel(
+    int index,
+    String label,
+    VoidCallback activate,
+    Widget child,
+  ) => ReferenceFocusable(
+    focusNode: _headerFocus[index],
+    label: label,
+    onPressed: activate,
+    onKey: (e) => _headerKeys(e, index),
+    builder: (_, focused) =>
+        focused ? PremiumGlass(focused: true, child: child) : child,
+  );
+  Widget _panel(int index, String label, VoidCallback activate, Widget child) =>
+      ReferenceFocusable(
+        focusNode: _headerFocus[index],
+        label: label,
+        onPressed: activate,
+        onKey: (e) => _headerKeys(e, index),
+        builder: (_, focused) => PremiumGlass(focused: focused, child: child),
+      );
+
+  Widget _weatherPanel() => _panel(
+    0,
+    'طقس جدة وتحديث البيانات',
+    _weatherDetails,
+    Padding(
+      padding: const EdgeInsets.all(15),
+      child: Row(
+        textDirection: TextDirection.ltr,
         children: [
-          Positioned(
-            left: 28,
-            top: 10,
-            child: Row(
-              textDirection: TextDirection.ltr,
+          DesignAssetIcon(
+            weatherAssetPath(
+              (_weather?['weather_code'] as num?)?.toInt(),
+              night: _weather?['is_day'] == 0,
+            ),
+            size: 78,
+          ),
+          const SizedBox(width: 10),
+          Expanded(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
               children: [
-                Text('جدة', style: _text(17)),
-                const SizedBox(width: 4),
-                const Icon(Icons.location_on, size: 16, color: referenceGold),
-              ],
-            ),
-          ),
-          Positioned(
-            left: 27,
-            top: 37,
-            width: 124,
-            height: 36,
-            child: FittedBox(
-              fit: BoxFit.scaleDown,
-              alignment: Alignment.centerLeft,
-              child: Text(
-                '${_temperature(_weather?['temperature_2m'])}°C',
-                textDirection: TextDirection.ltr,
-                style: _text(30, weight: FontWeight.w800),
-              ),
-            ),
-          ),
-          Positioned(
-            right: 7,
-            top: 4,
-            width: 91,
-            height: 77,
-            child: DesignAssetIcon(
-              weatherAssetPath(
-                (_weather?['weather_code'] as num?)?.toInt(),
-                night:
-                    _weather?['is_day'] == 0 ||
-                    (_weather?['is_day'] == null &&
-                        (_riyadhNow.hour < 6 || _riyadhNow.hour >= 18)),
-              ),
-              size: 89,
-            ),
-          ),
-          const Positioned(
-            left: 17,
-            right: 17,
-            top: 75,
-            child: Divider(height: 1, color: Color(0x3FFFFFFF)),
-          ),
-          Positioned(
-            left: 17,
-            right: 12,
-            bottom: 9,
-            height: 21,
-            child: Row(
-              textDirection: TextDirection.ltr,
-              children: [
-                Expanded(
-                  child: _stat(
-                    Icons.air,
-                    '${_number(_weather?['wind_speed_10m'])} كم/س',
-                  ),
-                ),
-                const SizedBox(width: 6),
-                Expanded(
-                  child: _stat(
-                    Icons.water_drop_outlined,
-                    '${_number(_weather?['relative_humidity_2m'])}%',
-                  ),
-                ),
-                const SizedBox(width: 6),
-                Expanded(
-                  child: _stat(
-                    Icons.thermostat,
-                    '${_number(_weather?['temperature_2m_max'])}° / ${_number(_weather?['temperature_2m_min'])}°',
-                  ),
+                _fit(_city.ar, 19),
+                _fit('${_temperature(_weather?['temperature_2m'])}°C', 36),
+                _fit(
+                  _weatherFailed
+                      ? 'تعذر التحديث'
+                      : _weather == null
+                      ? 'جارٍ التحديث'
+                      : weatherDescription(
+                          (_weather!['weather_code'] as num).toInt(),
+                        ),
+                  12,
                 ),
               ],
             ),
           ),
-          if (_weatherFailed)
-            const Positioned(
-              left: 8,
-              top: 8,
-              child: Icon(Icons.cloud_off, size: 10, color: Color(0xFFFFD68A)),
+          const SizedBox(width: 12),
+          SizedBox(
+            width: 112,
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.end,
+              crossAxisAlignment: CrossAxisAlignment.end,
+              children: [
+                _fit(
+                  'الرطوبة ${_number(_weather?['relative_humidity_2m'])}%',
+                  13,
+                ),
+                const SizedBox(height: 12),
+                _fit('الرياح ${_number(_weather?['wind_speed_10m'])} كم/س', 12),
+                const SizedBox(height: 8),
+              ],
             ),
+          ),
         ],
       ),
     ),
   );
-
-  Widget _stat(IconData icon, String value) => FittedBox(
-    fit: BoxFit.scaleDown,
-    alignment: Alignment.centerLeft,
-    child: Row(
-      textDirection: TextDirection.ltr,
-      children: [
-        Icon(icon, size: 15, color: const Color(0xFFC7CDD7)),
-        const SizedBox(width: 3),
-        Text(
-          value,
-          style: _text(
-            11,
-            weight: FontWeight.w600,
-            color: const Color(0xFFECEFF4),
-          ),
-        ),
-      ],
-    ),
-  );
-
-  Widget _prayerPanel() => ReferenceFocusable(
-    focusNode: _headerFocus[1],
-    label: 'مواقيت الصلاة',
-    onPressed: _prayerDetails,
-    onKey: (event) => _headerKeys(event, 1),
-    builder: (context, focused) => ReferenceGlass(
-      radius: 26,
-      focused: focused,
-      child: Padding(
-        padding: const EdgeInsets.fromLTRB(13, 10, 13, 9),
-        child: Column(
-          children: [
-            Row(
-              textDirection: TextDirection.ltr,
-              children: [
-                const DesignAssetIcon(
-                  'assets/prayer/icon_mosque.png',
-                  size: 39,
+  Widget _prayerPanel() => _panel(
+    1,
+    'مواقيت الصلاة',
+    _prayerDetails,
+    Padding(
+      padding: const EdgeInsets.all(15),
+      child: Column(
+        children: [
+          Row(
+            children: [
+              const DesignAssetIcon('assets/prayer/icon_mosque.png', size: 34),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Align(
+                  alignment: Alignment.centerRight,
+                  child: _fit('مواقيت الصلاة - ${_city.ar}', 20),
                 ),
-                const Spacer(),
-                Text('مواقيت الصلاة', style: _text(16)),
-              ],
-            ),
-            const SizedBox(height: 4),
-            Expanded(
-              child: Row(
-                children: [
-                  for (final entry in const {
-                    'Fajr': 'الفجر',
-                    'Dhuhr': 'الظهر',
-                    'Asr': 'العصر',
-                    'Maghrib': 'المغرب',
-                    'Isha': 'العشاء',
-                  }.entries)
-                    Expanded(
-                      child: Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 3),
-                        child: ReferenceGlass(
-                          radius: 10,
-                          active:
-                              _prayerDate == _date &&
-                              entry.key == nextPrayerKey(_prayers ?? {}, _now),
-                          child: Padding(
-                            padding: const EdgeInsets.symmetric(
-                              vertical: 5,
-                              horizontal: 2,
-                            ),
-                            child: Column(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              children: [
-                                FittedBox(
-                                  child: Text(entry.value, style: _text(10.5)),
-                                ),
-                                FittedBox(
-                                  child: Text(
-                                    _prayerTime(entry.key),
-                                    textDirection: TextDirection.ltr,
-                                    style: _text(13.5),
-                                  ),
-                                ),
-                              ],
-                            ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
+          Expanded(
+            child: Row(
+              children: [
+                for (final entry in const {
+                  'Fajr': 'الفجر',
+                  'Dhuhr': 'الظهر',
+                  'Asr': 'العصر',
+                  'Maghrib': 'المغرب',
+                  'Isha': 'العشاء',
+                }.entries)
+                  Expanded(
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 3),
+                      child: PremiumGlass(
+                        radius: 14,
+                        focused:
+                            _prayerDate == _date &&
+                            entry.key == nextPrayerKey(_prayers ?? {}, _now),
+                        child: Padding(
+                          padding: const EdgeInsets.all(5),
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                            children: [
+                              Expanded(child: _fit(entry.value, 14)),
+                              Expanded(child: _fit(_prayerTime(entry.key), 17)),
+                            ],
                           ),
                         ),
                       ),
                     ),
-                ],
-              ),
+                  ),
+              ],
             ),
-          ],
-        ),
+          ),
+        ],
       ),
     ),
   );
-
-  Widget _clockPanel() => ReferenceFocusable(
-    focusNode: _headerFocus[6],
-    label: 'الساعة والتاريخ',
-    onPressed: () => _run(
+  Widget _datePanel() => _panel(
+    2,
+    'التاريخ الميلادي والهجري',
+    () => _run(
       () => FLauncherChannel().launchActivityFromAction(
         'android.settings.DATE_SETTINGS',
       ),
     ),
-    onKey: (event) => _headerKeys(event, 6),
-    builder: (context, focused) => ReferenceGlass(
-      radius: 20,
-      focused: focused,
-      child: Padding(
-        padding: const EdgeInsets.fromLTRB(10, 8, 10, 7),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            FittedBox(
-              child: Row(
-                textDirection: TextDirection.ltr,
-                crossAxisAlignment: CrossAxisAlignment.end,
-                children: [
-                  Text(
-                    DateFormat('hh:mm').format(_riyadhNow),
-                    textDirection: TextDirection.ltr,
-                    style: _text(30, weight: FontWeight.w800),
-                  ),
-                  const SizedBox(width: 4),
-                  Padding(
-                    padding: const EdgeInsets.only(bottom: 4),
-                    child: Text(
-                      _riyadhNow.hour >= 12 ? 'م' : 'ص',
-                      style: _text(14),
-                    ),
-                  ),
-                ],
-              ),
+    Padding(
+      padding: const EdgeInsets.all(18),
+      child: Row(
+        children: [
+          const Icon(
+            Icons.calendar_month_outlined,
+            size: 45,
+            color: referenceGold,
+          ),
+          const SizedBox(width: 20),
+          Expanded(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+              crossAxisAlignment: CrossAxisAlignment.end,
+              children: [
+                _fit(
+                  DateFormat('EEEE', _english ? 'en' : 'ar').format(_riyadhNow),
+                  20,
+                ),
+                _fit(
+                  DateFormat(
+                    'd MMMM yyyy',
+                    _english ? 'en' : 'ar',
+                  ).format(_riyadhNow),
+                  16,
+                ),
+                _fit(
+                  _hijriDate == _date
+                      ? (_english ? _hijriEnglishLabel : _hijriLabel)
+                      : 'التاريخ الهجري —',
+                  14,
+                  color: Colors.white70,
+                ),
+              ],
             ),
-            FittedBox(
-              child: Text(
-                DateFormat('EEEE d MMMM yyyy', 'ar').format(_riyadhNow),
-                style: _text(10, weight: FontWeight.w600),
-              ),
-            ),
-          ],
-        ),
+          ),
+        ],
       ),
     ),
   );
-
   Widget _topButton(
     int index,
     String label,
     IconData icon,
     VoidCallback action, {
-    bool busy = false,
     bool badge = false,
   }) => ReferenceFocusable(
+    key: ValueKey('status-$index'),
     focusNode: _headerFocus[index],
     label: label,
     onPressed: action,
-    onKey: (event) => _headerKeys(event, index),
-    builder: (context, focused) => Stack(
-      clipBehavior: Clip.none,
-      children: [
-        Positioned.fill(
-          child: ReferenceGlass(
-            radius: 17,
-            focused: focused,
-            child: Center(
-              child: busy
-                  ? const SizedBox(
-                      width: 17,
-                      height: 17,
-                      child: CircularProgressIndicator(
-                        strokeWidth: 1.5,
-                        color: referenceGold,
-                      ),
-                    )
-                  : Icon(
-                      icon,
-                      size: index == 5 ? 28 : 25,
-                      color: const Color(0xFFE7EAF1),
-                    ),
+    onKey: (e) => _headerKeys(e, index),
+    builder: (_, focused) => AnimatedContainer(
+      duration: const Duration(milliseconds: 180),
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(15),
+        border: Border.all(color: focused ? referenceGold : Colors.transparent),
+        color: focused ? const Color(0xA6000000) : Colors.transparent,
+      ),
+      child: Stack(
+        alignment: Alignment.center,
+        children: [
+          Icon(icon, size: 27, color: Colors.white),
+          if (badge)
+            const Positioned(
+              top: 5,
+              right: 5,
+              child: Icon(Icons.circle, size: 7, color: referenceGold),
             ),
-          ),
+        ],
+      ),
+    ),
+  );
+  Widget _clockPanel() => _plainPanel(
+    6,
+    'الساعة',
+    () => _run(
+      () => FLauncherChannel().launchActivityFromAction(
+        'android.settings.DATE_SETTINGS',
+      ),
+    ),
+    Center(
+      child: FittedBox(
+        fit: BoxFit.scaleDown,
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          textDirection: TextDirection.ltr,
+          crossAxisAlignment: CrossAxisAlignment.end,
+          children: [
+            Text(
+              DateFormat('hh:mm').format(_riyadhNow),
+              textDirection: TextDirection.ltr,
+              style: _text(34),
+            ),
+            const SizedBox(width: 6),
+            Text(
+              _riyadhNow.hour >= 12 ? _l('م', 'PM') : _l('ص', 'AM'),
+              style: _text(16),
+            ),
+          ],
         ),
-        if (badge)
-          Positioned(
-            top: -3,
-            right: 1,
-            child: Container(
-              width: 12,
-              height: 14,
-              alignment: Alignment.center,
-              decoration: BoxDecoration(
-                color: Colors.red,
-                borderRadius: BorderRadius.circular(6),
-              ),
-              child: Text('1', style: _text(8)),
-            ),
-          ),
-      ],
+      ),
     ),
   );
 
-  Widget _navigation(List<App> apps) {
-    const titles = [
-      'الرئيسية',
-      'البث المباشر',
-      'الأفلام',
-      'المسلسلات',
-      'الإعدادات',
-    ];
-    const icons = [
-      Icons.home_outlined,
-      Icons.live_tv_outlined,
-      Icons.movie_filter_outlined,
-      Icons.movie_outlined,
-      Icons.settings_outlined,
-    ];
-    return Stack(
-      children: [
-        const Positioned.fill(
-          child: RepaintBoundary(
-            child: CustomPaint(painter: ReferenceSidebarPainter()),
-          ),
-        ),
-        const Positioned(
-          left: 64,
-          top: 12,
-          width: 100,
-          height: 76,
-          child: Image(
-            image: AssetImage('assets/branding/logo_aervix.png'),
-            fit: BoxFit.contain,
-          ),
-        ),
-        Positioned(
-          left: 13,
-          top: 85,
-          width: 188,
-          height: 26,
-          child: FittedBox(
-            child: Text(
-              'AERVIX TV',
-              textDirection: TextDirection.ltr,
-              style: _text(
-                27,
-                weight: FontWeight.w800,
-                color: const Color(0xFFE5E6EC),
+  Widget _media(int index, String title, String asset) => ReferenceFocusable(
+    key: ValueKey('navigation-$index'),
+    focusNode: _navFocus[index],
+    autofocus: index == 2,
+    label: title,
+    onPressed: () => _navigate(index, []),
+    onKey: (e) => referenceDirections(
+      e,
+      left: () => _navFocus[index == 1 ? 1 : index - 1].requestFocus(),
+      right: () => _navFocus[index == 3 ? 3 : index + 1].requestFocus(),
+      up: () => _headerFocus[index - 1].requestFocus(),
+      down: _dockFocus.requestFocus,
+    ),
+    builder: (_, focused) => PremiumGlass(
+      focused: focused,
+      purple: true,
+      radius: 34,
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          DesignAssetIcon(asset, size: 68),
+          const SizedBox(height: 10),
+          _fit(title, 25),
+          if (index == 1) ...[
+            const SizedBox(height: 5),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 1),
+              decoration: BoxDecoration(
+                color: Colors.red,
+                borderRadius: BorderRadius.circular(7),
               ),
+              child: Text('LIVE', style: _text(10)),
             ),
-          ),
-        ),
-        Positioned(
-          left: 30,
-          top: 115,
-          width: 158,
-          height: 16,
-          child: Center(
-            child: Text(
-              'ترفيه منزلي ذكي',
-              style: _text(9.5, weight: FontWeight.w600),
-            ),
-          ),
-        ),
-        for (var i = 0; i < titles.length; i++)
-          Positioned(
-            left: 20,
-            top: ReferenceLayout.navigationY[i],
-            width: 180,
-            height: 53,
-            child: ReferenceFocusable(
-              key: ValueKey('navigation-$i'),
-              focusNode: _navFocus[i],
-              autofocus: i == 0,
-              label: titles[i],
-              onPressed: () => _navigate(i, apps),
-              onKey: (event) => referenceDirections(
-                event,
-                up: () => i > 0 ? _navFocus[i - 1].requestFocus() : null,
-                down: () => i < 4 ? _navFocus[i + 1].requestFocus() : null,
-                left: () {},
-                right: () => i >= 3
-                    ? _dockFocus.requestFocus()
-                    : _headerFocus[0].requestFocus(),
-              ),
-              builder: (context, focused) => ReferenceGlass(
-                radius: 14,
-                focused: focused,
-                active: i == 0,
-                minimal: true,
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 18),
-                  child: Row(
-                    textDirection: TextDirection.ltr,
-                    children: [
-                      i == 2
-                          ? Image.asset(
-                              'assets/entertainment/icon_film_reel.png',
-                              width: 29,
-                              height: 29,
-                              color: const Color(0xFFDBDFE8),
-                              colorBlendMode: BlendMode.srcIn,
-                            )
-                          : Icon(
-                              icons[i],
-                              size: 29,
-                              color: const Color(0xFFDBDFE8),
-                            ),
-                      const SizedBox(width: 9),
-                      Expanded(
-                        child: Align(
-                          alignment: Alignment.centerRight,
-                          child: FittedBox(
-                            fit: BoxFit.scaleDown,
-                            child: Text(titles[i], style: _text(16.5)),
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
+          ],
+        ],
+      ),
+    ),
+  );
+
+  Future<void> _allApps() async {
+    await showDialog<void>(
+      context: context,
+      builder: (dialogContext) => Directionality(
+        textDirection: TextDirection.rtl,
+        child: AlertDialog(
+          title: Text(_l('جميع التطبيقات', 'All apps')),
+          content: SizedBox(
+            width: 820,
+            height: 420,
+            child: Consumer<AppsService>(
+              builder: (context, service, _) => GridView.builder(
+                gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                  crossAxisCount: 5,
+                  childAspectRatio: 1.15,
+                  crossAxisSpacing: 12,
+                  mainAxisSpacing: 12,
                 ),
+                itemCount: service.applications.where((a) => !a.hidden).length,
+                itemBuilder: (context, i) {
+                  final app = service.applications
+                      .where((a) => !a.hidden)
+                      .toList()[i];
+                  return ReferenceFocusable(
+                    autofocus: i == 0,
+                    label: app.name,
+                    onPressed: () => _run(() => service.launchApp(app)),
+                    onLongPress: () => _appOptions(app),
+                    builder: (_, focused) => PremiumGlass(
+                      focused: focused,
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          InstalledAppIcon(app: app, size: 56),
+                          const SizedBox(height: 6),
+                          Padding(
+                            padding: const EdgeInsets.symmetric(horizontal: 8),
+                            child: Text(
+                              app.name,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: _text(12),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  );
+                },
               ),
             ),
           ),
-      ],
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(dialogContext),
+              child: const Text('رجوع'),
+            ),
+          ],
+        ),
+      ),
     );
+    if (mounted) _allAppsFocus.requestFocus();
   }
 
   @override
   Widget build(BuildContext context) {
     final service = context.watch<AppsService>();
-    final apps = service.applications.where((a) => !a.hidden).toList();
-    final ordered = _orderedDock(apps);
+    final network = context.watch<NetworkService?>();
+    final ordered = _orderedDock(
+      service.applications.where((a) => !a.hidden).toList(),
+    );
     final favourites = context.watch<DockFavourites?>();
     final dockApps = favourites?.visible(ordered) ?? ordered.take(7).toList();
-    if (favourites != null && !favourites.initialized && service.initialized) {
+    if (favourites != null && !favourites.initialized && service.initialized)
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (mounted) favourites.seed(ordered).catchError((Object _) {});
       });
-    }
     return PopScope(
       canPop: false,
       onPopInvokedWithResult: (didPop, result) {
-        if (!didPop) _navFocus[0].requestFocus();
+        if (!didPop) _navFocus[2].requestFocus();
       },
       child: Directionality(
         textDirection: TextDirection.rtl,
@@ -878,20 +1023,18 @@ class _AervixHomeState extends State<AervixHome> with WidgetsBindingObserver {
           backgroundColor: Colors.black,
           body: LayoutBuilder(
             builder: (context, constraints) {
-              final physicalWidth =
-                  constraints.maxWidth * MediaQuery.devicePixelRatioOf(context);
               return MediaQuery.withClampedTextScaling(
                 minScaleFactor: .85,
                 maxScaleFactor: 1.15,
                 child: Focus(
                   onKeyEvent: (_, event) {
                     if (event is KeyDownEvent &&
-                        [
+                        const [
                           LogicalKeyboardKey.escape,
                           LogicalKeyboardKey.goBack,
                           LogicalKeyboardKey.gameButtonB,
                         ].contains(event.logicalKey)) {
-                      _navFocus[0].requestFocus();
+                      _navFocus[2].requestFocus();
                       return KeyEventResult.handled;
                     }
                     return KeyEventResult.ignored;
@@ -900,8 +1043,8 @@ class _AervixHomeState extends State<AervixHome> with WidgetsBindingObserver {
                     child: FittedBox(
                       fit: BoxFit.contain,
                       child: SizedBox(
-                        width: ReferenceLayout.canvas.width,
-                        height: ReferenceLayout.canvas.height,
+                        width: 1280,
+                        height: 720,
                         child: DefaultTextStyle(
                           style: _text(16),
                           child: Stack(
@@ -909,19 +1052,26 @@ class _AervixHomeState extends State<AervixHome> with WidgetsBindingObserver {
                               Positioned.fill(
                                 child: RepaintBoundary(
                                   child: Image.asset(
-                                    ReferenceLayout.wallpaper(physicalWidth),
+                                    'assets/premium_home/jeddah_night.jpg',
                                     fit: BoxFit.cover,
-                                    cacheWidth: physicalWidth >= 3000
-                                        ? 3840
-                                        : 1920,
                                     filterQuality: FilterQuality.medium,
                                   ),
                                 ),
                               ),
-                              _place(
-                                ReferenceLayout.sidebar,
-                                _navigation(apps),
-                                key: const ValueKey('reference-sidebar'),
+                              const Positioned.fill(
+                                child: DecoratedBox(
+                                  decoration: BoxDecoration(
+                                    gradient: LinearGradient(
+                                      begin: Alignment.topCenter,
+                                      end: Alignment.bottomCenter,
+                                      colors: [
+                                        Color(0x44020912),
+                                        Color(0x08020912),
+                                        Color(0x66000000),
+                                      ],
+                                    ),
+                                  ),
+                                ),
                               ),
                               _place(
                                 ReferenceLayout.weather,
@@ -934,24 +1084,37 @@ class _AervixHomeState extends State<AervixHome> with WidgetsBindingObserver {
                                 key: const ValueKey('reference-prayer'),
                               ),
                               _place(
+                                ReferenceLayout.date,
+                                _datePanel(),
+                                key: const ValueKey('reference-date'),
+                              ),
+                              _place(
                                 ReferenceLayout.clock,
                                 _clockPanel(),
                                 key: const ValueKey('reference-clock'),
                               ),
                               _place(
-                                const Rect.fromLTWH(891, 39, 44, 40),
+                                const Rect.fromLTWH(890, 30, 44, 44),
                                 _topButton(
-                                  2,
-                                  'إعدادات الشبكة',
-                                  Icons.wifi,
+                                  3,
+                                  network == null
+                                      ? 'إعدادات الشبكة'
+                                      : network.hasInternetAccess
+                                      ? 'الشبكة متصلة'
+                                      : 'الشبكة غير متصلة',
+                                  network?.networkType == NetworkType.Wired
+                                      ? Icons.settings_ethernet
+                                      : network?.hasInternetAccess == false
+                                      ? Icons.wifi_off
+                                      : Icons.wifi,
                                   () =>
                                       _run(FLauncherChannel().openWifiSettings),
                                 ),
                               ),
                               _place(
-                                const Rect.fromLTWH(949, 39, 43, 40),
+                                const Rect.fromLTWH(948, 30, 44, 44),
                                 _topButton(
-                                  3,
+                                  4,
                                   'إعدادات بلوتوث',
                                   Icons.bluetooth,
                                   () => _run(
@@ -963,60 +1126,97 @@ class _AervixHomeState extends State<AervixHome> with WidgetsBindingObserver {
                                 ),
                               ),
                               _place(
-                                const Rect.fromLTWH(1006, 39, 43, 40),
+                                const Rect.fromLTWH(1006, 30, 44, 44),
                                 kEnableSelfUpdater
                                     ? AervixUpdateButton(
                                         builder:
-                                            (
-                                              context,
-                                              busy,
-                                              available,
-                                              action,
-                                            ) => _topButton(
-                                              4,
-                                              'تحديثات التطبيق',
-                                              Icons.notifications_none,
-                                              action,
-                                              busy: busy,
-                                              badge: available,
-                                            ),
+                                            (context, busy, available, action) {
+                                              _updateAction = action;
+                                              return _topButton(
+                                                5,
+                                                'الإعدادات',
+                                                Icons.settings_outlined,
+                                                _settings,
+                                                badge: available,
+                                              );
+                                            },
                                       )
                                     : _topButton(
-                                        4,
-                                        'إعدادات الإشعارات',
-                                        Icons.notifications_none,
-                                        () => _run(
-                                          () => FLauncherChannel()
-                                              .launchActivityFromAction(
-                                                'android.settings.NOTIFICATION_SETTINGS',
-                                              ),
-                                        ),
+                                        5,
+                                        'الإعدادات',
+                                        Icons.settings_outlined,
+                                        _settings,
                                       ),
                               ),
                               _place(
-                                const Rect.fromLTWH(1061, 39, 39, 40),
-                                _topButton(
-                                  5,
-                                  'إعدادات الحساب والجهاز',
-                                  Icons.person_outline,
-                                  () => _run(FLauncherChannel().openSettings),
+                                ReferenceLayout.live,
+                                _media(
+                                  1,
+                                  'البث المباشر',
+                                  'assets/categories/icon_live_tv.png',
                                 ),
+                                key: const ValueKey('reference-live'),
+                              ),
+                              _place(
+                                ReferenceLayout.movies,
+                                _media(
+                                  2,
+                                  'الأفلام',
+                                  'assets/entertainment/icon_clapperboard.png',
+                                ),
+                                key: const ValueKey('reference-movies'),
+                              ),
+                              _place(
+                                ReferenceLayout.series,
+                                _media(
+                                  3,
+                                  'المسلسلات',
+                                  'assets/entertainment/icon_film_reel.png',
+                                ),
+                                key: const ValueKey('reference-series'),
                               ),
                               _place(
                                 ReferenceLayout.dock,
                                 ReferenceDock(
                                   apps: dockApps,
+                                  compactIcons: true,
                                   onLaunch: (app) =>
                                       _run(() => service.launchApp(app)),
                                   onEdit: _editDock,
-                                  onLeftBoundary: () =>
-                                      _navFocus[0].requestFocus(),
-                                  firstFocus: _dockFocus,
                                   onAppOptions: _appOptions,
+                                  firstFocus: _dockFocus,
                                   onAppFocused: (node) => _lastDockFocus = node,
-                                  onUp: (_) => _headerFocus[0].requestFocus(),
+                                  onLeftBoundary: _dockFocus.requestFocus,
+                                  onRightBoundary: _allAppsFocus.requestFocus,
+                                  onUp: (_) => _navFocus[2].requestFocus(),
                                 ),
                                 key: const ValueKey('applications-band'),
+                              ),
+                              _place(
+                                const Rect.fromLTWH(1130, 551, 100, 86),
+                                ReferenceFocusable(
+                                  key: const ValueKey('all-applications'),
+                                  focusNode: _allAppsFocus,
+                                  label: 'جميع التطبيقات',
+                                  onPressed: _allApps,
+                                  onKey: (e) => referenceDirections(
+                                    e,
+                                    left: () => (_lastDockFocus ?? _dockFocus)
+                                        .requestFocus(),
+                                    right: () {},
+                                    up: () => _navFocus[3].requestFocus(),
+                                    down: () {},
+                                  ),
+                                  builder: (_, focused) => PremiumGlass(
+                                    focused: focused,
+                                    child: const Center(
+                                      child: Icon(
+                                        Icons.grid_view_rounded,
+                                        size: 40,
+                                      ),
+                                    ),
+                                  ),
+                                ),
                               ),
                             ],
                           ),

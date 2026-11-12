@@ -1,3 +1,4 @@
+import 'providers/home_preferences.dart';
 /*
  * FLauncher
  * Copyright (C) 2021  Étienne Fesser
@@ -70,7 +71,8 @@ class FLauncherApp extends StatelessWidget {
             GlobalWidgetsLocalizations.delegate,
           ],
           supportedLocales: AppLocalizations.supportedLocales,
-          locale: const Locale('ar'),
+          locale:
+              context.watch<HomePreferences?>()?.locale ?? const Locale('ar'),
           title: 'AERVIX TV',
           theme: ThemeData(
             useMaterial3: true,
