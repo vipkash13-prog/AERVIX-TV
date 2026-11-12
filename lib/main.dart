@@ -33,6 +33,8 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:intl/date_symbol_data_local.dart';
 
 import 'flauncher_app.dart';
+import 'xtream/account_store.dart';
+import 'xtream/xtream_service.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -42,33 +44,53 @@ Future<void> main() async {
   final fLauncherChannel = FLauncherChannel();
   final fLauncherDatabase = FLauncherDatabase(connect());
 
-  runApp(MultiProvider(
+  runApp(
+    MultiProvider(
       providers: [
         ChangeNotifierProvider(
-            create: (_) => SettingsService(sharedPreferences),
-            lazy: false),
-        ChangeNotifierProvider(create: (_) => AppsService(fLauncherChannel, fLauncherDatabase)),
+          create: (_) => XtreamService(
+            SecureAccountStore(sharedPreferences),
+            sharedPreferences,
+          ),
+          lazy: false,
+        ),
+        ChangeNotifierProvider(
+          create: (_) => SettingsService(sharedPreferences),
+          lazy: false,
+        ),
+        ChangeNotifierProvider(
+          create: (_) => AppsService(fLauncherChannel, fLauncherDatabase),
+        ),
         ChangeNotifierProvider(create: (_) => LauncherState()),
         ChangeNotifierProvider(create: (_) => NetworkService(fLauncherChannel)),
         ChangeNotifierProvider(
-            create: (context) {
-              SettingsService settingsService = Provider.of(context, listen: false);
-              return WallpaperService(settingsService);
-            }
+          create: (context) {
+            SettingsService settingsService = Provider.of(
+              context,
+              listen: false,
+            );
+            return WallpaperService(settingsService);
+          },
         ),
         ChangeNotifierProvider(
-            create: (_) => BrightnessService(sharedPreferences),
-            lazy: false
+          create: (_) => BrightnessService(sharedPreferences),
+          lazy: false,
         ),
         ChangeNotifierProvider(
-            create: (context) {
-              final settingsService = Provider.of<SettingsService>(context, listen: false);
-              return WatchNextService(fLauncherChannel, settingsService: settingsService);
-            },
-            lazy: false
+          create: (context) {
+            final settingsService = Provider.of<SettingsService>(
+              context,
+              listen: false,
+            );
+            return WatchNextService(
+              fLauncherChannel,
+              settingsService: settingsService,
+            );
+          },
+          lazy: false,
         ),
       ],
-      child: FLauncherApp()
-    )
+      child: FLauncherApp(),
+    ),
   );
 }

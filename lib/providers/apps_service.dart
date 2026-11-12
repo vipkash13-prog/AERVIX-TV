@@ -42,6 +42,7 @@ class AppsService extends ChangeNotifier
   List<LauncherSection> _launcherSections = List.empty(growable: true);
   Map<String, App> _applications = Map();
   Map<String, Uint8List> _iconCache = Map();
+  final _iconRequests = <String, Future<Uint8List>>{};
   Map<String, Uint8List> _bannerCache = Map();
 
   Map<int, Category> _categoriesById = Map();
@@ -107,7 +108,7 @@ class AppsService extends ChangeNotifier
       }
 
       if (changedPackageName != null) {
-        _iconCache.remove(changedPackageName);
+        _invalidateIcon(changedPackageName);
         _bannerCache.remove(changedPackageName);
         _dirtyImagePackages.add(changedPackageName);
       }
@@ -170,7 +171,7 @@ class AppsService extends ChangeNotifier
             } else {
               _applications[newApp.packageName] = newApp;
             }
-            _iconCache.remove(newApp.packageName);
+            _invalidateIcon(newApp.packageName);
             _bannerCache.remove(newApp.packageName);
           }
           break;
@@ -179,7 +180,7 @@ class AppsService extends ChangeNotifier
           await _database.deleteApps([packageName]);
 
           // Clear icon cache for removed app
-          _iconCache.remove(packageName);
+          _invalidateIcon(packageName);
           _bannerCache.remove(packageName);
 
           App? application = _applications.remove(packageName);
@@ -439,15 +440,24 @@ class AppsService extends ChangeNotifier
     return prefs.containsKey('custom_banner_$packageName');
   }
 
-  Future<Uint8List> getAppIcon(String packageName) async {
-    if (_iconCache.containsKey(packageName)) {
-      return _iconCache[packageName]!;
-    }
-    final bytes = await _fLauncherChannel.getApplicationIcon(packageName);
-    if (bytes.isNotEmpty) {
-      _iconCache[packageName] = bytes;
-    }
-    return bytes;
+  void _invalidateIcon(String packageName) {
+    _iconCache.remove(packageName);
+    _iconRequests.remove(packageName);
+  }
+
+  Future<Uint8List> getAppIcon(String packageName) {
+    final cached = _iconCache[packageName];
+    if (cached != null) return Future.value(cached);
+    return _iconRequests.putIfAbsent(packageName, () {
+      late final Future<Uint8List> request;
+      request = _fLauncherChannel.getApplicationIcon(packageName).then((bytes) {
+        if (bytes.isNotEmpty && identical(_iconRequests[packageName], request)) _iconCache[packageName] = bytes;
+        return bytes;
+      }).catchError((Object _) => Uint8List(0)).whenComplete(() {
+        if (identical(_iconRequests[packageName], request)) _iconRequests.remove(packageName);
+      });
+      return request;
+    });
   }
 
   Future<void> launchApp(App app) async {

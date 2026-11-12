@@ -11,6 +11,10 @@ import 'design_asset_icon.dart';
 import 'aervix_update_button.dart';
 import 'reference_chrome.dart';
 import 'reference_dock.dart';
+import '../xtream/models.dart';
+import '../xtream/xtream_service.dart';
+import '../xtream/account_dialog.dart';
+import '../xtream/browser_page.dart';
 import '../build_flags.dart';
 import 'package:provider/provider.dart';
 import '../flauncher_channel.dart';
@@ -231,25 +235,6 @@ class _AervixHomeState extends State<AervixHome> with WidgetsBindingObserver {
     child: InstalledAppIcon(app: app),
   );
 
-  List<App> _matching(List<App> apps, List<String> terms) => apps.where((app) {
-    final value = '${app.name} ${app.packageName}'.toLowerCase();
-    return terms.any(value.contains);
-  }).toList();
-
-  List<App> _media(List<App> apps) => _matching(apps, [
-    'stremio',
-    'nuvio',
-    'movie',
-    'shahid',
-    'mbc',
-    'netflix',
-    'stream',
-    'apple',
-    'atve',
-    'video',
-    'harbor',
-  ]);
-
   List<App> _orderedDock(List<App> apps) {
     const priority = [
       ['apple', 'atve'],
@@ -275,19 +260,46 @@ class _AervixHomeState extends State<AervixHome> with WidgetsBindingObserver {
     return result;
   }
 
+  Future<void> _openXtream(MediaKind kind) async {
+    final service = context.read<XtreamService?>();
+    if (service == null) {
+      await showDialog<void>(
+        context: context,
+        builder: (context) => AlertDialog(
+          title: const Text('اشتراك Xtream'),
+          content: const Text('خدمة الاشتراك غير متاحة. أعد فتح التطبيق.'),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text('رجوع'),
+            ),
+          ],
+        ),
+      );
+      return;
+    }
+    await service.ready;
+    if (!mounted) return;
+    if (!service.configured && !await showXtreamAccount(context, service))
+      return;
+    if (!mounted) return;
+    await Navigator.of(context).push(
+      MaterialPageRoute<void>(
+        builder: (_) => XtreamBrowserPage(service: service, kind: kind),
+      ),
+    );
+  }
+
   void _navigate(int index, List<App> apps) {
     switch (index) {
       case 0:
         _heroFocus[0].requestFocus();
       case 1:
-        _showApps(
-          'البث المباشر',
-          _matching(apps, ['iptv', 'yacin', 'live', 'tv', 'shahid', 'mbc']),
-        );
+        _openXtream(MediaKind.live);
       case 2:
-        _showApps('الأفلام', _media(apps));
+        _openXtream(MediaKind.movie);
       case 3:
-        _showApps('المسلسلات', _media(apps));
+        _openXtream(MediaKind.series);
       case 4:
         _showApps('الألعاب', apps.where((a) => a.isGame).toList());
       case 5:
@@ -757,7 +769,13 @@ class _AervixHomeState extends State<AervixHome> with WidgetsBindingObserver {
   }) => ReferenceFocusable(
     focusNode: _heroFocus[index],
     label: title,
-    onPressed: () => _showApps(title, apps),
+    onPressed: () => _openXtream(
+      index == 0
+          ? MediaKind.movie
+          : index == 1
+          ? MediaKind.series
+          : MediaKind.live,
+    ),
     onKey: (event) => referenceDirections(
       event,
       left: () => index == 0
@@ -1139,7 +1157,7 @@ class _AervixHomeState extends State<AervixHome> with WidgetsBindingObserver {
                                   'الأفلام',
                                   'عالم السينما',
                                   'assets/reference_ui/movies_art.png',
-                                  _media(apps),
+                                  apps,
                                   skew: -1,
                                 ),
                                 key: const ValueKey('reference-movies'),
@@ -1151,7 +1169,7 @@ class _AervixHomeState extends State<AervixHome> with WidgetsBindingObserver {
                                   'المسلسلات',
                                   'عروض ومسلسلات',
                                   'assets/reference_ui/series_art.png',
-                                  _media(apps),
+                                  apps,
                                 ),
                                 key: const ValueKey('reference-series'),
                               ),
@@ -1162,13 +1180,7 @@ class _AervixHomeState extends State<AervixHome> with WidgetsBindingObserver {
                                   'البث المباشر',
                                   'قنوات مباشرة',
                                   'assets/reference_ui/live_art.png',
-                                  _matching(apps, [
-                                    'iptv',
-                                    'yacin',
-                                    'live',
-                                    'tv',
-                                    'shahid',
-                                  ]),
+                                  apps,
                                   skew: 1,
                                   live: true,
                                 ),

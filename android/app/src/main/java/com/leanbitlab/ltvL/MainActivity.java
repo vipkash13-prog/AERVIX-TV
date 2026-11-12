@@ -366,7 +366,9 @@ public class MainActivity extends FlutterActivity {
                 Canvas canvas = new Canvas(bitmap);
                 int width = Math.max(1, drawable.getIntrinsicWidth());
                 int height = Math.max(1, drawable.getIntrinsicHeight());
-                float factor = Math.min((float) size / width, (float) size / height);
+                // Keep a transparent safe margin around full rectangular/adaptive icons.
+                final int contentSize = 448;
+                float factor = Math.min((float) contentSize / width, (float) contentSize / height);
                 int drawWidth = Math.round(width * factor), drawHeight = Math.round(height * factor);
                 drawable.setBounds((size - drawWidth) / 2, (size - drawHeight) / 2,
                         (size + drawWidth) / 2, (size + drawHeight) / 2);
