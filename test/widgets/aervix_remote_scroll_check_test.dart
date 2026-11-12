@@ -25,7 +25,7 @@ void main() {
         18,
         (index) => App(
           packageName: 'installed.$index',
-          name: 'TV $index',
+          name: 'TV ${index.toString().padLeft(2, '0')}',
           version: '1',
           hidden: false,
         ),
@@ -48,15 +48,21 @@ void main() {
         ),
       );
       await tester.pumpAndSettle();
+      for (var i = 0; i < 5; i++) {
+        await tester.sendKeyEvent(LogicalKeyboardKey.arrowDown);
+        await tester.pumpAndSettle();
+      }
+      await tester.sendKeyEvent(LogicalKeyboardKey.arrowRight);
+      await tester.pumpAndSettle();
       for (var i = 0; i < 17; i++) {
-        await tester.sendKeyEvent(LogicalKeyboardKey.arrowLeft);
+        await tester.sendKeyEvent(LogicalKeyboardKey.arrowRight);
         await tester.pumpAndSettle();
       }
       await tester.sendKeyEvent(LogicalKeyboardKey.enter);
       await tester.pumpAndSettle();
       verify(service.launchApp(apps.last)).called(1);
       for (var i = 0; i < 17; i++) {
-        await tester.sendKeyEvent(LogicalKeyboardKey.arrowRight);
+        await tester.sendKeyEvent(LogicalKeyboardKey.arrowLeft);
         await tester.pumpAndSettle();
       }
       await tester.sendKeyEvent(LogicalKeyboardKey.select);

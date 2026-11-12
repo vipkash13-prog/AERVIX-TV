@@ -7,10 +7,18 @@ import 'gold_focus_tile.dart';
 class AervixUpdateButton extends StatefulWidget {
   final UpdateService? service;
   final bool automaticallyCheck;
+  final Widget Function(
+    BuildContext context,
+    bool busy,
+    bool available,
+    VoidCallback activate,
+  )?
+  builder;
   const AervixUpdateButton({
     super.key,
     this.service,
     this.automaticallyCheck = true,
+    this.builder,
   });
   @override
   State<AervixUpdateButton> createState() => _AervixUpdateButtonState();
@@ -151,31 +159,41 @@ class _AervixUpdateButtonState extends State<AervixUpdateButton>
   }
 
   @override
-  Widget build(BuildContext context) => GoldFocusTile(
-    label: _busy
-        ? 'جارٍ فحص أو تنزيل التحديث'
-        : _update?.updateAvailable == true
-        ? 'تحديث متاح'
-        : 'تحديث التطبيق',
-    showLabel: false,
-    onPressed: _activate,
-    child: _busy
-        ? const SizedBox(
-            width: 25,
-            height: 25,
-            child: CircularProgressIndicator(strokeWidth: 2, color: aervixGold),
-          )
-        : Stack(
-            clipBehavior: Clip.none,
-            children: [
-              const Icon(Icons.system_update_alt, size: 30),
-              if (_update?.updateAvailable == true)
-                const Positioned(
-                  right: -4,
-                  top: -4,
-                  child: Icon(Icons.circle, size: 10, color: aervixGold),
+  Widget build(BuildContext context) =>
+      widget.builder?.call(
+        context,
+        _busy,
+        _update?.updateAvailable == true,
+        _activate,
+      ) ??
+      GoldFocusTile(
+        label: _busy
+            ? 'جارٍ فحص أو تنزيل التحديث'
+            : _update?.updateAvailable == true
+            ? 'تحديث متاح'
+            : 'تحديث التطبيق',
+        showLabel: false,
+        onPressed: _activate,
+        child: _busy
+            ? const SizedBox(
+                width: 25,
+                height: 25,
+                child: CircularProgressIndicator(
+                  strokeWidth: 2,
+                  color: aervixGold,
                 ),
-            ],
-          ),
-  );
+              )
+            : Stack(
+                clipBehavior: Clip.none,
+                children: [
+                  const Icon(Icons.system_update_alt, size: 30),
+                  if (_update?.updateAvailable == true)
+                    const Positioned(
+                      right: -4,
+                      top: -4,
+                      child: Icon(Icons.circle, size: 10, color: aervixGold),
+                    ),
+                ],
+              ),
+      );
 }

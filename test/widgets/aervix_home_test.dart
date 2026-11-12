@@ -148,13 +148,11 @@ void main() {
       await tester.pumpAndSettle();
       expect(find.text('28°C'), findsOneWidget);
       expect(find.text('05:09'), findsOneWidget);
-      expect(find.text('غائم جزئيًا'), findsOneWidget);
-      await tester.sendKeyEvent(LogicalKeyboardKey.enter);
+
+      await tester.tap(find.byKey(const ValueKey('dock-installed.example')));
       await tester.pumpAndSettle();
       verify(service.launchApp(app)).called(1);
-      await tester.sendKeyEvent(LogicalKeyboardKey.arrowDown);
-      await tester.pumpAndSettle();
-      await tester.sendKeyEvent(LogicalKeyboardKey.enter);
+      await tester.tap(find.byKey(const ValueKey('navigation-5')));
       await tester.pumpAndSettle();
       expect(find.byType(AlertDialog), findsOneWidget);
       await tester.binding.handlePopRoute();
@@ -187,7 +185,13 @@ void main() {
       ),
     );
     await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const ValueKey('reference-weather')));
+    await tester.pumpAndSettle();
     expect(find.text('تعذر تحديث الطقس'), findsOneWidget);
+    await tester.binding.handlePopRoute();
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const ValueKey('reference-prayer')));
+    await tester.pumpAndSettle();
     expect(find.text('تعذر تحديث المواقيت'), findsOneWidget);
     expect(find.text('28°C'), findsNothing);
     expect(tester.takeException(), isNull);
@@ -225,18 +229,20 @@ void main() {
           .getTopLeft(find.byKey(const ValueKey('applications-band')))
           .dy;
       expect(
-        tester.getBottomLeft(find.text('تعذر تحديث الطقس')).dy,
+        tester
+            .getBottomLeft(find.byKey(const ValueKey('reference-weather')))
+            .dy,
         lessThan(rowTop),
       );
       expect(tester.getBottomLeft(find.text('العشاء')).dy, lessThan(rowTop));
       expect(
-        tester.getBottomLeft(find.byKey(const ValueKey('left-information'))).dy,
+        tester
+            .getBottomLeft(find.byKey(const ValueKey('reference-weather')))
+            .dy,
         lessThan(rowTop),
       );
       expect(
-        tester
-            .getBottomLeft(find.byKey(const ValueKey('prayer-information')))
-            .dy,
+        tester.getBottomLeft(find.byKey(const ValueKey('reference-prayer'))).dy,
         lessThan(rowTop),
       );
       expect(tester.takeException(), isNull);

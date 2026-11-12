@@ -73,12 +73,20 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 
 public class MainActivity extends FlutterActivity {
+    private final ExecutorService iconLoader = Executors.newFixedThreadPool(2);
+
     private final String METHOD_CHANNEL = "me.efesser.flauncher/method";
     private final String APPS_EVENT_CHANNEL = "me.efesser.flauncher/event_apps";
     private final String NETWORK_EVENT_CHANNEL = "me.efesser.flauncher/event_network";
     private static final String PERMISSION_READ_TV_LISTINGS = "android.permission.READ_TV_LISTINGS";
     private static final int REQUEST_CODE_READ_TV_LISTINGS = 1001;
     private static final String COLUMN_ASPECT_RATIO = "aspect_ratio";
+
+    @Override
+    protected void onDestroy() {
+        iconLoader.shutdownNow();
+        super.onDestroy();
+    }
 
     @Override
     public void configureFlutterEngine(@NonNull FlutterEngine flutterEngine) {
@@ -90,7 +98,17 @@ public class MainActivity extends FlutterActivity {
             switch (call.method) {
                 case "getApplications" -> result.success(getApplications());
                 case "getApplicationBanner" -> result.success(getApplicationBanner(call.arguments()));
-                case "getApplicationIcon" -> result.success(getApplicationIcon(call.arguments()));
+                case "getApplicationIcon" -> {
+                    final String iconPackage = call.arguments();
+                    iconLoader.execute(() -> {
+                        try {
+                            byte[] icon = getApplicationIcon(iconPackage);
+                            runOnUiThread(() -> result.success(icon));
+                        } catch (RuntimeException exception) {
+                            runOnUiThread(() -> result.error("ICON_ERROR", "Unable to load application icon", null));
+                        }
+                    });
+                }
                 case "applicationExists" -> result.success(applicationExists(call.arguments()));
                 case "launchActivityFromAction" -> result.success(launchActivityFromAction(call.arguments()));
                 case "launchApp" -> result.success(launchApp(call.arguments()));
@@ -336,9 +354,27 @@ public class MainActivity extends FlutterActivity {
         try {
             ApplicationInfo info = packageManager.getApplicationInfo(packageName, 0);
             Drawable drawable = info.loadIcon(packageManager);
-
+            if (info.icon != 0) {
+                try {
+                    drawable = packageManager.getResourcesForApplication(info)
+                            .getDrawableForDensity(info.icon, android.util.DisplayMetrics.DENSITY_XXXHIGH, null);
+                } catch (android.content.res.Resources.NotFoundException ignored) { }
+            }
             if (drawable != null) {
-                imageBytes = drawableToByteArray(drawable);
+                final int size = 512;
+                Bitmap bitmap = Bitmap.createBitmap(size, size, Bitmap.Config.ARGB_8888);
+                Canvas canvas = new Canvas(bitmap);
+                int width = Math.max(1, drawable.getIntrinsicWidth());
+                int height = Math.max(1, drawable.getIntrinsicHeight());
+                float factor = Math.min((float) size / width, (float) size / height);
+                int drawWidth = Math.round(width * factor), drawHeight = Math.round(height * factor);
+                drawable.setBounds((size - drawWidth) / 2, (size - drawHeight) / 2,
+                        (size + drawWidth) / 2, (size + drawHeight) / 2);
+                drawable.draw(canvas);
+                ByteArrayOutputStream stream = new ByteArrayOutputStream();
+                bitmap.compress(Bitmap.CompressFormat.PNG, 100, stream);
+                imageBytes = stream.toByteArray();
+                bitmap.recycle();
             }
         } catch (PackageManager.NameNotFoundException ignored) {
         }
@@ -398,6 +434,11 @@ public class MainActivity extends FlutterActivity {
         appMap.put("packageName", activityInfo.packageName);
         appMap.put("version", applicationVersionName);
         appMap.put("sideloaded", sideloaded);
+        ApplicationInfo application = activityInfo.applicationInfo;
+        boolean game = application != null &&
+                ((Build.VERSION.SDK_INT >= Build.VERSION_CODES.O && application.category == ApplicationInfo.CATEGORY_GAME)
+                 || (application.flags & ApplicationInfo.FLAG_IS_GAME) != 0);
+        appMap.put("isGame", game);
 
         if (action != null) {
             appMap.put("action", action);

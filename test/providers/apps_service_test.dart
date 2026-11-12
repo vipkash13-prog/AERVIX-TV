@@ -41,7 +41,8 @@ void main() {
               'packageName': 'me.efesser.flauncher.2',
               'name': 'FLauncher 2',
               'version': '2.0.0',
-              'sideloaded': true
+              'sideloaded': true,
+              'isGame': true
             }
           ]));
       when(database.getApplications()).thenAnswer((_) => Future.value([
@@ -65,9 +66,11 @@ void main() {
       when(database.nextAppCategoryOrder(any)).thenAnswer((_) => Future.value(0));
       when(database.transaction(any)).thenAnswer((realInvocation) => realInvocation.positionalArguments[0]());
       when(database.wasCreated).thenReturn(true);
-      AppsService(channel, database);
+      final service = AppsService(channel, database);
       await untilCalled(channel.addAppsChangedListener(any));
 
+      expect(service.applications.firstWhere((app) => app.packageName == 'me.efesser.flauncher.2').isGame, isTrue);
+      expect(service.applications.firstWhere((app) => app.packageName == 'me.efesser.flauncher').isGame, isFalse);
       verify(database.getApplications());
       verify(database.persistApps([
         AppsCompanion.insert(

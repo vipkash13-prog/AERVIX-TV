@@ -1,0 +1,344 @@
+import 'dart:convert';
+import 'dart:io';
+import 'package:flauncher/l10n/app_localizations.dart';
+import 'package:flauncher/models/app.dart';
+import 'package:flauncher/providers/apps_service.dart';
+import 'package:flauncher/providers/settings_service.dart';
+import 'package:flauncher/widgets/aervix_home.dart';
+import 'package:flauncher/widgets/reference_chrome.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
+import 'package:flutter_test/flutter_test.dart';
+import 'package:http/http.dart' as http;
+import 'package:http/testing.dart';
+import 'package:intl/date_symbol_data_local.dart';
+import 'package:mockito/mockito.dart';
+import 'package:provider/provider.dart';
+import '../mocks.mocks.dart';
+
+void main() {
+  setUpAll(() async {
+    await initializeDateFormatting('ar');
+    final font = FontLoader('Cairo')
+      ..addFont(rootBundle.load('assets/fonts/Cairo.ttf'));
+    await font.load();
+    if (Platform.environment['AERVIX_CAPTURE'] == '1') {
+      final icons = FontLoader('MaterialIcons')
+        ..addFont(
+          Future.value(
+            ByteData.sublistView(
+              File(
+                '/tmp/flutter/bin/cache/artifacts/material_fonts/MaterialIcons-Regular.otf',
+              ).readAsBytesSync(),
+            ),
+          ),
+        );
+      await icons.load();
+    }
+  });
+  const assets = [
+    'apple_tv',
+    'nuvio_tv',
+    'stremio',
+    'shahid',
+    'vlc',
+    'aiostreams',
+    'movieboxpro',
+    'mx_player',
+  ];
+  const names = [
+    'Apple TV',
+    'Nuvio TV',
+    'Stremio',
+    'Shahid',
+    'VLC',
+    'AIOStreams',
+    'MovieBoxPro',
+    'MX Player',
+  ];
+  for (final width in [1280, 1920, 3840]) {
+    testWidgets('Reference geometry, live values and RTL at $width', (
+      tester,
+    ) async {
+      tester.view.physicalSize = Size(width.toDouble(), width * 9 / 16);
+      tester.view.devicePixelRatio = 1;
+      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.resetDevicePixelRatio);
+      final service = MockAppsService();
+      final settings = MockSettingsService();
+      when(settings.appHighlightAnimationEnabled).thenReturn(true);
+      final apps = List.generate(
+        names.length,
+        (i) => App(
+          packageName: 'fixture.${assets[i]}',
+          name: names[i],
+          version: '1',
+          hidden: false,
+        ),
+      );
+      when(service.initialized).thenReturn(true);
+      when(service.applications).thenReturn(apps);
+      when(service.categories).thenReturn([]);
+      for (var i = 0; i < apps.length; i++) {
+        final bytes = File(
+          'assets/app_logos/${assets[i]}.png',
+        ).readAsBytesSync();
+        when(
+          service.getAppIcon(apps[i].packageName),
+        ).thenAnswer((_) async => bytes);
+        when(service.launchApp(apps[i])).thenAnswer((_) async {});
+      }
+      final client = MockClient(
+        (request) async => http.Response(
+          jsonEncode(
+            request.url.host == 'api.open-meteo.com'
+                ? {
+                    'current': {
+                      'temperature_2m': 26.7,
+                      'relative_humidity_2m': 58,
+                      'wind_speed_10m': 12,
+                      'weather_code': 2,
+                      'is_day': 1,
+                    },
+                    'daily': {
+                      'temperature_2m_max': [31],
+                      'temperature_2m_min': [24],
+                    },
+                  }
+                : {
+                    'data': {
+                      'timings': {
+                        'Fajr': '05:11',
+                        'Sunrise': '06:30',
+                        'Dhuhr': '12:13',
+                        'Asr': '15:30',
+                        'Maghrib': '18:04',
+                        'Isha': '19:34',
+                      },
+                    },
+                  },
+          ),
+          200,
+        ),
+      );
+      await tester.pumpWidget(
+        MultiProvider(
+          providers: [
+            ChangeNotifierProvider<AppsService>.value(value: service),
+            ChangeNotifierProvider<SettingsService>.value(value: settings),
+          ],
+          child: MaterialApp(
+            debugShowCheckedModeBanner: false,
+            locale: const Locale('ar'),
+            supportedLocales: AppLocalizations.supportedLocales,
+            localizationsDelegates: const [
+              AppLocalizations.delegate,
+              GlobalMaterialLocalizations.delegate,
+              GlobalWidgetsLocalizations.delegate,
+              GlobalCupertinoLocalizations.delegate,
+            ],
+            theme: ThemeData.dark().copyWith(
+              textTheme: Typography.material2021().white.apply(
+                fontFamily: 'Cairo',
+              ),
+            ),
+            home: AervixHome(
+              client: client,
+              clock: () => DateTime.utc(2026, 11, 11, 16, 36),
+            ),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+      final expected = <String, Rect>{
+        'sidebar': ReferenceLayout.sidebar,
+        'weather': ReferenceLayout.weather,
+        'prayer': ReferenceLayout.prayer,
+        'clock': ReferenceLayout.clock,
+        'movies': ReferenceLayout.movies,
+        'series': ReferenceLayout.series,
+        'live': ReferenceLayout.live,
+        'applications-band': ReferenceLayout.dock,
+      };
+      for (final entry in expected.entries) {
+        final actual = tester.getRect(
+          find.byKey(
+            ValueKey(
+              entry.key == 'applications-band'
+                  ? entry.key
+                  : 'reference-${entry.key}',
+            ),
+          ),
+        );
+        final target = Rect.fromLTWH(
+          entry.value.left * width / 1280,
+          entry.value.top * width / 1280,
+          entry.value.width * width / 1280,
+          entry.value.height * width / 1280,
+        );
+        expect(
+          (actual.topLeft - target.topLeft).distance,
+          lessThan(.1),
+          reason: entry.key,
+        );
+        expect(
+          (actual.bottomRight - target.bottomRight).distance,
+          lessThan(.1),
+          reason: entry.key,
+        );
+      }
+      expect(find.text('26.7°C'), findsOneWidget);
+      expect(find.text('05:11'), findsOneWidget);
+      expect(find.text('07:36'), findsOneWidget);
+      expect(
+        Directionality.of(tester.element(find.text('مواقيت الصلاة'))),
+        TextDirection.rtl,
+      );
+      expect(tester.takeException(), isNull);
+      if (Platform.environment['AERVIX_CAPTURE'] == '1') {
+        final context = tester.element(find.byType(AervixHome));
+        await tester.runAsync(() async {
+          final images = <ImageProvider>[
+            ResizeImage.resizeIfNeeded(
+              width >= 3000 ? 3840 : 1920,
+              null,
+              AssetImage(ReferenceLayout.wallpaper(width.toDouble())),
+            ),
+            for (final name in ['movies', 'series', 'live'])
+              ResizeImage.resizeIfNeeded(
+                width >= 3000 ? 1024 : 512,
+                null,
+                AssetImage('assets/reference_ui/${name}_art.png'),
+              ),
+            const AssetImage('assets/branding/logo_aervix.png'),
+            const AssetImage('assets/prayer/icon_mosque.png'),
+            const AssetImage('assets/weather/weather_partly_cloudy.png'),
+            for (final asset in assets)
+              ResizeImage.resizeIfNeeded(
+                256,
+                null,
+                MemoryImage(
+                  File('assets/app_logos/$asset.png').readAsBytesSync(),
+                ),
+              ),
+          ];
+          await Future.wait(
+            images.map((image) => precacheImage(image, context)),
+          );
+          await Future<void>.delayed(const Duration(milliseconds: 400));
+        });
+        await tester.pumpAndSettle();
+        await expectLater(
+          find.byType(AervixHome),
+          matchesGoldenFile(
+            '../../design_preview/reference_match/interface_$width.png',
+          ),
+        );
+      }
+      if (width == 1280) {
+        Future<void> key(LogicalKeyboardKey key) async {
+          await tester.sendKeyEvent(key);
+          await tester.pumpAndSettle();
+        }
+
+        await key(LogicalKeyboardKey.arrowRight);
+        expect(FocusManager.instance.primaryFocus?.debugLabel, 'hero-0');
+        await key(LogicalKeyboardKey.arrowUp);
+        for (var i = 0; i < 7; i++) {
+          expect(FocusManager.instance.primaryFocus?.debugLabel, 'header-$i');
+          if (i < 6) await key(LogicalKeyboardKey.arrowRight);
+        }
+        await key(LogicalKeyboardKey.arrowDown);
+        expect(FocusManager.instance.primaryFocus?.debugLabel, 'hero-2');
+        await key(LogicalKeyboardKey.arrowLeft);
+        expect(FocusManager.instance.primaryFocus?.debugLabel, 'hero-1');
+        await key(LogicalKeyboardKey.arrowLeft);
+        await key(LogicalKeyboardKey.arrowLeft);
+        expect(FocusManager.instance.primaryFocus?.debugLabel, 'navigation-0');
+        for (var i = 1; i <= 5; i++) {
+          await key(LogicalKeyboardKey.arrowDown);
+          expect(
+            FocusManager.instance.primaryFocus?.debugLabel,
+            'navigation-$i',
+          );
+          await key(LogicalKeyboardKey.select);
+          expect(find.byType(AlertDialog), findsOneWidget);
+          if (i == 4)
+            expect(find.text('لا توجد تطبيقات في هذه القائمة'), findsOneWidget);
+          await tester.binding.handlePopRoute();
+          await tester.pumpAndSettle();
+        }
+        await key(LogicalKeyboardKey.arrowDown);
+        await key(LogicalKeyboardKey.select);
+        expect(find.text('حول AERVIX TV'), findsOneWidget);
+        expect(find.text('إعدادات الجهاز'), findsOneWidget);
+        expect(find.text('Applications'), findsNothing);
+        if (Platform.environment['AERVIX_CAPTURE'] == '1') {
+          await expectLater(
+            find.byType(MaterialApp),
+            matchesGoldenFile(
+              '../../design_preview/reference_match/settings_ar.png',
+            ),
+          );
+        }
+        await tester.binding.handlePopRoute();
+        await tester.pumpAndSettle();
+        await tester.tap(find.byKey(const ValueKey('reference-weather')));
+        await tester.pumpAndSettle();
+        expect(find.text('غائم جزئيًا'), findsOneWidget);
+        await tester.binding.handlePopRoute();
+        await tester.pumpAndSettle();
+        await tester.tap(find.byKey(const ValueKey('reference-prayer')));
+        await tester.pumpAndSettle();
+        expect(find.text('الشروق'), findsOneWidget);
+        await tester.binding.handlePopRoute();
+        await tester.pumpAndSettle();
+        final calls = <MethodCall>[];
+        const channel = MethodChannel('me.efesser.flauncher/method');
+        tester.binding.defaultBinaryMessenger.setMockMethodCallHandler(
+          channel,
+          (call) async {
+            calls.add(call);
+            return null;
+          },
+        );
+        addTearDown(
+          () => tester.binding.defaultBinaryMessenger.setMockMethodCallHandler(
+            channel,
+            null,
+          ),
+        );
+        // Each system control activates its native intent through OK.
+        for (final index in [2, 3, 4, 5, 6]) {
+          final node = tester
+              .widgetList<Focus>(find.byType(Focus))
+              .map((f) => f.focusNode)
+              .whereType<FocusNode>()
+              .firstWhere((n) => n.debugLabel == 'header-$index');
+          node.requestFocus();
+          await tester.pumpAndSettle();
+          await key(LogicalKeyboardKey.enter);
+        }
+        expect(calls.map((c) => c.method), contains('openWifiSettings'));
+        expect(calls.map((c) => c.method), contains('openSettings'));
+        expect(
+          calls
+              .where((c) => c.method == 'launchActivityFromAction')
+              .map((c) => c.arguments),
+          containsAll([
+            'android.settings.BLUETOOTH_SETTINGS',
+            'android.settings.NOTIFICATION_SETTINGS',
+            'android.settings.DATE_SETTINGS',
+          ]),
+        );
+        await key(LogicalKeyboardKey.escape);
+        expect(FocusManager.instance.primaryFocus?.debugLabel, 'navigation-0');
+      }
+      await tester.tap(find.byKey(const ValueKey('dock-fixture.apple_tv')));
+      await tester.pumpAndSettle();
+      verify(service.launchApp(apps.first)).called(1);
+      await tester.pumpWidget(const SizedBox());
+    });
+  }
+}

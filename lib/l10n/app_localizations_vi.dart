@@ -771,4 +771,16 @@ class AppLocalizationsVi extends AppLocalizations {
 
   @override
   String get brightnessSlotNight => '22:00–6:00';
+
+  @override
+  String get noApplicationsFound => 'No applications found';
+
+  @override
+  String get invalidDateTimeFormat => 'Invalid format';
+
+  @override
+  String get selectFormatsBelow => 'Select formats below';
+
+  @override
+  String get selectSectionName => 'Select a name';
 }
