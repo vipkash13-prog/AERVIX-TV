@@ -164,7 +164,10 @@ class _ReferenceDockState extends State<ReferenceDock> {
                                   ),
                                 ),
                                 child: Center(
-                                  child: InstalledAppIcon(app: app, size: 62),
+                                  child: InstalledAppIcon(
+                                    app: app,
+                                    preferTvBanner: true,
+                                  ),
                                 ),
                               ),
                             ),

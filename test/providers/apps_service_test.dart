@@ -43,6 +43,20 @@ void main() {
     verify(channel.getApplicationIcon('installed.app')).called(1);
   });
 
+  test('TV artwork requests are shared and missing banners are cached', () async {
+    final channel = MockFLauncherChannel();
+    final service = await _buildInitialisedAppsService(channel, MockFLauncherDatabase(), []);
+    final pending = Completer<Uint8List>();
+    when(channel.getApplicationBanner('installed.app')).thenAnswer((_) => pending.future);
+    final first = service.getAppBanner('installed.app');
+    final second = service.getAppBanner('installed.app');
+    expect(identical(first, second), isTrue);
+    pending.complete(Uint8List(0));
+    expect(await first, isEmpty);
+    expect(await service.getAppBanner('installed.app'), isEmpty);
+    verify(channel.getApplicationBanner('installed.app')).called(1);
+  });
+
   group("AppsService initialised correctly", () {
     test("with empty database", () async {
       final channel = MockFLauncherChannel();
