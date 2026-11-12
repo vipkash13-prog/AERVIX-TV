@@ -17,7 +17,7 @@ void main() {
   App app(String id) =>
       App(packageName: id, name: id, version: '1', hidden: false);
   testWidgets(
-    'TV artwork fills the common dock slot using contain, without an inner icon-sized square',
+    'TV banner fills the complete dock slot without inner margins or stretching',
     (tester) async {
       final service = MockAppsService();
       final installed = app('installed.tv');
@@ -40,8 +40,8 @@ void main() {
       );
       await tester.pumpAndSettle();
       final image = tester.widget<Image>(find.byType(Image));
-      expect(image.fit, BoxFit.contain);
-      expect(tester.getSize(find.byType(Image)), const Size(91, 58));
+      expect(image.fit, BoxFit.cover);
+      expect(tester.getSize(find.byType(Image)), const Size(103, 70));
       final source = (image.image as ResizeImage).imageProvider as MemoryImage;
       expect(source.bytes, same(banner));
       verify(service.getAppBanner(installed.packageName)).called(1);
@@ -74,7 +74,7 @@ void main() {
       );
       await tester.pumpWidget(build());
       await tester.pumpAndSettle();
-      expect(tester.getSize(find.byType(Image)), const Size(91, 58));
+      expect(tester.getSize(find.byType(Image)), const Size(103, 70));
       expect(tester.widget<Image>(find.byType(Image)).fit, BoxFit.contain);
       await tester.pumpWidget(build());
       await tester.pumpAndSettle();
@@ -162,7 +162,9 @@ void main() {
       );
     }
     for (final image in tester.widgetList<Image>(find.byType(Image))) {
-      expect(image.fit, BoxFit.contain);
+      final bytes =
+          ((image.image as ResizeImage).imageProvider as MemoryImage).bytes;
+      expect(image.fit, identical(bytes, icon) ? BoxFit.contain : BoxFit.cover);
       expect(image.color, isNull);
     }
     for (final frame in find.byType(OriginalAppFrame).evaluate()) {

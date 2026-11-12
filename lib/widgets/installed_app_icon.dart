@@ -69,7 +69,9 @@ class _InstalledAppIconState extends State<InstalledAppIcon> {
           ? _fallback()
           : Image.memory(
               artwork.bytes,
-              fit: BoxFit.contain,
+              fit: widget.preferTvBanner && artwork.banner
+                  ? BoxFit.cover
+                  : BoxFit.contain,
               cacheWidth: widget.preferTvBanner ? 512 : 256,
               filterQuality: FilterQuality.medium,
               excludeFromSemantics: true,
@@ -82,9 +84,7 @@ class _InstalledAppIconState extends State<InstalledAppIcon> {
                   : _fallback(),
             );
       return widget.preferTvBanner
-          ? SizedBox.expand(
-              child: Padding(padding: const EdgeInsets.all(6), child: image),
-            )
+          ? SizedBox.expand(child: image)
           : SizedBox.square(dimension: widget.size, child: image);
     },
   );
