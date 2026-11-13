@@ -6,13 +6,14 @@ class PremiumGlass extends StatelessWidget {
   final Widget child;
   final bool focused;
   final double radius;
-  final bool purple;
+  final bool purple, accent;
   const PremiumGlass({
     super.key,
     required this.child,
     this.focused = false,
     this.radius = 24,
     this.purple = false,
+    this.accent = false,
   });
   @override
   Widget build(BuildContext context) => AnimatedContainer(
@@ -20,14 +21,24 @@ class PremiumGlass extends StatelessWidget {
     decoration: BoxDecoration(
       borderRadius: BorderRadius.circular(radius),
       border: Border.all(
-        color: focused ? referenceGold : const Color(0x668F929C),
+        color: focused
+            ? referenceGold
+            : accent
+            ? const Color(0xBBD9B270)
+            : const Color(0x668F929C),
         width: 1.5,
       ),
       gradient: LinearGradient(
         begin: Alignment.topLeft,
         end: Alignment.bottomRight,
         colors: focused
-            ? const [Color(0xED13100D), Color(0xB7794B13), Color(0xF20C0B0D)]
+            ? const [
+                Color(0xFFF3CD7B),
+                Color(0xDD9A620F),
+                Color(0xEF211A0D),
+                Color(0xED382A14),
+                Color(0xEBD6B36B),
+              ]
             : purple
             ? const [Color(0xED090B15), Color(0xCD1B132A), Color(0xB82D1C37)]
             : const [Color(0xC5262B34), Color(0xCF0C0F14), Color(0xBD121318)],
@@ -35,9 +46,9 @@ class PremiumGlass extends StatelessWidget {
       boxShadow: focused
           ? const [
               BoxShadow(
-                color: Color(0x66EDB95C),
-                blurRadius: 14,
-                spreadRadius: 1,
+                color: Color(0xBBEDB95C),
+                blurRadius: 18,
+                spreadRadius: 2,
               ),
             ]
           : const [],

@@ -1,0 +1,100 @@
+{
+  "schema_version": 1,
+  "reference_image": "design_sources/tv_wallpapers_2026_11_13/layout_reference_only.jpg",
+  "native_4k": false,
+  "notes": "3840x2160 delivery resolution. All sources are smaller than UHD; no claim of native 4K capture/detail. Three portrait designs were re-composed horizontally, not stretched. Makkah is uniformly upscaled from the existing horizontal original.",
+  "files": [
+    {
+      "file": "assets/tv_wallpapers_4k/green_gold_4k.png",
+      "export_size": [
+        3840,
+        2160
+      ],
+      "aspect_ratio": "16:9",
+      "format": "PNG",
+      "native_4k": false,
+      "source": "design_sources/tv_wallpapers_2026_11_13/green_gold_landscape_generated.png",
+      "source_size": [
+        1672,
+        941
+      ],
+      "original_source": "design_sources/tv_wallpapers_2026_11_13/green_gold_portrait_original.jpg",
+      "original_size": [
+        720,
+        1280
+      ],
+      "preparation": "AI-assisted landscape recomposition/outpainting, followed by uniform Lanczos export and negligible centered edge trim",
+      "sha256": "a8898f1f27751ebcb84ba8d9a7041f3f61ab64e42bc76d362601177ef6f29c3a",
+      "bytes": 5068581
+    },
+    {
+      "file": "assets/tv_wallpapers_4k/blue_silver_4k.png",
+      "export_size": [
+        3840,
+        2160
+      ],
+      "aspect_ratio": "16:9",
+      "format": "PNG",
+      "native_4k": false,
+      "source": "design_sources/tv_wallpapers_2026_11_13/blue_silver_landscape_generated.png",
+      "source_size": [
+        1672,
+        941
+      ],
+      "original_source": "design_sources/tv_wallpapers_2026_11_13/blue_silver_portrait_original.jpg",
+      "original_size": [
+        720,
+        1280
+      ],
+      "preparation": "AI-assisted landscape recomposition/outpainting, followed by uniform Lanczos export and negligible centered edge trim",
+      "sha256": "8ba2a51e6f75066a9ad7ffec465e6c09ec01a10f4ea1b050d5d0e8234672ce21",
+      "bytes": 4921345
+    },
+    {
+      "file": "assets/tv_wallpapers_4k/purple_neon_4k.png",
+      "export_size": [
+        3840,
+        2160
+      ],
+      "aspect_ratio": "16:9",
+      "format": "PNG",
+      "native_4k": false,
+      "source": "design_sources/tv_wallpapers_2026_11_13/purple_neon_landscape_generated.png",
+      "source_size": [
+        1672,
+        941
+      ],
+      "original_source": "design_sources/tv_wallpapers_2026_11_13/purple_neon_portrait_original.jpg",
+      "original_size": [
+        720,
+        1280
+      ],
+      "preparation": "AI-assisted landscape recomposition/outpainting, followed by uniform Lanczos export and negligible centered edge trim",
+      "sha256": "9aab72f05b65f17c3cd70ae8fdd6c4477393ccfac69c2e816abeebe09e969e1e",
+      "bytes": 5243539
+    },
+    {
+      "file": "assets/tv_wallpapers_4k/makkah_night_4k.png",
+      "export_size": [
+        3840,
+        2160
+      ],
+      "aspect_ratio": "16:9",
+      "format": "PNG",
+      "native_4k": false,
+      "source": "design_sources/tv_wallpapers_2026_11_13/makkah_original_1280x720.jpg",
+      "source_size": [
+        1280,
+        720
+      ],
+      "original_source": "design_sources/tv_wallpapers_2026_11_13/makkah_original_1280x720.jpg",
+      "original_size": [
+        1280,
+        720
+      ],
+      "preparation": "Uniform Lanczos upscale of original 16:9 composition; no AI reconstruction",
+      "sha256": "130fd28a15aa2da24c0fd5d8cd68548aafb391642c563f5f80ee3331f87838cc",
+      "bytes": 7210241
+    }
+  ]
+}

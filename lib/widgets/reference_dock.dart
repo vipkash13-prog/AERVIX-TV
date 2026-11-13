@@ -12,7 +12,9 @@ class ReferenceDock extends StatefulWidget {
   final VoidCallback onEdit, onLeftBoundary;
   final ValueChanged<double> onUp;
   final FocusNode firstFocus;
-  final bool compactIcons;
+  final bool compactIcons, showNames;
+  final double slotGap;
+  final FocusNode? lastFocus;
   final VoidCallback? onRightBoundary;
   final ValueChanged<App>? onAppOptions;
   final ValueChanged<FocusNode>? onAppFocused;
@@ -26,6 +28,9 @@ class ReferenceDock extends StatefulWidget {
     required this.firstFocus,
     this.onAppOptions,
     this.compactIcons = false,
+    this.showNames = false,
+    this.slotGap = 12,
+    this.lastFocus,
     this.onRightBoundary,
     this.onAppFocused,
   });
@@ -38,7 +43,11 @@ class _ReferenceDockState extends State<ReferenceDock> {
     6,
     (i) => FocusNode(debugLabel: 'dock-slot-${i + 2}'),
   );
-  FocusNode _node(int i) => i == 0 ? widget.firstFocus : _nodes[i - 1];
+  FocusNode _node(int i) => i == 0
+      ? widget.firstFocus
+      : i == 6 && widget.lastFocus != null
+      ? widget.lastFocus!
+      : _nodes[i - 1];
   @override
   void dispose() {
     for (final node in _nodes) {
@@ -64,12 +73,12 @@ class _ReferenceDockState extends State<ReferenceDock> {
         textDirection: TextDirection.ltr,
         child: LayoutBuilder(
           builder: (context, constraints) {
-            final width = (constraints.maxWidth - 6 * 12) / 7;
+            final width = (constraints.maxWidth - 6 * widget.slotGap) / 7;
             return Row(
               children: List.generate(7, (i) {
                 final app = i < widget.apps.length ? widget.apps[i] : null;
                 return Padding(
-                  padding: EdgeInsets.only(right: i == 6 ? 0 : 12),
+                  padding: EdgeInsets.only(right: i == 6 ? 0 : widget.slotGap),
                   child: SizedBox(
                     width: width,
                     child: ReferenceFocusable(
@@ -109,8 +118,9 @@ class _ReferenceDockState extends State<ReferenceDock> {
                           right: () => i < 6
                               ? _node(i + 1).requestFocus()
                               : widget.onRightBoundary?.call(),
-                          up: () =>
-                              widget.onUp(255 + i * (width + 12) + width / 2),
+                          up: () => widget.onUp(
+                            255 + i * (width + widget.slotGap) + width / 2,
+                          ),
                           down: () {},
                         );
                       },
@@ -127,6 +137,42 @@ class _ReferenceDockState extends State<ReferenceDock> {
                                     color: Colors.white70,
                                     size: 32,
                                   ),
+                                )
+                              : widget.showNames
+                              ? Column(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    InstalledAppIcon(
+                                      key: ValueKey(
+                                        '${app.packageName}-${app.version}',
+                                      ),
+                                      app: app,
+                                      preferTvBanner: !widget.compactIcons,
+                                      size: widget.showNames
+                                          ? 48
+                                          : widget.compactIcons
+                                          ? 62
+                                          : 72,
+                                    ),
+                                    if (widget.showNames) ...[
+                                      const SizedBox(height: 5),
+                                      Padding(
+                                        padding: const EdgeInsets.symmetric(
+                                          horizontal: 5,
+                                        ),
+                                        child: Text(
+                                          app.name,
+                                          maxLines: 1,
+                                          overflow: TextOverflow.ellipsis,
+                                          style: const TextStyle(
+                                            fontFamily: 'Cairo',
+                                            fontSize: 11.5,
+                                            color: Colors.white,
+                                          ),
+                                        ),
+                                      ),
+                                    ],
+                                  ],
                                 )
                               : InstalledAppIcon(
                                   key: ValueKey(

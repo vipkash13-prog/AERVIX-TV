@@ -18,6 +18,8 @@ import '../xtream/models.dart';
 import '../xtream/xtream_service.dart';
 import '../xtream/account_dialog.dart';
 import '../xtream/browser_page.dart';
+import '../xtream/player_page.dart';
+import '../xtream/sports_guide.dart';
 import '../build_flags.dart';
 import 'package:provider/provider.dart';
 import '../flauncher_channel.dart';
@@ -58,10 +60,15 @@ class _AervixHomeState extends State<AervixHome> with WidgetsBindingObserver {
     (i) => FocusNode(debugLabel: 'navigation-$i'),
   );
   final _headerFocus = List.generate(
-    7,
+    10,
     (i) => FocusNode(debugLabel: 'header-$i'),
   );
   final _dockFocus = FocusNode(debugLabel: 'dock-first');
+  final _lastSlotFocus = FocusNode(debugLabel: 'dock-last');
+  List<SportsProgramme> _sports = [];
+  int _sportsIndex = 0, _sportsRevision = -1, _requestedSportsRevision = -1;
+  bool _loadingSports = false, _sportsFailed = false;
+  bool _openingCatalogue = false, _openingSports = false;
   FocusNode? _lastDockFocus;
   HomePreferences? _homePreferences;
   bool _pendingRefresh = false;
@@ -87,10 +94,10 @@ class _AervixHomeState extends State<AervixHome> with WidgetsBindingObserver {
       setState(() => _now = widget.clock?.call() ?? DateTime.now());
       if (_prayerDate != _date) _refresh();
     });
-    _weatherTimer = Timer.periodic(
-      const Duration(minutes: 30),
-      (_) => _refresh(),
-    );
+    _weatherTimer = Timer.periodic(const Duration(minutes: 30), (_) {
+      _refresh();
+      _loadSports();
+    });
   }
 
   String get _date => DateFormat(
@@ -228,6 +235,7 @@ class _AervixHomeState extends State<AervixHome> with WidgetsBindingObserver {
       ..._navFocus,
       ..._headerFocus,
       _dockFocus,
+      _lastSlotFocus,
       _allAppsFocus,
     ]) {
       node.dispose();
@@ -306,40 +314,55 @@ class _AervixHomeState extends State<AervixHome> with WidgetsBindingObserver {
     return result;
   }
 
-  Future<void> _openXtream(MediaKind kind) async {
-    final service = context.read<XtreamService?>();
-    if (service == null) {
-      await showDialog<void>(
-        context: context,
-        builder: (context) => AlertDialog(
-          title: const Text('اشتراك Xtream'),
-          content: const Text('خدمة الاشتراك غير متاحة. أعد فتح التطبيق.'),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(context),
-              child: const Text('رجوع'),
-            ),
-          ],
+  Future<void> _openXtream(
+    MediaKind kind, {
+    bool search = false,
+    bool sports = false,
+  }) async {
+    if (_openingCatalogue) return;
+    _openingCatalogue = true;
+    try {
+      final service = context.read<XtreamService?>();
+      if (service == null) {
+        await showDialog<void>(
+          context: context,
+          builder: (context) => AlertDialog(
+            title: const Text('اشتراك Xtream'),
+            content: const Text('خدمة الاشتراك غير متاحة. أعد فتح التطبيق.'),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(context),
+                child: const Text('رجوع'),
+              ),
+            ],
+          ),
+        );
+        return;
+      }
+      await service.ready;
+      if (!mounted) return;
+      if (!service.configured && !await showXtreamAccount(context, service))
+        return;
+      if (!mounted) return;
+      await Navigator.of(context).push(
+        MaterialPageRoute<void>(
+          builder: (_) => XtreamBrowserPage(
+            service: service,
+            kind: kind,
+            focusSearch: search,
+            sportsOnly: sports,
+          ),
         ),
       );
-      return;
+    } finally {
+      _openingCatalogue = false;
     }
-    await service.ready;
-    if (!mounted) return;
-    if (!service.configured && !await showXtreamAccount(context, service))
-      return;
-    if (!mounted) return;
-    await Navigator.of(context).push(
-      MaterialPageRoute<void>(
-        builder: (_) => XtreamBrowserPage(service: service, kind: kind),
-      ),
-    );
   }
 
   void _navigate(int index, List<App> apps) {
     switch (index) {
       case 0:
-        _dockFocus.requestFocus();
+        _openXtream(MediaKind.live, sports: true);
       case 1:
         _openXtream(MediaKind.live);
       case 2:
@@ -347,7 +370,7 @@ class _AervixHomeState extends State<AervixHome> with WidgetsBindingObserver {
       case 3:
         _openXtream(MediaKind.series);
       case 4:
-        _settings();
+        _allApps();
     }
   }
 
@@ -598,6 +621,8 @@ class _AervixHomeState extends State<AervixHome> with WidgetsBindingObserver {
       'الأفلام': 'Movies',
       'المسلسلات': 'TV Series',
       'جميع التطبيقات': 'All apps',
+      'التطبيقات': 'Apps',
+      'مباريات اليوم': 'Today matches',
       'الفجر': 'Fajr',
       'الظهر': 'Dhuhr',
       'العصر': 'Asr',
@@ -631,19 +656,24 @@ class _AervixHomeState extends State<AervixHome> with WidgetsBindingObserver {
           style: _text(size, color: color),
         ),
       );
-  KeyEventResult _headerKeys(KeyEvent event, int index) => referenceDirections(
-    event,
-    left: () => _headerFocus[index == 0 ? 6 : index - 1].requestFocus(),
-    right: () => _headerFocus[index == 6 ? 0 : index + 1].requestFocus(),
-    down: () =>
-        _navFocus[index == 0
-                ? 1
-                : index == 1
-                ? 2
-                : 3]
-            .requestFocus(),
-    up: () => _headerFocus[index < 3 ? index + 3 : index].requestFocus(),
-  );
+  KeyEventResult _headerKeys(KeyEvent event, int index) {
+    final row = index == 0 || index == 1 || index == 9
+        ? [1, 0, 9]
+        : [7, 5, 8, 4, 3, 6];
+    final i = row.indexOf(index);
+    return referenceDirections(
+      event,
+      left: () =>
+          _headerFocus[row[(i - 1 + row.length) % row.length]].requestFocus(),
+      right: () => index == 9
+          ? _navFocus[0].requestFocus()
+          : _headerFocus[row[(i + 1) % row.length]].requestFocus(),
+      up: () => _headerFocus[7].requestFocus(),
+      down: () => index == 0 || index == 1 || index == 9
+          ? _dockFocus.requestFocus()
+          : _navFocus[2].requestFocus(),
+    );
+  }
 
   Widget _plainPanel(
     int index,
@@ -681,15 +711,26 @@ class _AervixHomeState extends State<AervixHome> with WidgetsBindingObserver {
               (_weather?['weather_code'] as num?)?.toInt(),
               night: _weather?['is_day'] == 0,
             ),
-            size: 78,
+            size: 60,
           ),
           const SizedBox(width: 10),
           Expanded(
             child: Column(
               mainAxisAlignment: MainAxisAlignment.spaceEvenly,
               children: [
-                _fit(_city.ar, 19),
-                _fit('${_temperature(_weather?['temperature_2m'])}°C', 36),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Flexible(child: _fit(_city.ar, 16)),
+                    const SizedBox(width: 4),
+                    const Icon(
+                      Icons.location_on,
+                      size: 15,
+                      color: referenceGold,
+                    ),
+                  ],
+                ),
+                _fit('${_temperature(_weather?['temperature_2m'])}°C', 28),
                 _fit(
                   _weatherFailed
                       ? 'تعذر التحديث'
@@ -705,7 +746,7 @@ class _AervixHomeState extends State<AervixHome> with WidgetsBindingObserver {
           ),
           const SizedBox(width: 12),
           SizedBox(
-            width: 112,
+            width: 80,
             child: Column(
               mainAxisAlignment: MainAxisAlignment.end,
               crossAxisAlignment: CrossAxisAlignment.end,
@@ -733,13 +774,14 @@ class _AervixHomeState extends State<AervixHome> with WidgetsBindingObserver {
       child: Column(
         children: [
           Row(
+            textDirection: TextDirection.ltr,
             children: [
               const DesignAssetIcon('assets/prayer/icon_mosque.png', size: 34),
               const SizedBox(width: 12),
               Expanded(
                 child: Align(
                   alignment: Alignment.centerRight,
-                  child: _fit('مواقيت الصلاة - ${_city.ar}', 20),
+                  child: _fit('مواقيت الصلاة - ${_city.ar}', 16),
                 ),
               ),
             ],
@@ -747,6 +789,7 @@ class _AervixHomeState extends State<AervixHome> with WidgetsBindingObserver {
           const SizedBox(height: 12),
           Expanded(
             child: Row(
+              textDirection: TextDirection.ltr,
               children: [
                 for (final entry in const {
                   'Fajr': 'الفجر',
@@ -768,8 +811,8 @@ class _AervixHomeState extends State<AervixHome> with WidgetsBindingObserver {
                           child: Column(
                             mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                             children: [
-                              Expanded(child: _fit(entry.value, 14)),
-                              Expanded(child: _fit(_prayerTime(entry.key), 17)),
+                              Expanded(child: _fit(entry.value, 10.5)),
+                              Expanded(child: _fit(_prayerTime(entry.key), 13)),
                             ],
                           ),
                         ),
@@ -783,52 +826,46 @@ class _AervixHomeState extends State<AervixHome> with WidgetsBindingObserver {
       ),
     ),
   );
-  Widget _datePanel() => _panel(
-    2,
-    'التاريخ الميلادي والهجري',
-    () => _run(
-      () => FLauncherChannel().launchActivityFromAction(
-        'android.settings.DATE_SETTINGS',
-      ),
-    ),
-    Padding(
-      padding: const EdgeInsets.all(18),
-      child: Row(
+  void _dateDetails() => showDialog<void>(
+    context: context,
+    builder: (dialogContext) => AlertDialog(
+      title: Text(_l('التاريخ والوقت', 'Date and time')),
+      content: Column(
+        mainAxisSize: MainAxisSize.min,
         children: [
-          const Icon(
-            Icons.calendar_month_outlined,
-            size: 45,
-            color: referenceGold,
-          ),
-          const SizedBox(width: 20),
-          Expanded(
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-              crossAxisAlignment: CrossAxisAlignment.end,
-              children: [
-                _fit(
-                  DateFormat('EEEE', _english ? 'en' : 'ar').format(_riyadhNow),
-                  20,
-                ),
-                _fit(
-                  DateFormat(
-                    'd MMMM yyyy',
-                    _english ? 'en' : 'ar',
-                  ).format(_riyadhNow),
-                  16,
-                ),
-                _fit(
-                  _hijriDate == _date
-                      ? (_english ? _hijriEnglishLabel : _hijriLabel)
-                      : 'التاريخ الهجري —',
-                  14,
-                  color: Colors.white70,
-                ),
-              ],
+          Text(
+            _westernDigits(
+              DateFormat(
+                'EEEE d MMMM yyyy',
+                _english ? 'en' : 'ar',
+              ).format(_riyadhNow),
             ),
+          ),
+          Text(
+            _hijriDate == _date
+                ? (_english ? _hijriEnglishLabel : _hijriLabel)
+                : _l('التاريخ الهجري —', 'Hijri date —'),
           ),
         ],
       ),
+      actions: [
+        TextButton(
+          autofocus: true,
+          onPressed: () {
+            Navigator.pop(dialogContext);
+            _run(
+              () => FLauncherChannel().launchActivityFromAction(
+                'android.settings.DATE_SETTINGS',
+              ),
+            );
+          },
+          child: Text(_l('إعدادات الوقت والتاريخ', 'Date and time settings')),
+        ),
+        TextButton(
+          onPressed: () => Navigator.pop(dialogContext),
+          child: Text(_l('رجوع', 'Back')),
+        ),
+      ],
     ),
   );
   Widget _topButton(
@@ -866,74 +903,315 @@ class _AervixHomeState extends State<AervixHome> with WidgetsBindingObserver {
   );
   Widget _clockPanel() => _plainPanel(
     6,
-    'الساعة',
-    () => _run(
-      () => FLauncherChannel().launchActivityFromAction(
-        'android.settings.DATE_SETTINGS',
+    _l('الساعة والتاريخ', 'Clock and date'),
+    _dateDetails,
+    Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 6),
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Expanded(
+            flex: 2,
+            child: FittedBox(
+              child: Row(
+                textDirection: TextDirection.ltr,
+                children: [
+                  Text(
+                    DateFormat('hh:mm').format(_riyadhNow),
+                    textDirection: TextDirection.ltr,
+                    style: _text(32),
+                  ),
+                  const SizedBox(width: 7),
+                  Text(
+                    _riyadhNow.hour >= 12 ? _l('م', 'PM') : _l('ص', 'AM'),
+                    style: _text(17),
+                  ),
+                ],
+              ),
+            ),
+          ),
+          const SizedBox(height: 3),
+          Expanded(
+            child: _fit(
+              DateFormat(
+                'EEEE d MMMM yyyy',
+                _english ? 'en' : 'ar',
+              ).format(_riyadhNow),
+              11,
+            ),
+          ),
+        ],
       ),
     ),
-    Center(
-      child: FittedBox(
-        fit: BoxFit.scaleDown,
+  );
+
+  static const _menuOrder = [2, 3, 1, 0, 4];
+  KeyEventResult _menuKeys(KeyEvent event, int index) {
+    final position = _menuOrder.indexOf(index);
+    return referenceDirections(
+      event,
+      up: () => position == 0
+          ? _headerFocus[6].requestFocus()
+          : _navFocus[_menuOrder[position - 1]].requestFocus(),
+      down: () => position == 4
+          ? _lastSlotFocus.requestFocus()
+          : _navFocus[_menuOrder[position + 1]].requestFocus(),
+      left: () => _headerFocus[position < 2 ? 7 : 9].requestFocus(),
+      right: () {},
+    );
+  }
+
+  Widget _media(int index, String title, IconData icon) => ReferenceFocusable(
+    key: ValueKey('navigation-$index'),
+    focusNode: _navFocus[index],
+    autofocus: index == 2,
+    label: _translate(title),
+    onPressed: () => _navigate(index, []),
+    onKey: (event) => _menuKeys(event, index),
+    builder: (_, focused) => PremiumGlass(
+      focused: focused,
+      radius: 38,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 20),
         child: Row(
-          mainAxisSize: MainAxisSize.min,
           textDirection: TextDirection.ltr,
-          crossAxisAlignment: CrossAxisAlignment.end,
           children: [
-            Text(
-              DateFormat('hh:mm').format(_riyadhNow),
-              textDirection: TextDirection.ltr,
-              style: _text(34),
+            SizedBox(
+              width: 20,
+              child: focused
+                  ? const Icon(
+                      Icons.chevron_left,
+                      textDirection: TextDirection.ltr,
+                      size: 28,
+                      color: referenceGold,
+                    )
+                  : null,
             ),
-            const SizedBox(width: 6),
-            Text(
-              _riyadhNow.hour >= 12 ? _l('م', 'PM') : _l('ص', 'AM'),
-              style: _text(16),
-            ),
+            const SizedBox(width: 10),
+            Expanded(child: _fit(title, 21)),
+            const SizedBox(width: 12),
+            Icon(icon, size: 31, color: referenceGold),
           ],
         ),
       ),
     ),
   );
 
-  Widget _media(int index, String title, String asset) => ReferenceFocusable(
-    key: ValueKey('navigation-$index'),
-    focusNode: _navFocus[index],
-    autofocus: index == 2,
-    label: title,
-    onPressed: () => _navigate(index, []),
-    onKey: (e) => referenceDirections(
-      e,
-      left: () => _navFocus[index == 1 ? 1 : index - 1].requestFocus(),
-      right: () => _navFocus[index == 3 ? 3 : index + 1].requestFocus(),
-      up: () => _headerFocus[index - 1].requestFocus(),
-      down: _dockFocus.requestFocus,
-    ),
-    builder: (_, focused) => PremiumGlass(
-      focused: focused,
-      purple: true,
-      radius: 34,
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
+  Future<void> _searchCatalogues() async {
+    final kind = await showDialog<MediaKind>(
+      context: context,
+      builder: (context) => SimpleDialog(
+        title: Text(_l('البحث في الاشتراك', 'Search subscription')),
         children: [
-          DesignAssetIcon(asset, size: 68),
-          const SizedBox(height: 10),
-          _fit(title, 25),
-          if (index == 1) ...[
-            const SizedBox(height: 5),
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 1),
-              decoration: BoxDecoration(
-                color: Colors.red,
-                borderRadius: BorderRadius.circular(7),
-              ),
-              child: Text('LIVE', style: _text(10)),
+          for (final kind in [
+            MediaKind.movie,
+            MediaKind.series,
+            MediaKind.live,
+          ])
+            TextButton(
+              autofocus: kind == MediaKind.movie,
+              onPressed: () => Navigator.pop(context, kind),
+              child: Text(_translate(kind.label)),
             ),
-          ],
         ],
       ),
-    ),
-  );
+    );
+    if (kind != null && mounted) await _openXtream(kind, search: true);
+  }
+
+  Future<void> _loadSports() async {
+    final service = context.read<XtreamService?>();
+    if (service == null || !service.configured || _loadingSports) return;
+    final revision = service.accountRevision;
+    _requestedSportsRevision = revision;
+    setState(() {
+      _loadingSports = true;
+      _sportsFailed = false;
+    });
+    try {
+      final guide = await service.sportsGuide(now: _now);
+      if (mounted)
+        setState(() {
+          _sports = guide;
+          _sportsRevision = revision;
+          _sportsIndex = 0;
+        });
+    } catch (_) {
+      if (mounted) setState(() => _sportsFailed = true);
+    } finally {
+      if (mounted) setState(() => _loadingSports = false);
+    }
+  }
+
+  List<SportsProgramme> get _currentSports {
+    final service = context.read<XtreamService?>();
+    if (service == null || service.accountRevision != _sportsRevision)
+      return [];
+    return _sports
+        .where((p) => service.isSports(p.channel) && p.end.isAfter(_now))
+        .toList();
+  }
+
+  void _cycleSports(int delta) {
+    final entries = _currentSports;
+    if (entries.isEmpty) return;
+    setState(() => _sportsIndex = (_sportsIndex + delta) % entries.length);
+  }
+
+  Future<void> _openSportsProgramme() async {
+    if (_openingSports) return;
+    _openingSports = true;
+    try {
+      final entries = _currentSports;
+      final service = context.read<XtreamService?>();
+      if (entries.isEmpty || service == null) {
+        await _openXtream(MediaKind.live, sports: true);
+        return;
+      }
+      final event = entries[_sportsIndex % entries.length];
+      final playlist = service
+          .items(MediaKind.live)
+          .where(service.isSports)
+          .toList();
+      final index = playlist.indexWhere((item) => item.id == event.channel.id);
+      if (index < 0) return;
+      await Navigator.of(context).push(
+        MaterialPageRoute<void>(
+          builder: (_) => XtreamPlayerPage(
+            service: service,
+            playlist: playlist,
+            index: index,
+            currentPlaylist: () =>
+                service.items(MediaKind.live).where(service.isSports).toList(),
+          ),
+        ),
+      );
+    } finally {
+      _openingSports = false;
+    }
+  }
+
+  Widget _sportsPanel() {
+    final entries = _currentSports;
+    final programme = entries.isEmpty
+        ? null
+        : entries[_sportsIndex % entries.length];
+    return ReferenceFocusable(
+      focusNode: _headerFocus[9],
+      label: _l('مباريات اليوم', 'Today matches'),
+      onPressed: _openSportsProgramme,
+      onLongPress: _loadSports,
+      onKey: (event) => referenceDirections(
+        event,
+        left: () => entries.length > 1
+            ? _cycleSports(-1)
+            : _headerFocus[0].requestFocus(),
+        right: () =>
+            entries.length > 1 ? _cycleSports(1) : _navFocus[0].requestFocus(),
+        up: () => _headerFocus[7].requestFocus(),
+        down: _lastSlotFocus.requestFocus,
+      ),
+      builder: (_, focused) => PremiumGlass(
+        focused: focused,
+        accent: true,
+        radius: 28,
+        child: Padding(
+          padding: const EdgeInsets.all(12),
+          child: Column(
+            children: [
+              Row(
+                textDirection: TextDirection.ltr,
+                children: [
+                  const Icon(
+                    Icons.sports_soccer,
+                    color: Colors.white,
+                    size: 24,
+                  ),
+                  const SizedBox(width: 7),
+                  Expanded(child: _fit('مباريات اليوم', 17)),
+                  if (programme?.liveAt(_now) == true)
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 7,
+                        vertical: 3,
+                      ),
+                      decoration: BoxDecoration(
+                        color: Colors.red,
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: _fit(_l('مباشر الآن', 'LIVE'), 10),
+                    ),
+                ],
+              ),
+              const SizedBox(height: 8),
+              Expanded(
+                child: programme == null
+                    ? Center(
+                        child: _fit(
+                          _loadingSports
+                              ? _l('جارٍ تحديث الجدول…', 'Updating schedule…')
+                              : _sportsFailed
+                              ? _l('تعذر تحديث الجدول', 'Schedule unavailable')
+                              : _l(
+                                  'لا توجد مباريات معلنة في دليل الاشتراك',
+                                  'No matches listed by your subscription',
+                                ),
+                          12,
+                        ),
+                      )
+                    : Row(
+                        textDirection: TextDirection.ltr,
+                        children: [
+                          GestureDetector(
+                            onTap: () => _cycleSports(-1),
+                            child: const Icon(
+                              Icons.chevron_left,
+                              textDirection: TextDirection.ltr,
+                              color: referenceGold,
+                              size: 24,
+                            ),
+                          ),
+                          Expanded(
+                            child: Column(
+                              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                              children: [
+                                Expanded(
+                                  child: Center(
+                                    child: Text(
+                                      programme.title,
+                                      maxLines: 2,
+                                      overflow: TextOverflow.ellipsis,
+                                      textAlign: TextAlign.center,
+                                      style: _text(14),
+                                    ),
+                                  ),
+                                ),
+                                _fit(
+                                  '${DateFormat('HH:mm').format(programme.start.toUtc().add(const Duration(hours: 3)))} · ${programme.channel.name}',
+                                  11,
+                                  color: Colors.white70,
+                                ),
+                              ],
+                            ),
+                          ),
+                          GestureDetector(
+                            onTap: () => _cycleSports(1),
+                            child: const Icon(
+                              Icons.chevron_right,
+                              textDirection: TextDirection.ltr,
+                              color: referenceGold,
+                              size: 24,
+                            ),
+                          ),
+                        ],
+                      ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
 
   Future<void> _allApps() async {
     await showDialog<void>(
@@ -1003,6 +1281,13 @@ class _AervixHomeState extends State<AervixHome> with WidgetsBindingObserver {
   Widget build(BuildContext context) {
     final service = context.watch<AppsService>();
     final network = context.watch<NetworkService?>();
+    final subscription = context.watch<XtreamService?>();
+    if (subscription?.configured == true &&
+        _requestedSportsRevision != subscription!.accountRevision &&
+        !_loadingSports)
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) _loadSports();
+      });
     final ordered = _orderedDock(
       service.applications.where((a) => !a.hidden).toList(),
     );
@@ -1023,6 +1308,8 @@ class _AervixHomeState extends State<AervixHome> with WidgetsBindingObserver {
           backgroundColor: Colors.black,
           body: LayoutBuilder(
             builder: (context, constraints) {
+              final physicalWidth =
+                  constraints.maxWidth * MediaQuery.devicePixelRatioOf(context);
               return MediaQuery.withClampedTextScaling(
                 minScaleFactor: .85,
                 maxScaleFactor: 1.15,
@@ -1052,7 +1339,7 @@ class _AervixHomeState extends State<AervixHome> with WidgetsBindingObserver {
                               Positioned.fill(
                                 child: RepaintBoundary(
                                   child: Image.asset(
-                                    'assets/premium_home/jeddah_night.jpg',
+                                    ReferenceLayout.wallpaper(physicalWidth),
                                     fit: BoxFit.cover,
                                     filterQuality: FilterQuality.medium,
                                   ),
@@ -1065,28 +1352,39 @@ class _AervixHomeState extends State<AervixHome> with WidgetsBindingObserver {
                                       begin: Alignment.topCenter,
                                       end: Alignment.bottomCenter,
                                       colors: [
-                                        Color(0x44020912),
-                                        Color(0x08020912),
-                                        Color(0x66000000),
+                                        Color(0x22020912),
+                                        Color(0x00020912),
+                                        Color(0x22000000),
                                       ],
                                     ),
                                   ),
                                 ),
                               ),
                               _place(
-                                ReferenceLayout.weather,
-                                _weatherPanel(),
-                                key: const ValueKey('reference-weather'),
-                              ),
-                              _place(
-                                ReferenceLayout.prayer,
-                                _prayerPanel(),
-                                key: const ValueKey('reference-prayer'),
-                              ),
-                              _place(
-                                ReferenceLayout.date,
-                                _datePanel(),
-                                key: const ValueKey('reference-date'),
+                                const Rect.fromLTWH(40, 24, 240, 44),
+                                Row(
+                                  textDirection: TextDirection.ltr,
+                                  children: [
+                                    const DesignAssetIcon(
+                                      'assets/branding/logo_aervix.png',
+                                      size: 36,
+                                    ),
+                                    const SizedBox(width: 10),
+                                    Expanded(
+                                      child: FittedBox(
+                                        fit: BoxFit.scaleDown,
+                                        alignment: Alignment.centerLeft,
+                                        child: Text(
+                                          'AERVIX TV',
+                                          style: _text(24).copyWith(
+                                            fontStyle: FontStyle.italic,
+                                          ),
+                                        ),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                                key: const ValueKey('aervix-brand'),
                               ),
                               _place(
                                 ReferenceLayout.clock,
@@ -1094,28 +1392,56 @@ class _AervixHomeState extends State<AervixHome> with WidgetsBindingObserver {
                                 key: const ValueKey('reference-clock'),
                               ),
                               _place(
-                                const Rect.fromLTWH(890, 30, 44, 44),
+                                const Rect.fromLTWH(760, 22, 36, 36),
                                 _topButton(
-                                  3,
-                                  network == null
-                                      ? 'إعدادات الشبكة'
-                                      : network.hasInternetAccess
-                                      ? 'الشبكة متصلة'
-                                      : 'الشبكة غير متصلة',
-                                  network?.networkType == NetworkType.Wired
-                                      ? Icons.settings_ethernet
-                                      : network?.hasInternetAccess == false
-                                      ? Icons.wifi_off
-                                      : Icons.wifi,
-                                  () =>
-                                      _run(FLauncherChannel().openWifiSettings),
+                                  7,
+                                  _l('البحث', 'Search'),
+                                  Icons.search,
+                                  _searchCatalogues,
                                 ),
                               ),
                               _place(
-                                const Rect.fromLTWH(948, 30, 44, 44),
+                                const Rect.fromLTWH(814, 22, 36, 36),
+                                _topButton(
+                                  5,
+                                  _l('الإعدادات', 'Settings'),
+                                  Icons.settings_outlined,
+                                  _settings,
+                                ),
+                              ),
+                              _place(
+                                const Rect.fromLTWH(868, 22, 36, 36),
+                                kEnableSelfUpdater
+                                    ? AervixUpdateButton(
+                                        builder:
+                                            (context, busy, available, action) {
+                                              _updateAction = action;
+                                              return _topButton(
+                                                8,
+                                                _l('التحديثات', 'Updates'),
+                                                Icons.notifications_none,
+                                                action,
+                                                badge: available,
+                                              );
+                                            },
+                                      )
+                                    : _topButton(
+                                        8,
+                                        _l('الإشعارات', 'Notifications'),
+                                        Icons.notifications_none,
+                                        () => _run(
+                                          () => FLauncherChannel()
+                                              .launchActivityFromAction(
+                                                'android.settings.NOTIFICATION_SETTINGS',
+                                              ),
+                                        ),
+                                      ),
+                              ),
+                              _place(
+                                const Rect.fromLTWH(922, 22, 36, 36),
                                 _topButton(
                                   4,
-                                  'إعدادات بلوتوث',
+                                  _l('إعدادات بلوتوث', 'Bluetooth settings'),
                                   Icons.bluetooth,
                                   () => _run(
                                     () => FLauncherChannel()
@@ -1126,93 +1452,137 @@ class _AervixHomeState extends State<AervixHome> with WidgetsBindingObserver {
                                 ),
                               ),
                               _place(
-                                const Rect.fromLTWH(1006, 30, 44, 44),
-                                kEnableSelfUpdater
-                                    ? AervixUpdateButton(
-                                        builder:
-                                            (context, busy, available, action) {
-                                              _updateAction = action;
-                                              return _topButton(
-                                                5,
-                                                'الإعدادات',
-                                                Icons.settings_outlined,
-                                                _settings,
-                                                badge: available,
-                                              );
-                                            },
-                                      )
-                                    : _topButton(
-                                        5,
-                                        'الإعدادات',
-                                        Icons.settings_outlined,
-                                        _settings,
-                                      ),
-                              ),
-                              _place(
-                                ReferenceLayout.live,
-                                _media(
-                                  1,
-                                  'البث المباشر',
-                                  'assets/categories/icon_live_tv.png',
+                                const Rect.fromLTWH(976, 22, 36, 36),
+                                _topButton(
+                                  3,
+                                  network == null
+                                      ? _l('إعدادات الشبكة', 'Network settings')
+                                      : network.hasInternetAccess
+                                      ? _l('الشبكة متصلة', 'Connected')
+                                      : _l('الشبكة غير متصلة', 'Disconnected'),
+                                  network?.networkType == NetworkType.Wired
+                                      ? Icons.settings_ethernet
+                                      : network?.hasInternetAccess == false
+                                      ? Icons.wifi_off
+                                      : Icons.wifi,
+                                  () =>
+                                      _run(FLauncherChannel().openWifiSettings),
                                 ),
-                                key: const ValueKey('reference-live'),
                               ),
                               _place(
                                 ReferenceLayout.movies,
                                 _media(
                                   2,
                                   'الأفلام',
-                                  'assets/entertainment/icon_clapperboard.png',
+                                  Icons.movie_creation_outlined,
                                 ),
                                 key: const ValueKey('reference-movies'),
                               ),
                               _place(
                                 ReferenceLayout.series,
-                                _media(
-                                  3,
-                                  'المسلسلات',
-                                  'assets/entertainment/icon_film_reel.png',
-                                ),
+                                _media(3, 'المسلسلات', Icons.tv_outlined),
                                 key: const ValueKey('reference-series'),
                               ),
                               _place(
+                                ReferenceLayout.live,
+                                _media(1, 'البث المباشر', Icons.wifi_tethering),
+                                key: const ValueKey('reference-live'),
+                              ),
+                              _place(
+                                ReferenceLayout.sports,
+                                _media(0, 'مباريات اليوم', Icons.sports_soccer),
+                                key: const ValueKey('reference-sports'),
+                              ),
+                              _place(
+                                ReferenceLayout.apps,
+                                _media(4, 'التطبيقات', Icons.grid_view_rounded),
+                                key: const ValueKey('reference-apps'),
+                              ),
+                              _place(
+                                ReferenceLayout.prayer,
+                                _prayerPanel(),
+                                key: const ValueKey('reference-prayer'),
+                              ),
+                              _place(
+                                ReferenceLayout.weather,
+                                _weatherPanel(),
+                                key: const ValueKey('reference-weather'),
+                              ),
+                              _place(
+                                ReferenceLayout.sportsPanel,
+                                _sportsPanel(),
+                                key: const ValueKey('reference-sports-panel'),
+                              ),
+                              _place(
                                 ReferenceLayout.dock,
+                                Container(
+                                  decoration: BoxDecoration(
+                                    borderRadius: BorderRadius.circular(64),
+                                    border: Border.all(
+                                      color: const Color(0xCCE8D2B3),
+                                      width: 2,
+                                    ),
+                                    gradient: const LinearGradient(
+                                      begin: Alignment.topCenter,
+                                      end: Alignment.bottomCenter,
+                                      colors: [
+                                        Color(0xCC5C5350),
+                                        Color(0xEB08090D),
+                                        Color(0xCA312516),
+                                      ],
+                                    ),
+                                    boxShadow: const [
+                                      BoxShadow(
+                                        color: Color(0x99D8A13E),
+                                        blurRadius: 17,
+                                        spreadRadius: 2,
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                                key: const ValueKey('applications-band'),
+                              ),
+                              _place(
+                                ReferenceLayout.appSlots,
                                 ReferenceDock(
                                   apps: dockApps,
                                   compactIcons: true,
+                                  showNames: true,
+                                  slotGap: 30,
                                   onLaunch: (app) =>
                                       _run(() => service.launchApp(app)),
                                   onEdit: _editDock,
                                   onAppOptions: _appOptions,
                                   firstFocus: _dockFocus,
+                                  lastFocus: _lastSlotFocus,
                                   onAppFocused: (node) => _lastDockFocus = node,
-                                  onLeftBoundary: _dockFocus.requestFocus,
-                                  onRightBoundary: _allAppsFocus.requestFocus,
-                                  onUp: (_) => _navFocus[2].requestFocus(),
+                                  onLeftBoundary: _allAppsFocus.requestFocus,
+                                  onRightBoundary: () =>
+                                      _navFocus[4].requestFocus(),
+                                  onUp: (_) => _headerFocus[9].requestFocus(),
                                 ),
-                                key: const ValueKey('applications-band'),
                               ),
                               _place(
-                                const Rect.fromLTWH(1130, 551, 100, 86),
+                                const Rect.fromLTWH(98, 568, 94, 86),
                                 ReferenceFocusable(
                                   key: const ValueKey('all-applications'),
                                   focusNode: _allAppsFocus,
-                                  label: 'جميع التطبيقات',
+                                  label: _l('جميع التطبيقات', 'All apps'),
                                   onPressed: _allApps,
                                   onKey: (e) => referenceDirections(
                                     e,
-                                    left: () => (_lastDockFocus ?? _dockFocus)
-                                        .requestFocus(),
-                                    right: () {},
-                                    up: () => _navFocus[3].requestFocus(),
+                                    left: () {},
+                                    right: _dockFocus.requestFocus,
+                                    up: () => _headerFocus[1].requestFocus(),
                                     down: () {},
                                   ),
                                   builder: (_, focused) => PremiumGlass(
                                     focused: focused,
+                                    radius: 25,
                                     child: const Center(
                                       child: Icon(
                                         Icons.grid_view_rounded,
-                                        size: 40,
+                                        size: 38,
                                       ),
                                     ),
                                   ),

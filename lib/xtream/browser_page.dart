@@ -10,10 +10,13 @@ import 'remote_search_field.dart';
 class XtreamBrowserPage extends StatefulWidget {
   final XtreamService service;
   final MediaKind kind;
+  final bool sportsOnly, focusSearch;
   const XtreamBrowserPage({
     super.key,
     required this.service,
     required this.kind,
+    this.sportsOnly = false,
+    this.focusSearch = false,
   });
   @override
   State<XtreamBrowserPage> createState() => _XtreamBrowserPageState();
@@ -36,12 +39,35 @@ class _XtreamBrowserPageState extends State<XtreamBrowserPage> {
   final _resultsScroll = ScrollController(),
       _categoriesScroll = ScrollController();
   double _categoryExtent = 56;
-  List<MediaEntry> get _entries => service.items(
-    widget.kind,
-    category: _category,
-    query: _query,
-    favourites: _favourites,
-  );
+  List<MediaCategory>? _sportsCategories;
+  List<MediaCategory> get _categories {
+    final categories = service.categories(widget.kind);
+    if (!widget.sportsOnly) return categories;
+    if (_sportsCategories != null) return _sportsCategories!;
+    final ids = service
+        .items(widget.kind)
+        .where(service.isSports)
+        .expand((m) => m.categories)
+        .toSet();
+    return _sportsCategories = categories
+        .where((c) => ids.contains(c.id))
+        .toList();
+  }
+
+  List<MediaEntry> _playlist({String? category, bool favourites = false}) =>
+      service
+          .items(widget.kind, category: category, favourites: favourites)
+          .where((item) => !widget.sportsOnly || service.isSports(item))
+          .toList();
+  List<MediaEntry> get _entries => service
+      .items(
+        widget.kind,
+        category: _category,
+        query: _query,
+        favourites: _favourites,
+      )
+      .where((item) => !widget.sportsOnly || service.isSports(item))
+      .toList();
   FocusNode _resultNode(MediaEntry entry) => _resultNodes.putIfAbsent(
     entry.key,
     () => FocusNode(debugLabel: 'xtream-result-${entry.key}'),
@@ -51,7 +77,7 @@ class _XtreamBrowserPageState extends State<XtreamBrowserPage> {
     () => FocusNode(debugLabel: 'xtream-category-$id'),
   );
   void _focusCategory([int? index]) {
-    final categories = service.categories(widget.kind);
+    final categories = _categories;
     final selected =
         index ??
         (_category == null
@@ -113,6 +139,10 @@ class _XtreamBrowserPageState extends State<XtreamBrowserPage> {
     super.initState();
     service.addListener(_updated);
     unawaited(_load());
+    if (widget.focusSearch)
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) _searchFocus.requestFocus();
+      });
   }
 
   Future<void> _load() async {
@@ -121,6 +151,7 @@ class _XtreamBrowserPageState extends State<XtreamBrowserPage> {
   }
 
   void _updated() {
+    _sportsCategories = null;
     if (mounted)
       setState(() {
         if (_category != null &&
@@ -262,11 +293,7 @@ class _XtreamBrowserPageState extends State<XtreamBrowserPage> {
         );
       } else {
         final playlist = item.kind == MediaKind.live
-            ? service.items(
-                widget.kind,
-                category: _category,
-                favourites: _favourites,
-              )
+            ? _playlist(category: _category, favourites: _favourites)
             : [item];
         final index = playlist.indexWhere((m) => m.id == item.id);
         if (index < 0) return;
@@ -279,11 +306,7 @@ class _XtreamBrowserPageState extends State<XtreamBrowserPage> {
               playlist: playlist,
               index: index,
               currentPlaylist: item.kind == MediaKind.live
-                  ? () => service.items(
-                      MediaKind.live,
-                      category: category,
-                      favourites: favourites,
-                    )
+                  ? () => _playlist(category: category, favourites: favourites)
                   : null,
             ),
           ),
@@ -319,7 +342,7 @@ class _XtreamBrowserPageState extends State<XtreamBrowserPage> {
 
   @override
   Widget build(BuildContext context) {
-    final categories = service.categories(widget.kind);
+    final categories = _categories;
     final entries = _entries;
     _categoryExtent = (MediaQuery.textScalerOf(context).scale(16) / 16 * 56)
         .clamp(56.0, double.infinity);
@@ -344,7 +367,9 @@ class _XtreamBrowserPageState extends State<XtreamBrowserPage> {
           child: Scaffold(
             backgroundColor: const Color(0xFF090E16),
             appBar: AppBar(
-              title: Text(widget.kind.label),
+              title: Text(
+                widget.sportsOnly ? 'القنوات الرياضية' : widget.kind.label,
+              ),
               actions: [
                 IconButton(
                   tooltip: 'تحديث الاشتراك',

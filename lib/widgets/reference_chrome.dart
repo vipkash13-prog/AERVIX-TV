@@ -7,18 +7,21 @@ const referenceGold = Color(0xFFFFD68A);
 /// Measured in the attached 1280x720 reference; the entire scene scales uniformly.
 abstract final class ReferenceLayout {
   static const Size canvas = Size(1280, 720);
-  static const sidebar = Rect.fromLTWH(0, 0, 214, 720);
-  static const weather = Rect.fromLTWH(35, 120, 350, 130);
-  static const prayer = Rect.fromLTWH(410, 120, 465, 130);
-  static const date = Rect.fromLTWH(900, 120, 340, 130);
-  static const clock = Rect.fromLTWH(1090, 25, 150, 55);
-  static const movies = Rect.fromLTWH(510, 310, 280, 160);
-  static const series = Rect.fromLTWH(805, 310, 260, 160);
-  static const live = Rect.fromLTWH(235, 310, 260, 160);
-  static const dock = Rect.fromLTWH(38, 540, 1080, 108);
-  static const navigationY = [167.0, 229.0, 287.0, 342.0, 398.0];
-  static String wallpaper(double physicalWidth) =>
-      'assets/premium_home/jeddah_night.jpg';
+  static const sidebar = Rect.fromLTWH(980, 115, 275, 366);
+  static const weather = Rect.fromLTWH(378, 386, 288, 122);
+  static const prayer = Rect.fromLTWH(40, 386, 322, 122);
+  static const clock = Rect.fromLTWH(1045, 9, 210, 66);
+  static const movies = Rect.fromLTWH(980, 116, 275, 72);
+  static const series = Rect.fromLTWH(995, 195, 260, 64);
+  static const live = Rect.fromLTWH(995, 268, 260, 64);
+  static const sports = Rect.fromLTWH(995, 341, 260, 64);
+  static const apps = Rect.fromLTWH(995, 414, 260, 64);
+  static const sportsPanel = Rect.fromLTWH(680, 378, 303, 136);
+  static const dock = Rect.fromLTWH(48, 548, 1184, 126);
+  static const appSlots = Rect.fromLTWH(210, 555, 984, 110);
+  static String wallpaper(double physicalWidth) => physicalWidth >= 3000
+      ? 'assets/premium_home/makkah_jeddah_uhd.png'
+      : 'assets/premium_home/makkah_jeddah_fhd.png';
 }
 
 KeyEventResult referenceDirections(

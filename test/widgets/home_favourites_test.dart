@@ -60,8 +60,14 @@ void main() {
       expect(store.initialized, isTrue);
       expect(find.byKey(const ValueKey('dock-installed.6')), findsOneWidget);
       expect(find.byKey(const ValueKey('dock-installed.7')), findsNothing);
-      await tester.sendKeyEvent(LogicalKeyboardKey.arrowDown);
-      await tester.pumpAndSettle();
+      for (var i = 0; i < 5; i++) {
+        await tester.sendKeyEvent(LogicalKeyboardKey.arrowDown);
+        await tester.pumpAndSettle();
+      }
+      for (var i = 0; i < 6; i++) {
+        await tester.sendKeyEvent(LogicalKeyboardKey.arrowLeft);
+        await tester.pumpAndSettle();
+      }
       expect(find.byKey(const ValueKey('dock-edit-area')), findsNothing);
       await tester.sendKeyEvent(LogicalKeyboardKey.arrowDown);
       await tester.pumpAndSettle();
