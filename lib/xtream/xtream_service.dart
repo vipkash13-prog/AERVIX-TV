@@ -6,6 +6,7 @@ import 'models.dart';
 import 'content_filter.dart';
 import 'account_store.dart';
 import 'catalogue.dart';
+import 'sports_guide.dart';
 
 Object? decodeXtream(String body) => jsonDecode(body);
 
@@ -15,6 +16,11 @@ class XtreamService extends ChangeNotifier {
   final http.Client _client;
   final ContentFilter filter = ContentFilter();
   final _categories = <MediaKind, List<MediaCategory>>{};
+  static final _sportsName = RegExp(
+    r'sport|bein|\bssc\b|رياض|الكاس|alkass',
+    caseSensitive: false,
+  );
+  Set<String> _sportsCategoryIds = {};
   final _raw = <MediaKind, List<MediaEntry>>{};
   final _allowed = <MediaKind, List<MediaEntry>>{};
   final _allowedIds = <MediaKind, Set<String>>{};
@@ -33,6 +39,7 @@ class XtreamService extends ChangeNotifier {
     : _client = client ?? http.Client() {
     ready = _load();
   }
+  int get accountRevision => _accountGeneration;
   bool get configured => _account != null;
   String? get host => _account?.server.toString();
   Set<String> get manualBlocks => Set.unmodifiable(_manual);
@@ -109,6 +116,7 @@ class XtreamService extends ChangeNotifier {
     storageError = null;
     _accountGeneration++;
     _categories.clear();
+    _sportsCategoryIds.clear();
     _raw.clear();
     _allowed.clear();
     _allowedIds.clear();
@@ -156,6 +164,11 @@ class XtreamService extends ChangeNotifier {
           _generations[kind] != generation)
         return;
       _categories[kind] = parsed.categories;
+      if (kind == MediaKind.live)
+        _sportsCategoryIds = parsed.categories
+            .where((c) => _sportsName.hasMatch(ContentFilter.normalize(c.name)))
+            .map((c) => c.id)
+            .toSet();
       _raw[kind] = parsed.raw;
       if (!setEquals(parsed.manual, _policyBlocks)) {
         _apply(kind);
@@ -261,6 +274,52 @@ class XtreamService extends ChangeNotifier {
         _blockedCategories[MediaKind.series] ?? {},
         _policyBlocks.where((key) => !key.startsWith('series:stream:')).toSet(),
       );
+
+  bool isSports(MediaEntry media) =>
+      media.kind == MediaKind.live &&
+      isAllowed(media) &&
+      (media.categories.any(_sportsCategoryIds.contains) ||
+          _sportsName.hasMatch(ContentFilter.normalize(media.name)));
+
+  Future<List<SportsProgramme>> sportsGuide({DateTime? now}) async {
+    await ready;
+    if (!configured || _disposed) return [];
+    if (!loaded(MediaKind.live)) await refresh(MediaKind.live);
+    final account = _account;
+    final generation = _accountGeneration;
+    if (account == null || _disposed) return [];
+    final channels = items(MediaKind.live).where(isSports).take(4).toList();
+    var failures = 0;
+    final lists = await Future.wait(
+      channels.map((channel) async {
+        try {
+          final data = await _request(
+            account,
+            action: 'get_short_epg',
+            extra: {'stream_id': channel.id, 'limit': '12'},
+          );
+          return parseSportsGuide(
+            data,
+            channel,
+            now ?? DateTime.now(),
+            filter.nameBlocked,
+          );
+        } on XtreamFailure {
+          failures++;
+          return <SportsProgramme>[];
+        }
+      }),
+    );
+    if (_disposed || generation != _accountGeneration) return [];
+    if (channels.isNotEmpty && failures == channels.length)
+      throw const XtreamFailure('تعذر تحديث جدول المباريات من الاشتراك');
+    final result = lists
+        .expand((list) => list)
+        .where((event) => isSports(event.channel))
+        .toList();
+    result.sort((a, b) => a.start.compareTo(b.start));
+    return result;
+  }
 
   Uri stream(MediaEntry media, {bool episode = false, MediaEntry? parent}) {
     if (_account == null) throw const XtreamFailure('لا يوجد اشتراك محفوظ');

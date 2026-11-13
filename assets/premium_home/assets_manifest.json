@@ -11,6 +11,36 @@
       "sha256": "690bb0ea22fc4bf94d5d33b97c1c716825f151eb0d513f569dbb46cddb015c8a",
       "native_4k": false,
       "provenance": "original uploaded JPEG, unchanged; display scales at runtime"
+    },
+    {
+      "file": "assets/premium_home/makkah_jeddah_fhd.png",
+      "size": [
+        1920,
+        1080
+      ],
+      "sha256": "3615b03698fe636988a349b4ecfec14162d6cd83caefed0aaf39fd121b7c2223",
+      "native_4k": false,
+      "source": "design_sources/tv_wallpapers_2026_11_13/makkah_jeddah_clean_generated.png",
+      "source_size": [
+        1672,
+        941
+      ],
+      "provenance": "AI-assisted clean background reconstruction from supplied reference, uniformly exported; no embedded UI; not native 4K"
+    },
+    {
+      "file": "assets/premium_home/makkah_jeddah_uhd.png",
+      "size": [
+        3840,
+        2160
+      ],
+      "sha256": "a1418b208b9b5df2b6e92b05e558e99a4f7e2080693eb845e2a963fc266998f7",
+      "native_4k": false,
+      "source": "design_sources/tv_wallpapers_2026_11_13/makkah_jeddah_clean_generated.png",
+      "source_size": [
+        1672,
+        941
+      ],
+      "provenance": "AI-assisted clean background reconstruction from supplied reference, uniformly exported; no embedded UI; not native 4K"
     }
   ]
 }
